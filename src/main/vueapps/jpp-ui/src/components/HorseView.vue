@@ -14,7 +14,7 @@
             <span v-b-tooltip.hover :title="data.field.title">{{ data.label }}</span>
         </template>    
         <template #cell()="row">
-            <span v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorses.length + ')' : '')">{{row.value}}</span>
+            <span v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.value}}</span>
         </template>         
         <template #cell(scratchButton)="row">	
             <span v-if="!row.item.scratchedFlag">			
@@ -81,8 +81,8 @@
             </b-tooltip> 
         </template>
         <template #cell(mlodds)="row">       
-                <span class="text-danger" v-if="hideML" v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorses.length + ')'"><b-icon-eye-slash-fill></b-icon-eye-slash-fill></span>
-                <span v-else>{{row.item.mlodds}}</span>
+                <span class="text-danger" v-if="hideML"><b-icon-eye-slash-fill></b-icon-eye-slash-fill></span>
+                <span v-else v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.item.mlodds}}</span>
         </template>     
         <template #cell(style)="row">
             {{ row.item.runStyle }} {{ row.item.speedPoints }}
@@ -92,12 +92,14 @@
         </template>
         <template #cell(classRating)="row">
             <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
-                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorses.length + ')'
-                + (row.item.brisCurrentClass > 0 ? '<br>BRIS Cur: ' + format2Places(row.item.brisCurrentClass) + ' (' + rankOf(row.item.brisCurrentClass, 'brisCurrentClass', row.field.reverse) + ' of ' + race.unscratchedHorses.length + ')': '') 
-                + (row.item.brisAvgLast3Class > 0 ? '<br>BRIS Avg L3: ' + format2Places(row.item.brisAvgLast3Class) + ' (' + rankOf(row.item.brisAvgLast3Class, 'brisAvgLast3Class', row.field.reverse) + ' of ' + race.unscratchedHorses.length + ')': '')">{{row.value}}</span>
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
+                + (row.item.brisCurrentClass > 0 ? '<br>BRIS Cur: ' + format2Places(row.item.brisCurrentClass) + ' (' + rankOf(row.item.brisCurrentClass, 'brisCurrentClass', row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')': '') 
+                + (row.item.brisAvgLast3Class > 0 ? '<br>BRIS Avg L3: ' + format2Places(row.item.brisAvgLast3Class) + ' (' + rankOf(row.item.brisAvgLast3Class, 'brisAvgLast3Class', row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')': '')">{{row.value}}</span>
         </template>    
         <template #cell(aratingForm)="row">
-            <span v-b-tooltip.hover :title="'Basic Fitness: ' + row.item.basicFitness">{{row.value}}</span>
+            <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
+                + '<br>Basic Fitness: ' + row.item.basicFitness">{{row.value}}</span>
         </template>
         <template #cell(detailsButton)="row">				
             <b-button
@@ -519,6 +521,7 @@
                             v-model="row.item.note"
                             placeholder="Enter something..."
                             max-rows="4"
+                            debounce="500" 
                         ></b-form-textarea>
                     </b-col>
                     <b-col>
@@ -565,7 +568,7 @@ export default {
                 {key: "selection", label: "ABC", title: "ABC Selection"},
                 {key: "bettingLine", label: "FV", title: "Betting Fair Value Line"},  
                 {key: "aratingFairValue", label: "AFV", title: "A Rating Fair Value Line", formatter: this.format1Place},           
-				{key: "mlodds", "label": "ML", title: "Morning Line Odds", sortable:true, tdClass: "text-center", rank: true, reverse: true},
+				{key: "mlodds", "label": "ML", title: "Morning Line Odds", sortable:true, tdClass: this.formatOdds, rank: true, reverse: true},
 				{key: "name", tdClass: this.highlightName},
 				{key: "daysSinceLastRace", label:"l/r", title: "Days Since Last Race", tdClass: this.highlightDaysSince},
 				{key: "style", label: "Style", title: "Run Style and Speed Points", tdClass: this.highlightPaceAdvantage, rank: false },
@@ -635,6 +638,9 @@ export default {
         }
     },
     computed: {
+        unscratchedHorses () {
+            return _.where(this.race.horses, {scratchedFlag: false});
+        },
         bettingLines () {
             return _.filter(_.pluck(this.race.horses, 'bettingLine'), function(l) {
                 return l > 0;
@@ -911,9 +917,22 @@ export default {
 		formatDate (date) {
 			return date[1] + "/" + date[2] + "/" + date[0];
 		},  
+        formatOdds (value, key) {
+            return "text-center " + ((this.hideML) ? "" : this.highlightMin(value,key));
+
+        },
         highlightName (value, key, item) {
             if (item.horseToWatch && item.horseToWatch.flag == 'Star') return "star";
-        },     
+        },   
+		highlightMin(value, key) {
+			var values = _.pluck(_.reject(this.race.horses, function(h) {
+				return h.scratchedFlag;
+			}), key);
+
+			if (value == _.min(values)) {
+				return "greenHighlight";
+			}
+		},          
 		highlightMax(value, key) {
 			var values = _.pluck(_.reject(this.race.horses, function(h) {
 				return h.scratchedFlag;
@@ -953,7 +972,7 @@ export default {
 			if (item.brisspeedRating >= this.race.parSpeed - 3) return "lightGreenHighlight";
 		},
 		highlightPaceAdvantage(value, key, item) {
-			if (_.contains(_.pluck(this.race.advantagedHorses,"name"), item.name)) return "greenHighlight";
+			if (_.contains(this.race.advantagedHorses, item.name)) return "greenHighlight";
 		},
 		highlightShift(value) {
 			if (value < 0) return "greenHighlight";
@@ -1030,7 +1049,7 @@ export default {
             return name;	
         },
         rankOf(value, property, reverse) {
-            var sa = _.pluck(this.race.unscratchedHorses, property);
+            var sa = _.pluck(this.unscratchedHorses, property);
             var sas = _.sortBy(sa, function(h) { return h;});
             if (!reverse) sas.reverse();
             return sas.indexOf(value) + 1;

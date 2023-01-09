@@ -470,12 +470,12 @@ export default {
 				if (
 					item.surface.indexOf("TURF") > -1 
 					&& ((this.race.trackCondition == "fm" && item.trackCondition == "fm") || (this.race.trackCondition != "fm" && ["tf","gd","gf","hd","yl","sf","hy","sl"].indexOf(item.trackCondition) > -1))
-					&& ((this.race.furlongs < 8 && item.furlongs < 8) || (this.race.furlongs >= 8 && item.furlongs >= 8))) 
+					&& ((Math.abs(this.race.furlongs) < 8 && Math.abs(item.furlongs) < 8) || (Math.abs(this.race.furlongs) >= 8 && Math.abs(item.furlongs) >= 8))) 
 					return "blueHighlight";
 			} else {
 				if ((item.surface.indexOf("TURF") == -1 || item.offTheTurfFlag)
 					&& ((this.race.trackCondition == "ft" && item.trackCondition == "ft") || (this.race.trackCondition != "ft" && ["gd","hy","my","sl","sy","wf"].indexOf(item.trackCondition) > -1))
-					&& ((this.race.furlongs < 8 && item.furlongs < 8) || (this.race.furlongs >= 8 && item.furlongs >= 8))) 
+					&& ((Math.abs(this.race.furlongs) < 8 && Math.abs(item.furlongs) < 8) || (Math.abs(this.race.furlongs) >= 8 && Math.abs(item.furlongs) >= 8))) 
 					return "blueHighlight";
 			}
 		},

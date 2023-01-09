@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.annotation.Generated;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -62,7 +64,7 @@ public class Race implements Serializable {
 	@SuppressWarnings("unused")
 	private float miles;
 
-	private List<Horse> advantagedHorses;
+	private List<String> advantagedHorses;
 	
 	private String trackCondition;
 	private Boolean OffTheTurfFlag;
@@ -189,13 +191,13 @@ public class Race implements Serializable {
 	}
 
 
-	public List<Horse> getAdvantagedHorses() {
+	public List<String> getAdvantagedHorses() {
 		return advantagedHorses;
 	}
 
 
 
-	public void setAdvantagedHorses(List<Horse> advantagedHorses) {
+	public void setAdvantagedHorses(List<String> advantagedHorses) {
 		this.advantagedHorses = advantagedHorses;
 	}
 
@@ -495,6 +497,7 @@ public class Race implements Serializable {
 		Horses = horses;
 	}
 	
+	@JsonIgnore
 	public List<Horse> getUnscratchedHorses () {
 		List<Horse> horses = new ArrayList<Horse>();
 		if (Horses != null)
@@ -504,6 +507,9 @@ public class Race implements Serializable {
 		return horses;
 	}
 	
+	public int getUnscratchedHorsesCount () {
+		return getUnscratchedHorses().size();
+	}
 
 	public PaceScenarioType getPaceScenario() {
 		return PaceScenario;
@@ -840,7 +846,7 @@ public class Race implements Serializable {
 		private int TotalSpeedPoints;
 		private float furlongs;
 		private float miles;
-		private List<Horse> advantagedHorses = Collections.emptyList();
+		private List<String> advantagedHorses = Collections.emptyList();
 		private String trackCondition;
 		private Boolean OffTheTurfFlag;
 		private Boolean TurfFlag;
@@ -1059,7 +1065,7 @@ public class Race implements Serializable {
 			return this;
 		}
 
-		public Builder withAdvantagedHorses(List<Horse> advantagedHorses) {
+		public Builder withAdvantagedHorses(List<String> advantagedHorses) {
 			this.advantagedHorses = advantagedHorses;
 			return this;
 		}

@@ -413,6 +413,7 @@
 									v-model="race.note"
 									placeholder="Enter something..."
 									max-rows="4"
+									debounce="500" 
 								></b-form-textarea>
 							</b-col>
 							<b-col>
@@ -742,8 +743,8 @@ export default {
 			var has = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				has[i] = false;
-				for (var j =0; j < this.races[i].unscratchedHorses.length; j++) {
-					if (this.races[i].unscratchedHorses[j].finishPosition == 1) has[i] = true;
+				for (var j =0; j < this.races[i].horses.length; j++) {
+					if (this.races[i].horses[j].finishPosition == 1) has[i] = true;
 				}
 			}
 			return has;
@@ -752,8 +753,8 @@ export default {
 			var payout = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				payout[i] = 0;
-				for (var j =0; j < this.races[i].unscratchedHorses.length; j++) {
-					if (this.races[i].unscratchedHorses[j].pick) payout[i] = this.races[i].unscratchedHorses[j].winPayout;
+				for (var j =0; j < this.races[i].horses.length; j++) {
+					if (this.races[i].horses[j].pick) payout[i] = this.races[i].horses[j].winPayout;
 				}
 			}	
 			return payout;		
@@ -762,9 +763,9 @@ export default {
 			var payout = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				payout[i] = 0;
-				for (var j =0; j < this.races[i].unscratchedHorses.length; j++) {
-					if (this.races[i].unscratchedHorses[j].pick) payout[i] = this.races[i].unscratchedHorses[j].winPayout
-						+ this.races[i].unscratchedHorses[j].placePayout;
+				for (var j =0; j < this.races[i].horses.length; j++) {
+					if (this.races[i].horses[j].pick) payout[i] = this.races[i].horses[j].winPayout
+						+ this.races[i].horses[j].placePayout;
 				}
 			}	
 			return payout;		
@@ -773,10 +774,10 @@ export default {
 			var payout = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				payout[i] = 0;
-				for (var j =0; j < this.races[i].unscratchedHorses.length; j++) {
-					if (this.races[i].unscratchedHorses[j].pick) payout[i] = this.races[i].unscratchedHorses[j].winPayout
-						+ this.races[i].unscratchedHorses[j].placePayout
-						+ this.races[i].unscratchedHorses[j].showPayout;
+				for (var j =0; j < this.races[i].horses.length; j++) {
+					if (this.races[i].horses[j].pick) payout[i] = this.races[i].horses[j].winPayout
+						+ this.races[i].horses[j].placePayout
+						+ this.races[i].horses[j].showPayout;
 				}
 			}	
 			return payout;		
@@ -793,7 +794,6 @@ export default {
 		starterFields() {
 			var starterFields = [];
 
-            
 			for (var i = 0; i < this.chart.length; i++) {
 				var fields=[];
 				fields.push({key: "lastRaced", title: "Last Racesd", label: "Last Raced"}); 

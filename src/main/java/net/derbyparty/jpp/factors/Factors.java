@@ -358,7 +358,7 @@ public class Factors {
 				} else if ((race.getDate().minusDays(180).isBefore(pp.getRaceDate()))) {
 					thisWeight += 1;
 				}
-				if (thisWeight > 0) {
+				if (thisWeight > 0 && pp.getSpeedPar() > 0) {
 					total += pp.getSpeedPar() * thisWeight;
 					weight += thisWeight;
 				}
@@ -437,6 +437,7 @@ public class Factors {
 		
 		try {
 			if (pps.size() == 0) return 0;	
+			if (race.getParSpeed() == 0 || pps.get(0).getSpeedPar() == 0) return 0;
 			return race.getParSpeed() - pps.get(0).getSpeedPar(); 
 			
 			
@@ -647,8 +648,10 @@ public class Factors {
 			int total = 0;
 			int count = 0;
 			for (int i = p; i < (pps.size() - p > 5 ? p + 5 : pps.size()); i++) {
-				total += pps.get(i).getBRISSpeedRating();
-				count++;
+				if (pps.get(i).getBRISSpeedRating() > 0) {
+					total += pps.get(i).getBRISSpeedRating();
+					count++;
+				}
 			}
 			return (float) total / count;
 			
@@ -820,7 +823,7 @@ public class Factors {
 			if (horse.getMostRecentYearBestSpeed() >= race.getMaxSpeed()) angles.add("+Most Recent Year Best Speed is equal or better than Max Speed Rating in the Race.");
 						
 			if (horse.getPastPerformances().size() > 2) {
-				if (horse.getAge() >= 4 && isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getPastPerformances().get(1).getBRISSpeedRating())
+				if (horse.getAge() >= 4 && horse.getPastPerformances().size() > 5 && isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getPastPerformances().get(1).getBRISSpeedRating())
 					&& isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getLifetimeBestSpeed()))
 						angles.add("-Horse has paired top speed figures; probable bounce.");
 				if (horse.getAge() >= 4 && isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getPastPerformances().get(1).getBRISSpeedRating())
@@ -970,7 +973,7 @@ public class Factors {
 					&& horse.getCurrentYearStarts() > 2)
 						angles.add("-Three Year old Stakes winner last year not improved as Four Year Old");
 			}
-			if (horse.getAge() >= 4 && horse.getPastPerformances().size() > 0) {
+			if (horse.getAge() >= 4 && horse.getPastPerformances().size() > 4) {
 				if (race.getTurfFlag() && race.getFurlongs() < 8) {
 					Boolean goodTurfRaceWithinHalfFurlong = false;
 					for (PastPerformance pp : horse.getPastPerformances()) {
@@ -992,24 +995,26 @@ public class Factors {
 			
 			case MAIDEN_SPECIAL_WEIGHT:
 			case MAIDEN_OPTIONAL_CLAIMING:
+				
 				if (horse.getPastPerformances().size() == 0) {
 					Boolean trainerStatFirstStarter = false;
+					Boolean lowFirstTimeWinPercent = (race.getTurfFlag() ? horse.getSireFirstTurfPercent() < 11 : horse.getSireFirstPercent() < 11);
 					for (Stat stat : horse.getTrainer().getTrainerStats()) {
 						if (stat.getCategory().equals("1st time str") && stat.getWinPercent() >= 11) trainerStatFirstStarter = true;
 					}
-					if (!trainerStatFirstStarter && SharpWorkouts(horse.getWorkouts(), race) < 2 && horse.getSireFirstPercent() < 11) {
+					if (!trainerStatFirstStarter && SharpWorkouts(horse.getWorkouts(), race) < 2 && lowFirstTimeWinPercent) {
 						angles.add("-First Time Start with Trainer 1st time stat < 11%, less than 2 sharp workouts AND Sire 1st Time Win % < 11 - NO PLAY");
 					} else if (!trainerStatFirstStarter && SharpWorkouts(horse.getWorkouts(), race) < 2) {
 						angles.add("-First Time Start with Trainer 1st time stat < 11% AND less than 2 sharp workouts - NO PLAY");
-					} else if (!trainerStatFirstStarter && horse.getSireFirstPercent() < 11) {
+					} else if (!trainerStatFirstStarter && lowFirstTimeWinPercent) {
 						angles.add("-First Time Start with Trainer 1st time stat < 11% AND Sire 1st Time Win % < 11 - NO PLAY");
-					} else if (SharpWorkouts(horse.getWorkouts(), race) < 2 && horse.getSireFirstPercent() < 11) {
+					} else if (SharpWorkouts(horse.getWorkouts(), race) < 2 && lowFirstTimeWinPercent) {
 						angles.add("-First Time Start with less than 2 sharp workouts AND Sire 1st Time Win % < 11 - NO PLAY");
 					} else if (!trainerStatFirstStarter) {
 						angles.add("?First Time Start with Trainer 1st time stat < 11% - NO PLAY Favorites/Low Price (Only high price + no 2nd starters projected to par + no experienced starters at par)");
 					} else if (SharpWorkouts(horse.getWorkouts(), race) < 2) {
 						angles.add("?First Time Start with less than 2 sharp workouts - NO PLAY Favorites/Low Price (Only high price + no 2nd starters projected to par + no experienced starters at par)");
-					} else if (horse.getSireFirstPercent() < 11) {
+					} else if (lowFirstTimeWinPercent) {
 						angles.add("?First Time Start with Sire 1st Time Win % < 11 - NO PLAY Favorites/Low Price (Only high price + no 2nd starters projected to par + no experienced starters at par)");
 					}
 					
@@ -1026,11 +1031,15 @@ public class Factors {
 				
 			case MAIDEN_CLAIMING:
 				if (horse.getPastPerformances().size() > 0) {
-					if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
-							|| horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING) {
+					Boolean hasBeenInForClaim = false;
+					for (PastPerformance pp : horse.getPastPerformances()) {
+						if (pp.getClaimingPrice() > 0) hasBeenInForClaim = true;
+					}
+					if (!hasBeenInForClaim && (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+							|| horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING)) {
 						angles.add("+Maiden to Maiden Claiming");
-					} else if (horse.getPastPerformances().size() > 1 && (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
-							|| horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING)) {
+					} else if (!hasBeenInForClaim && (horse.getPastPerformances().size() > 1 && (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+							|| horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING))) {
 						angles.add("+Maiden to Maiden Claiming Two Races Back");
 					} else {
 						if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING && 

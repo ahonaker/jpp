@@ -36,9 +36,9 @@ public class Ratings {
 		return horse.getClassRating() * factor;
 	}
 	
-	public static List<Horse> identifyPaceAdvantage (Race race) throws Exception {
+	public static List<String> identifyPaceAdvantage (Race race) throws Exception {
 		
-		List <Horse> advantagedHorses = new ArrayList<Horse>();
+		List <String> advantagedHorses = new ArrayList<String>();
 		
 		try {
 			float E2AvgSorted[] = new float[race.getUnscratchedHorses().size()];
@@ -61,7 +61,7 @@ public class Ratings {
 						if (horse.getRunStyle().equals("E") && horse.getSpeedPoints() >= 6 && 
 								(horse.getE2Avg() - 4 > E2AvgSorted[race.getUnscratchedHorses().size()-2] 
 										|| horse.getSpeedRating() - 4 > SpeedRatingSorted[race.getUnscratchedHorses().size()-2])) {
-							advantagedHorses.add(horse);
+							advantagedHorses.add(horse.getName());
 						}
 					}
 					
@@ -69,7 +69,7 @@ public class Ratings {
 						for (Horse horse : race.getUnscratchedHorses()) {
 							if ((horse.getRunStyle().equals("E/P") || horse.getRunStyle().equals("P"))
 									&& horse.getSpeedRating() > SpeedRatingSorted[race.getUnscratchedHorses().size()-4]) {
-								advantagedHorses.add(horse);
+								advantagedHorses.add(horse.getName());
 							}
 						}						
 					}
@@ -80,7 +80,7 @@ public class Ratings {
 						if ((horse.getRunStyle().equals("E") || horse.getRunStyle().equals("E/P")) && horse.getSpeedPoints() >= 4 && 
 								(horse.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedHorses().size()-2] 
 										|| horse.getSpeedRating() - 2 > SpeedRatingSorted[race.getUnscratchedHorses().size()-2])) {
-							advantagedHorses.add(horse);
+							advantagedHorses.add(horse.getName());
 						}
 					}
 					
@@ -90,7 +90,7 @@ public class Ratings {
 						if (horse.getRunStyle().equals("E/P") && 
 								(horse.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedHorses().size()-2] 
 										|| horse.getSpeedRating() - 2 > SpeedRatingSorted[race.getUnscratchedHorses().size()-2])) {
-							advantagedHorses.add(horse);
+							advantagedHorses.add(horse.getName());
 						}
 					}
 					
@@ -98,7 +98,7 @@ public class Ratings {
 						for (Horse horse : race.getUnscratchedHorses()) {
 							if ((horse.getRunStyle().equals("E/P"))
 									&& horse.getSpeedRating() > SpeedRatingSorted[race.getUnscratchedHorses().size()-4]) {
-								advantagedHorses.add(horse);
+								advantagedHorses.add(horse.getName());
 							}
 						}						
 					}
@@ -108,7 +108,7 @@ public class Ratings {
 					for (Horse horse : race.getUnscratchedHorses()) {
 						if (horse.getRunStyle().equals("P") && 
 								(horse.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedHorses().size()-2] )) {
-							advantagedHorses.add(horse);
+							advantagedHorses.add(horse.getName());
 						}
 					}
 					
@@ -116,7 +116,7 @@ public class Ratings {
 						for (Horse horse : race.getUnscratchedHorses()) {
 							if ((horse.getRunStyle().equals("P") || horse.getRunStyle().equals("S"))
 									&& horse.getLatePaceAvg() > LatePaceAvgSorted[race.getUnscratchedHorses().size()-4]) {
-								advantagedHorses.add(horse);
+								advantagedHorses.add(horse.getName());
 							}
 						}						
 					}

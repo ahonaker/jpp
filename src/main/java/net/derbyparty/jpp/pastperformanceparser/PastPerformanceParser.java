@@ -50,7 +50,7 @@ public class PastPerformanceParser {
 	    		Pattern.compile("^\\+*JKYw\\/\\s*(Trn\\s*L60)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)%\\s*([\\-\\+0-9.]+)");	
 	    
 	    Pattern ANGLE_LINE = 
-	    		Pattern.compile("([ñ|×]\\s)([a-zA-Z0-9\\%\\s\\':\\(\\)\\-\\/\\+]+)");
+	    		Pattern.compile("([ñ|×]\\s)([a-zA-Z0-9\\%\\s\\':\\(\\)\\-\\/\\+\\.]+)");
 	    
 	    Pattern RANK_LIST = 
 	    		Pattern.compile("^(([\\d\\.NA]+)\\s+([a-zA-Z\\'\\s]+))");
@@ -154,7 +154,11 @@ public class PastPerformanceParser {
 						.withITMPercent(Float.parseFloat(jkyTypeStatsMatcher.group(4)))
 						.withROI(Float.parseFloat(jkyTypeStatsMatcher.group(5)))
 						.build();
-					horse.getJockey().getStats().add(stat);
+					Boolean exists = false;
+					for (Stat existingStat : horse.getJockey().getStats()) {
+						if (stat.getCategory().equals(existingStat.getCategory())) exists = true;
+					}
+					if (!exists) horse.getJockey().getStats().add(stat);
 				}
 				
 				Matcher jkyTrainerStatsMatcher = JOCKEY_TRN_STATS.matcher(lines[i]);
@@ -166,7 +170,11 @@ public class PastPerformanceParser {
 							.withITMPercent(Float.parseFloat(jkyTrainerStatsMatcher.group(4)))
 							.withROI(Float.parseFloat(jkyTrainerStatsMatcher.group(5)))
 							.build();
-					horse.getJockey().getStats().add(stat);
+					Boolean exists = false;
+					for (Stat existingStat : horse.getJockey().getStats()) {
+						if (stat.getCategory().equals(existingStat.getCategory())) exists = true;
+					}
+					if (!exists) horse.getJockey().getStats().add(stat);
 					
 				}
 				

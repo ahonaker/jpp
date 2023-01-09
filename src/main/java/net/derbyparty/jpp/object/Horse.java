@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.annotation.Generated;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -1450,6 +1452,7 @@ public class Horse implements Serializable {
 	public void setPastPerformances(List<PastPerformance> pastPerformances) {
 		PastPerformances = pastPerformances;
 	}
+	@JsonIgnore
 	public List<PastPerformance> getUnignoredPastPerformances() {
 		List<PastPerformance> pps = new ArrayList<PastPerformance>();
 		if (PastPerformances != null)
