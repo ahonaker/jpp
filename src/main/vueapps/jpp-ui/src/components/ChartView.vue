@@ -70,7 +70,10 @@
             </template>    
 			<template #cell(odds)="row">
                 {{row.value}}<span v-if="row.item.favorite">*</span>
-            </template> 			 
+            </template> 
+			<template #cell(comments)="row">
+                <span  v-b-tooltip.hover :title="row.item.footnote">{{row.value}}</span>
+            </template>             			 
             <template #cell(note)="row">
                 <b-form-input v-model="row.item.note" placeholder="Enter Note"></b-form-input>
             </template>  

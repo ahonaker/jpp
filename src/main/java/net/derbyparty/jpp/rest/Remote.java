@@ -514,6 +514,35 @@ public class Remote {
 	  
 	}
 	
+	@Path("addProgramNumbers")
+	@POST
+	@Produces("application/json")
+	@Consumes("multipart/form-data")
+	public Response addProgramNumbers(  @FormDataParam("data") InputStream fileInputStream,
+	                    @FormDataParam("filename") String filename) throws Exception {
+	  
+		  try {
+			    int read = 0;
+			    byte[] bytes = new byte[1024];
+			 
+			    OutputStream out = new FileOutputStream(new File(dir+ filename));
+			    while ((read = fileInputStream.read(bytes)) != -1) 
+			    {
+			      out.write(bytes, 0, read);
+			    }
+			    out.flush();
+			    out.close();
+			    
+			    return Response.ok().entity(Main.addProgramNumbers(filename)).build();
+		  
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+			} 
+	  
+	  
+	}
+	
 	@Path("getHorsesToWatch")
 	@GET
 	public Response getHorsesToWatch() throws Exception {

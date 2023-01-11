@@ -26,13 +26,15 @@
 					</b-nav-form>
 				</b-navbar-nav>				
 				<b-navbar-nav small>
-					<b-nav-item :disabled="!file" @click="load">Load</b-nav-item>
-					<b-nav-item :disabled="races.length == 0 || !file" @click="augment">Augment</b-nav-item>					
-					<b-nav-item :disabled="races.length == 0" @click="getChanges">Get Changes</b-nav-item>
-					<b-nav-item :disabled="races.length == 0" @click="getResults">Get Results</b-nav-item>					
-					<b-nav-item :disabled="races.length == 0" @click="calculate">Calculate</b-nav-item>
-					<b-nav-item :disabled="races.length == 0" @click="save">Save</b-nav-item>			
-					<b-nav-item :disabled="!file" @click="retrieve">Retrieve</b-nav-item>	
+					<b-nav-item :disabled="!file" @click="load"><b-icon-cloud-upload v-b-tooltip.hover.bottom title="Upload"></b-icon-cloud-upload></b-nav-item>
+					<b-nav-item :disabled="races.length == 0 || !file" @click="augment"><b-icon-cloud-plus title="Augment"></b-icon-cloud-plus></b-nav-item>
+					<b-nav-item :disabled="races.length == 0 || !file" @click="addProgramNumbers"><b-icon-file-earmark-binary title="Add Program Numbers"></b-icon-file-earmark-binary></b-nav-item>				
+					<b-nav-item :disabled="races.length == 0" @click="getChanges"><b-icon-triangle-fill v-b-tooltip.hover.bottom title="Get Changes"></b-icon-triangle-fill></b-nav-item>
+					<b-nav-item :disabled="races.length == 0" @click="getResults"><b-icon-currency-dollar v-b-tooltip.hover.bottom title="Results"></b-icon-currency-dollar></b-nav-item>					
+					<b-nav-item :disabled="races.length == 0" @click="calculate"><b-icon-calculator-fill v-b-tooltip.hover.bottom title="Calculate"></b-icon-calculator-fill></b-nav-item>
+					<b-nav-item :disabled="races.length == 0" @click="save"><b-icon-file-earmark-arrow-up v-b-tooltip.hover.bottom title="Save"></b-icon-file-earmark-arrow-up></b-nav-item>			
+					<b-nav-item :disabled="!file" @click="retrieve"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
+					<b-nav-item :disabled="races.length == 0" @click="clearRaces"><b-icon-eraser-fill v-b-tooltip.hover.bottom title="Clear Races"></b-icon-eraser-fill></b-nav-item>	
 				</b-navbar-nav>
 			</b-navbar>
 
@@ -634,7 +636,7 @@
 
 <script>
 //import { } from 'bootstrap-vue'
-import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill } from 'bootstrap-vue'
+import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill  } from 'bootstrap-vue'
 import HorseView from '@/components/HorseView'
 import ChartView from '@/components/ChartView'
 import HorsesToWatchView from '@/components/HorsesToWatchView'
@@ -645,7 +647,7 @@ import _ from 'underscore'
 export default {
 	name: 'App',
 	components: {
-		HorseView, ChartView, HorsesToWatchView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill
+		HorseView, ChartView, HorsesToWatchView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill
 	},
 	data () {
 		return {
@@ -826,6 +828,7 @@ export default {
 				this.$bvModal.msgBoxConfirm("Reload and Start Over?")
 					.then(confirmed => {
 						if (confirmed) {
+							this.races = [];
 							this.uploadAndCalculate();
 						}
 					});
@@ -904,6 +907,29 @@ export default {
                 
             }
 		},
+		async addProgramNumbers() {
+            try {
+				this.loading = true;
+                var formData = new FormData();
+                formData.append("data", this.file);
+                formData.append("filename", this.file.name);
+                const response = await axios({
+                    url: 'addProgramNumbers',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
+                });
+                //console.log(response.data);
+				this.races = response.data;
+				this.loading = false;
+            } catch (err) {
+                console.log(err);
+                
+            }
+		},		
 		async extractPP() {
             try {
 				this.loading = true;
@@ -1070,6 +1096,14 @@ export default {
                 console.log(err.response);
                 
             }
+		},
+		clearRaces() {
+			this.$bvModal.msgBoxConfirm("Clear Races?")
+				.then(confirmed => {
+					if (confirmed) {
+						this.races = [];
+					}
+				});		
 		},
 		async updateCondition(race) {
             try {

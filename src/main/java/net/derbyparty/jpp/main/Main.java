@@ -14,6 +14,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import net.derbyparty.jpp.chart.ProcessChart;
+import net.derbyparty.jpp.chartparser.ChartParser;
+import net.derbyparty.jpp.chartparser.charts.pdf.RaceResult;
+import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
 import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.factors.Ratings;
 import net.derbyparty.jpp.loader.Loader;
@@ -199,6 +202,23 @@ public class Main {
 		
 		
 		} 
+		return getAll();
+	}
+	
+	public static String addProgramNumbers (String filename) throws Exception {
+		
+		try {
+			List<Race> updatedRaces =  Loader.get(dir + filename);
+			for (int i = 0; i < races.size(); i++) {
+				for (int j = 0; j < races.get(i).getHorses().size(); j++) {
+					races.get(i).getHorses().get(j).setProgramNumber(updatedRaces.get(i).getHorses().get(j).getProgramNumber());
+				}
+			}
+			
+		} catch (Exception e) {
+			throw e;
+		}
+		
 		return getAll();
 	}
 	

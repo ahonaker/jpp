@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -50,7 +50,7 @@ public class ProcessChart {
 			throw e;
 		}
 
-	}	
+	}		
 	
 	public static String getKeyRaces() throws Exception {
 			
@@ -68,6 +68,7 @@ public class ProcessChart {
 		
 		try {
 			List<PotentialKeyRace> keyRaces = new ArrayList<PotentialKeyRace>(getKeyRacesList());
+			
 			List<RaceResult> results = chartParser.parse(chart);
 			
 			for (RaceResult result : results) {
@@ -131,7 +132,7 @@ public class ProcessChart {
 							keyRaces.add(newKeyRace);
 						}
 					}
-
+				
 				}
 			}
 			
@@ -172,7 +173,13 @@ public class ProcessChart {
 		
 	}
 	
-	public static String getCharts () throws Exception {
+	public static String getCharts() throws Exception {
+		
+		return mapper.writeValueAsString(getChartsArray());
+		
+	}
+	
+	public static ArrayNode getChartsArray () throws Exception {
 		
 		String targetDir = "/Users/ahonaker/Google Drive/pp/jpp/parsedcharts/";
 		ArrayNode charts = mapper.createArrayNode();
@@ -206,7 +213,7 @@ public class ProcessChart {
 			throw e;
 		
 		}
-		return mapper.writeValueAsString(charts);
+		return charts;
 	}
 	
 	public static List<RaceResult> addHorsesToWatchToChart(List<RaceResult> chart) throws Exception {

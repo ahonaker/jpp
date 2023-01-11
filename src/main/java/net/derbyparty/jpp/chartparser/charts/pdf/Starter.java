@@ -75,6 +75,7 @@ public class Starter {
     private String raceFlag;
     private String horseFlag;
     private PotentialKeyRace lastRacedKeyRace;
+    private String footnote;
     
     private Starter(Builder builder) {
         lastRaced = builder.lastRaced;
@@ -240,6 +241,14 @@ public class Starter {
 
 	public void setLastRacedKeyRace(PotentialKeyRace lastRacedKeyRace) {
 		this.lastRacedKeyRace = lastRacedKeyRace;
+	}
+
+	public String getFootnote() {
+		return footnote;
+	}
+
+	public void setFootnote(String footnote) {
+		this.footnote = footnote;
 	}
 
 	/**

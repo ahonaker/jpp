@@ -603,7 +603,7 @@ export default {
 				{value: "sl", text: "Slow"}
 			],
             selectionOptions : [
-                "A","B","C","X",""
+                "A","B","C","S","X",""
             ],
             bettingLineOptions : [
                 {value: 0, text: "99"},

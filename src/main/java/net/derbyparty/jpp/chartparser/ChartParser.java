@@ -384,15 +384,25 @@ public class ChartParser {
                 // parse the wagering pools and payoffs (WPS and exotics)
                 WagerPayoffPools wagerPayoffPools = WagerPayoffPools.parse(lines);
                 raceResultBuilder.wagerPoolsAndPayoffs(wagerPayoffPools);
+                
+
+                // Footnotes
+                String footnotes = Footnotes.parse(lines);
+                raceResultBuilder.footnotes(footnotes);
+                
+                String[] starterFootnotes = footnotes.split("\\.\\s");
+                
+                for (Starter starter : starters) {
+                	for (String footnote :starterFootnotes) {
+                		if (footnote.startsWith(starter.getHorse().getName().toUpperCase())) starter.setFootnote(footnote);
+                	}
+                }
 
                 // update each starter with the total lengths behind at each point of call (if
                 // applicable)
                 starters = PastPerformanceRunningLinePreview.parse(lines, starters);
                 raceResultBuilder.starters(starters);
 
-                // Footnotes
-                String footnotes = Footnotes.parse(lines);
-                raceResultBuilder.footnotes(footnotes);
 
                 RaceResult raceResult = raceResultBuilder.build();
                 raceResults.add(raceResult);

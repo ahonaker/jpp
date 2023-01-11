@@ -141,7 +141,7 @@
             <span v-if="row.item.e2 != 0"><span v-if="row.item.raceShapeSecondCall > 0">+</span>{{row.item.raceShapeSecondCall}}</span>
         </template>		
          <template #cell(brisspeedRating)="row">
-            <span v-if="row.item.brisspeedRating != 0">{{row.item.brisspeedRating}}</span><span v-if="row.item.speedPar != 0"> / {{row.item.speedPar}}</span>
+            <span v-if="row.item.brisspeedRating != 0">{{row.item.brisspeedRating}}</span><span v-if="row.item.speedPar != 0" :class="{'text-success font-weight-bold': row.item.speedPar >= race.parSpeed}"> / {{row.item.speedPar}}</span>
         </template>						
         <template #cell(speedRating)="row">
             <span v-if="row.item.speedRating != 0">
