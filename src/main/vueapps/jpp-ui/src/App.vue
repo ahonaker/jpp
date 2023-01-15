@@ -386,7 +386,7 @@
 								MaxE1Avg: {{race.e1Avg}}
 							</b-col>
 							<b-col class="text-center">
-								MaxE2Avg: {{race.e2Avg}}
+								MaxE2Avg: {{format2Places(race.e2Avg)}}
 							</b-col>
 							<b-col class="text-center">
 								MaxE2: {{race.maxE2}}
@@ -1139,11 +1139,18 @@ export default {
 			_.each(race.horses, async function(horse){		
 				try {
 					horse._showDetails = b;
+					var formData = new FormData();
+					formData.append("raceNumber", race.raceNumber);
+					formData.append("name", horse.name);
 					await axios({
-						url: 'toggleShowDetail/' + race.raceNumber + '/' + horse.programNumber,
-						method: 'GET',
-						baseURL: 'http://localhost:8080/jpp/rest/remote/'
-					});
+						url: 'toggleShowDetail',
+						method: 'POST',
+						baseURL: 'http://localhost:8080/jpp/rest/remote/',
+						headers: {
+							'Content-Type': 'multipart/form-data'
+						},
+						data: formData
+					});					
 				} catch (err) {
 					console.log(err);
 					
@@ -1240,6 +1247,16 @@ export default {
 			});
 			return formatter.format(amount);
 		},
+		format2Places(amount) {
+			const formatter = new Intl.NumberFormat('en-US', {
+
+
+				// These options are needed to round to whole numbers if that's what you want.
+				minimumFractionDigits: 2, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+				maximumFractionDigits: 2, // (causes 2500.99 to be printed as $2,501)
+			});
+			return formatter.format(amount);
+		},		
 		formatDate (date) {
 			return date[1] + "/" + date[2] + "/" + date[0];
 		},	

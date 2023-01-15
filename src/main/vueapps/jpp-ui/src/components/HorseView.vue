@@ -81,9 +81,12 @@
             </b-tooltip> 
         </template>
         <template #cell(mlodds)="row">       
-                <span class="text-danger" v-if="hideML"><b-icon-eye-slash-fill></b-icon-eye-slash-fill></span>
-                <span v-else v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.item.mlodds}}</span>
+            <span class="text-danger" v-if="hideML"><b-icon-eye-slash-fill></b-icon-eye-slash-fill></span>
+            <span v-else v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.item.mlodds}}</span>
         </template>     
+        <template #cell(name)="row">
+            <span v-b-tooltip.hover :title="properize(row.item.trainer.name) + '/' + properize(row.item.jockey.name)">{{row.value}}</span> 
+        </template>
         <template #cell(style)="row">
             {{ row.item.runStyle }} {{ row.item.speedPoints }}
         </template>	 
@@ -106,6 +109,7 @@
                 @click="toggleShowDetail(row)"
                 size="sm"
                 :variant="(row.item.note == null) ? 'outline-secondary' : 'primary'"
+                v-b-tooltip.hover.left :title="row.item.note"
                 class="mr-1">
                 <b-icon-info
                     aria-hidden="true">
@@ -690,11 +694,19 @@ export default {
 		},
 		async togglePick(item) {
             try {
+                var formData = new FormData();
+                formData.append("raceNumber", this.race.raceNumber);
+                formData.append("name", item.name);
                 await axios({
-                    url: 'togglePick/' + this.race.raceNumber + '/' + item.programNumber,
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+                    url: 'togglePick',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
                 });
+
                 item.pick = !item.pick;
                 if (item.pick) {
                     for (var i = 0; i < this.race.horses.length; i++) {
@@ -709,11 +721,18 @@ export default {
         async toggleShowDetail(row) {
             try {
                 row.toggleDetails();
+                var formData = new FormData();
+                formData.append("raceNumber", this.race.raceNumber);
+                formData.append("name", row.item.name);
                 await axios({
-                    url: 'toggleShowDetail/' + this.race.raceNumber + '/' + row.item.programNumber,
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
-                });
+                    url: 'toggleShowDetail',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
+                });	                
             } catch (err) {
                 console.log(err.response);
                 
@@ -721,10 +740,18 @@ export default {
         },
         async updateSelection(horse) {
             try {
+                var formData = new FormData();
+                formData.append("raceNumber", horse.raceNumber);
+                formData.append("name", horse.name);
+                formData.append("selection", horse.selection);
                 const response = await axios({
-                    url: 'setSelection/' + this.race.raceNumber + '/' + horse.programNumber + '/' + horse.selection ,
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+                    url: 'setSelection',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
                 });
                 this.$emit('selectionUpdate', response.data);
             } catch (err) {
@@ -734,11 +761,19 @@ export default {
         },       
         async updateBettingLine(horse) {
             try {
+                var formData = new FormData();
+                formData.append("raceNumber", horse.raceNumber);
+                formData.append("name", horse.name);
+                formData.append("bettingLine", horse.bettingLine);
                 const response = await axios({
-                    url: 'setBettingLine/' + this.race.raceNumber + '/' + horse.programNumber + '/' + horse.bettingLine ,
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
-                });
+                    url: 'setBettingLine',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
+                });                
                 this.$emit('bettingLineUpdate', response.data);
             } catch (err) {
                 console.log(err.response);
@@ -750,7 +785,7 @@ export default {
 				this.loading = true;
                 var formData = new FormData();
                 formData.append("raceNumber", horse.raceNumber);
-                formData.append("programNumber", horse.programNumber);
+                formData.append("name", horse.name);
                 formData.append("note", horse.note);
                 await axios({
                     url: 'setHorseNote',

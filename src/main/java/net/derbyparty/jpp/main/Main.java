@@ -14,9 +14,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import net.derbyparty.jpp.chart.ProcessChart;
-import net.derbyparty.jpp.chartparser.ChartParser;
-import net.derbyparty.jpp.chartparser.charts.pdf.RaceResult;
-import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
 import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.factors.Ratings;
 import net.derbyparty.jpp.loader.Loader;
@@ -205,14 +202,17 @@ public class Main {
 		return getAll();
 	}
 	
-	public static String addProgramNumbers (String filename) throws Exception {
+	public static String addLateData (String filename) throws Exception {
 		
 		try {
 			List<Race> updatedRaces =  Loader.get(dir + filename);
 			for (int i = 0; i < races.size(); i++) {
+				races.get(i).setWagerTypes(updatedRaces.get(i).getWagerTypes());
 				for (int j = 0; j < races.get(i).getHorses().size(); j++) {
 					races.get(i).getHorses().get(j).setProgramNumber(updatedRaces.get(i).getHorses().get(j).getProgramNumber());
+					races.get(i).getHorses().get(j).setMLOdds(updatedRaces.get(i).getHorses().get(j).getMLOdds());
 				}
+					
 			}
 			
 		} catch (Exception e) {
@@ -386,13 +386,13 @@ public class Main {
 		}
 	}
 	
-	public static void togglePick(int raceNumber, String programNumber) throws Exception {
+	public static void togglePick(int raceNumber, String name) throws Exception {
 		
 		try {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					for (Horse horse : race.getHorses()) {
-						if (horse.getProgramNumber().equals(programNumber)) {
+						if (horse.getName().equals(name)) {
 							horse.setPick(!horse.getPick());
 						}
 					}
@@ -403,13 +403,13 @@ public class Main {
 		}
 	}
 	
-	public static void toggleShowDetail(int raceNumber, String programNumber) throws Exception {
+	public static void toggleShowDetail(int raceNumber, String name) throws Exception {
 		
 		try {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					for (Horse horse : race.getHorses()) {
-						if (horse.getProgramNumber().equals(programNumber)) {
+						if (horse.getName().equals(name)) {
 							horse.set_showDetails(!horse.get_showDetails());
 						}
 					}
@@ -420,13 +420,13 @@ public class Main {
 		}
 	}	
 	
-	public static void toggleIgnored(int raceNumber, String programNumber, LocalDate raceDate) throws Exception {
+	public static void toggleIgnored(int raceNumber, String name, LocalDate raceDate) throws Exception {
 		
 		try {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					for (Horse horse : race.getHorses()) {
-						if (horse.getProgramNumber().equals(programNumber)) {
+						if (horse.getName().equals(name)) {
 							for (PastPerformance pp : horse.getPastPerformances()) {
 								if (pp.getRaceDate().equals(raceDate)) {
 									pp.setIgnore(!pp.getIgnore());
@@ -481,13 +481,13 @@ public class Main {
 		}
 	}
 	
-	public static void setHorseNote(int raceNumber, String programNumber, String note) throws Exception {
+	public static void setHorseNote(int raceNumber, String name, String note) throws Exception {
 		
 		try {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					for (Horse horse : race.getHorses()) {
-						if (horse.getProgramNumber().equals(programNumber)) {
+						if (horse.getName().equals(name)) {
 							horse.setNote(note);
 						}
 					}
@@ -518,13 +518,13 @@ public class Main {
 		return outerJoiner.toString();
 	}
 	
-	public static void setBettingLine(int raceNumber, String programNumber, float bettingLine) throws Exception {
+	public static void setBettingLine(int raceNumber, String name, float bettingLine) throws Exception {
 		
 		try {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					for (Horse horse : race.getHorses()) {
-						if (horse.getProgramNumber().equals(programNumber)) {
+						if (horse.getName().equals(name)) {
 							horse.setBettingLine(bettingLine);
 						}
 					}
@@ -536,7 +536,7 @@ public class Main {
 		}
 	}
 	
-	public static String setSelection(int raceNumber, String programNumber, String selection) throws Exception {
+	public static String setSelection(int raceNumber, String name, String selection) throws Exception {
 		
 		ArrayNode results = mapper.createArrayNode();
 		
@@ -544,9 +544,8 @@ public class Main {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					for (Horse horse : race.getHorses()) {
-						if (horse.getProgramNumber().equals(programNumber)) {
+						if (horse.getName().equals(name)) {
 							horse.setSelection(selection);
-							
 						}
 					}
 				}
@@ -570,17 +569,19 @@ public class Main {
 						List<String> cHorses = new ArrayList<String>();
 						
 						for (Horse horse : races.get(i).getUnscratchedHorses()) {
-							if (horse.getSelection().equals("A")) {
-								if (!aHorses.contains(horse.getProgramNumber())) aHorses.add(horse.getProgramNumber());
-								if (!abHorses.contains(horse.getProgramNumber())) abHorses.add(horse.getProgramNumber());
-								
-							}
-							if (horse.getSelection().equals("B")) {
-								if (!abHorses.contains(horse.getProgramNumber())) abHorses.add(horse.getProgramNumber());
-								if (!bHorses.contains(horse.getProgramNumber())) bHorses.add(horse.getProgramNumber());
-							}
-							if (horse.getSelection().equals("C")) {
-								if (!cHorses.contains(horse.getProgramNumber())) cHorses.add(horse.getProgramNumber());
+							if (horse.getSelection() != null) {
+								if (horse.getSelection().equals("A")) {
+									if (!aHorses.contains(horse.getProgramNumber())) aHorses.add(horse.getProgramNumber());
+									if (!abHorses.contains(horse.getProgramNumber())) abHorses.add(horse.getProgramNumber());
+									
+								}
+								if (horse.getSelection().equals("B")) {
+									if (!abHorses.contains(horse.getProgramNumber())) abHorses.add(horse.getProgramNumber());
+									if (!bHorses.contains(horse.getProgramNumber())) bHorses.add(horse.getProgramNumber());
+								}
+								if (horse.getSelection().equals("C")) {
+									if (!cHorses.contains(horse.getProgramNumber())) cHorses.add(horse.getProgramNumber());
+								}
 							}
 						}
 						

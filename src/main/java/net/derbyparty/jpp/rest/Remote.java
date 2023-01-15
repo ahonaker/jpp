@@ -225,13 +225,16 @@ public class Remote {
 
 	}
 
-	@Path("togglePick/{raceNumber}/{programNumber}")	
-	@GET
+	@Path("togglePick")	
+	@POST
+	@Produces("application/json")
+	@Consumes("multipart/form-data")
 
-	public Response togglePick(@PathParam("raceNumber") int raceNumber, @PathParam("programNumber") String programNumber) throws Exception {
+	public Response togglePick(  @FormDataParam("raceNumber") int raceNumber,
+			@FormDataParam("name") String name) throws Exception {
 		
 		try {
-			Main.togglePick(raceNumber, programNumber);
+			Main.togglePick(raceNumber, name);
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -242,13 +245,15 @@ public class Remote {
 
 	}
 	
-	@Path("toggleShowDetail/{raceNumber}/{programNumber}")	
-	@GET
+	@Path("toggleShowDetail")	
+	@POST
+	@Produces("application/json")
+	@Consumes("multipart/form-data")
 
-	public Response toggleShowDetail(@PathParam("raceNumber") int raceNumber, @PathParam("programNumber") String programNumber) throws Exception {
+	public Response toggleShowDetail(@FormDataParam("raceNumber") int raceNumber, @FormDataParam("name") String name) throws Exception {
 		
 		try {
-			Main.toggleShowDetail(raceNumber, programNumber);
+			Main.toggleShowDetail(raceNumber, name);
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -259,13 +264,15 @@ public class Remote {
 
 	}	
 	
-	@Path("toggleIgnored/{raceNumber}/{programNumber}/{year}/{month}/{day}")	
-	@GET
+	@Path("toggleIgnored")	
+	@POST
+	@Produces("application/json")
+	@Consumes("multipart/form-data")
 
-	public Response toggleIgnored(@PathParam("raceNumber") int raceNumber, @PathParam("programNumber") String programNumber, @PathParam("year") int year, @PathParam("month") int month,@PathParam("day") int day) throws Exception {
+	public Response toggleIgnored(@FormDataParam("raceNumber") int raceNumber, @FormDataParam("name") String name, @FormDataParam("year") int year, @FormDataParam("month") int month, @FormDataParam("day") int day) throws Exception {
 		
 		try {
-			Main.toggleIgnored(raceNumber, programNumber, LocalDate.of(year, month, day));
+			Main.toggleIgnored(raceNumber, name, LocalDate.of(year, month, day));
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -312,13 +319,17 @@ public class Remote {
 
 	}	
 	
-	@Path("setSelection/{raceNumber}/{programNumber}/{selection}")	
-	@GET
-
-	public Response setSelection(@PathParam("raceNumber") int raceNumber, @PathParam("programNumber") String programNumber, @PathParam("selection") String selection) throws Exception {
+	@Path("setSelection")	
+	@POST
+	@Produces("application/json")
+	@Consumes("multipart/form-data")
+	
+	public Response setSelection(  @FormDataParam("raceNumber") int raceNumber,
+			@FormDataParam("name") String name,
+			@FormDataParam("selection") String selection) throws Exception {
 		
 		try {
-			return Response.ok().entity(Main.setSelection(raceNumber, programNumber, selection)).build();
+			return Response.ok().entity(Main.setSelection(raceNumber, name, selection)).build();
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -329,30 +340,17 @@ public class Remote {
 
 	}
 	
-	@Path("setSelection/{raceNumber}/{programNumber}")	
-	@GET
-
-	public Response setSelection(@PathParam("raceNumber") int raceNumber, @PathParam("programNumber") String programNumber) throws Exception {
-		
-		try {
-			return Response.ok().entity(Main.setSelection(raceNumber, programNumber, "")).build();
-			
- 		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
- 		} 
-		
-		
-
-	}	
+	@Path("setBettingLine")	
+	@POST
+	@Produces("application/json")
+	@Consumes("multipart/form-data")
 	
-	@Path("setBettingLine/{raceNumber}/{programNumber}/{bettingLine}")	
-	@GET
-
-	public Response setBettlingLine(@PathParam("raceNumber") int raceNumber, @PathParam("programNumber") String programNumber, @PathParam("bettingLine") float bettingLine) throws Exception {
+	public Response setBettlingLine(  @FormDataParam("raceNumber") int raceNumber,
+			@FormDataParam("name") String name,
+			@FormDataParam("bettingLine") float bettingLine) throws Exception {
 		
 		try {
-			Main.setBettingLine(raceNumber, programNumber, bettingLine);
+			Main.setBettingLine(raceNumber, name, bettingLine);
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -389,13 +387,13 @@ public class Remote {
 	@Produces("application/json")
 	@Consumes("multipart/form-data")
 	public Response setHorseNote(  @FormDataParam("raceNumber") int raceNumber,
-								@FormDataParam("programNumber") String programNumber,
+								@FormDataParam("name") String name,
 								@FormDataParam("note") String note) throws Exception {
 	
 
 	  
 	  try {
-		  Main.setHorseNote(raceNumber, programNumber, note);
+		  Main.setHorseNote(raceNumber, name, note);
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -533,7 +531,7 @@ public class Remote {
 			    out.flush();
 			    out.close();
 			    
-			    return Response.ok().entity(Main.addProgramNumbers(filename)).build();
+			    return Response.ok().entity(Main.addLateData(filename)).build();
 		  
 			} catch (Exception e) {
 				e.printStackTrace();

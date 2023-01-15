@@ -59,10 +59,11 @@ public class Race implements Serializable {
 	private float AverageAdjustedSpeed;
 	private int TotalSpeedPoints;
 	
-	@SuppressWarnings("unused")
+
 	private float furlongs;
-	@SuppressWarnings("unused")
 	private float miles;
+	@SuppressWarnings("unused")
+	private int unscratchedHorsesCount;
 
 	private List<String> advantagedHorses;
 	
@@ -506,7 +507,7 @@ public class Race implements Serializable {
 			}
 		return horses;
 	}
-	
+
 	public int getUnscratchedHorsesCount () {
 		return getUnscratchedHorses().size();
 	}

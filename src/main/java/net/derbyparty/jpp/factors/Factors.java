@@ -486,7 +486,7 @@ public class Factors {
 					weight += thisWeight;
 				}
 			}
-			return (weight == 0) ? null : (float) total / weight;
+			return (weight == 0) ? 0 : (float) total / weight;
 			
 		} catch (Exception e) {
 			e.printStackTrace();

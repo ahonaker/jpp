@@ -239,13 +239,16 @@ public class Loader {
 			    			horses = new ArrayList<Horse>();
 			    		}
 				    				    		
-		    		    StringBuilder wagerTypes = new StringBuilder((values[239] + "; " + values[240] + "; " +values[241] + "; " +values[242]
-								+ "; " +values[243] + "; " +values[244] + "; " +values[245] + "; " +values[246]
-								+ "; " +values[247] + "; " +values[248]).trim());
-		    		    while (wagerTypes.length() > 0 && wagerTypes.substring(wagerTypes.length() - 2).equals(" ;")) {
-		    		        wagerTypes.setLength(wagerTypes.length() - 2);
+		    		    StringBuilder wagerTypes = new StringBuilder();
+		    		    if (!values[239].isBlank()) {
+			    		    wagerTypes.append((values[239] + "; " + values[240] + "; " +values[241] + "; " +values[242]
+									+ "; " +values[243] + "; " +values[244] + "; " +values[245] + "; " +values[246]
+									+ "; " +values[247] + "; " +values[248]).trim());
+			    		    while (wagerTypes.length() > 0 && wagerTypes.substring(wagerTypes.length() - 2).equals(" ;")) {
+			    		        wagerTypes.setLength(wagerTypes.length() - 2);
+			    		    }
+				    		wagerTypes.setLength(wagerTypes.length() - 1);
 		    		    }
-			    		wagerTypes.setLength(wagerTypes.length() - 1);
 			    		
 			    		List<MultiRaceWager> multiRaceWagers = new ArrayList<MultiRaceWager>();
 			    		if (!values[240].isEmpty()) {
@@ -414,7 +417,7 @@ public class Loader {
 			    					.withOdds(Float.parseFloat(values[515+i].trim()))
 			    					.withEntryFlag(values[525+i].trim())
 			    					.withRaceClassification(values[535+i].trim())
-			    					.withClaimingPrice(values[545+i].isBlank() ? 0 : Integer.parseInt(values[505+i].trim()))
+			    					.withClaimingPrice(values[545+i].isBlank() ? 0 : Integer.parseInt(values[545+i].trim()))
 			    					.withPurse(Integer.parseInt(values[555+i].trim()))
 			    					.withStartCallPosition(values[565+i].trim())
 			    					.withFirstCallPosition(values[575+i].trim())

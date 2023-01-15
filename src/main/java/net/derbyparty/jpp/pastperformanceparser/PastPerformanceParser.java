@@ -29,7 +29,7 @@ public class PastPerformanceParser {
 	            Pattern.compile("^\\(c\\) Copyright \\d+");
 	    
 	    Pattern RUNNER_LINE =
-	    		Pattern.compile("(\\d+)\\s([\\sa-zA-Z\\']+)\\s(\\([EPSNA\\/\\s0-8]+\\))Own: ([a-zA-Z\\s]+)");
+	    		Pattern.compile("(\\d+)?(pp(\\d+))?\\s([\\sa-zA-Z\\'\\.]+)\\s(\\([EPSNA\\/\\s0-8]+\\))(Own: ([a-zA-Z\\s]+))?");
 
 	    Pattern PRIME_POWER =
 	    		Pattern.compile("^Prime Power: ([0-9\\.]+)");
@@ -106,7 +106,7 @@ public class PastPerformanceParser {
 					
 				Matcher runnerMatcher = RUNNER_LINE.matcher(lines[i]);
 				if (runnerMatcher.find()) {
-					horse = thisRace.getHorseWithName(runnerMatcher.group(2));
+					horse = thisRace.getHorseWithName(runnerMatcher.group(4));
 				}
 				
 				Matcher primePowerMatcher = PRIME_POWER.matcher(lines[i]);
@@ -266,7 +266,7 @@ public class PastPerformanceParser {
 	            Pattern.compile("^\\(c\\) Copyright \\d+");
 	    
 	    Pattern RUNNER_LINE =
-	    		Pattern.compile("(\\d+)\\s([\\sa-zA-Z\\']+)\\s(\\([EPSNA\\/\\s0-8]+\\))Own: ([a-zA-Z\\s]+)");
+	    		Pattern.compile("(\\d+)?(pp(\\d+))?\\s([\\sa-zA-Z\\'\\.]+)\\s(\\([EPSNA\\/\\s0-8]+\\))(Own: ([a-zA-Z\\s]+))?");
 
 	    Pattern PRIME_POWER =
 	    		Pattern.compile("^Prime Power: ([0-9\\.]+)");

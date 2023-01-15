@@ -81,8 +81,8 @@
             <span v-if="row.item.offTheTurfFlag"><b-badge pill variant="secondary">&nbsp;X&nbsp;</b-badge></span>
         </template>
         <template #cell(trainerAndClaimFlag)="row">
-            <b-badge pill v-if="row.item.claimedCode != 'c' && row.item.claimingPrice > 0" variant="danger">C</b-badge>
-            <b-badge pill v-if="row.item.claimedCode == 'c'" variant="success" v-b-tooltip.hover :title="row.item.extraCommentLine">C</b-badge>
+            <b-badge pill v-if="row.item.claimedCode != 'c' && row.item.claimingPrice > 0" variant="danger" v-b-tooltip.hover :title="'Price: $' + row.item.claimingPrice">C</b-badge>
+            <b-badge pill v-if="row.item.claimedCode == 'c'" variant="success" v-b-tooltip.html.hover :title="'Price: $' + row.item.claimingPrice + '<br>' + row.item.extraCommentLine">C</b-badge>
             <b-badge pill v-if="row.item.trainerChangeDate" variant="success"  v-b-tooltip.hover :title="'Prev Trnr: ' + row.item.trainerChangeStarts 
             + '  ' + row.item.trainerChangeWins + '-' + row.item.trainerChangePlaces + '-' + row.item.trainerChangeShows + '  ' + formatInt(row.item.trainerChangeWins / row.item.trainerChangeStarts * 100) + '%'">T</b-badge>
              {{shortenName(row.item.trainer)}}
@@ -123,7 +123,7 @@
             <span v-else>{{row.item.raceClassification}}</span>
         </template>
         <template #cell(raceStrength)="row">
-            <span v-if="row.item.raceStrength != 0">{{row.item.raceStrength}}</span>
+            <span v-if="row.item.raceStrength != 0">{{format2Places(row.item.raceStrength)}}</span>
         </template>        
         <template #cell(e1)="row">
             <span v-if="row.item.e1 != 0">{{row.item.e1}}</span>
@@ -241,11 +241,21 @@ export default {
     methods:  {
 		async toggleIgnored(item) {
             try {
+                var formData = new FormData();
+                formData.append("raceNumber", this.race.raceNumber);
+                formData.append("name", this.horse.name);
+                formData.append("year", item.raceDate[0]);
+                formData.append("month", item.raceDate[1]);
+                formData.append("day", item.raceDate[2]);
                 await axios({
-                    url: 'toggleIgnored/' + this.race.raceNumber + '/' + this.horse.programNumber + '/' + item.raceDate[0] + '/' + item.raceDate[1] + '/' + item.raceDate[2],
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
-                });
+                    url: 'toggleIgnored',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
+                }); 
                 item.ignore = !item.ignore;
             } catch (err) {
                 console.log(err.response);
@@ -475,7 +485,8 @@ export default {
 			} else {
 				if ((item.surface.indexOf("TURF") == -1 || item.offTheTurfFlag)
 					&& ((this.race.trackCondition == "ft" && item.trackCondition == "ft") || (this.race.trackCondition != "ft" && ["gd","hy","my","sl","sy","wf"].indexOf(item.trackCondition) > -1))
-					&& ((Math.abs(this.race.furlongs) < 8 && Math.abs(item.furlongs) < 8) || (Math.abs(this.race.furlongs) >= 8 && Math.abs(item.furlongs) >= 8))) 
+					&& ((Math.abs(this.race.furlongs) < 8 && Math.abs(item.furlongs) < 8) || (Math.abs(this.race.furlongs) >= 8 && Math.abs(item.furlongs) >= 8))
+                    && this.race.allWeatherSurfaceFlag == item.allWeatherSurfaceFlag) 
 					return "blueHighlight";
 			}
 		},
