@@ -1038,8 +1038,9 @@ public class Factors {
 					if (!hasBeenInForClaim && (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
 							|| horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING)) {
 						angles.add("+Maiden to Maiden Claiming");
-					} else if (!hasBeenInForClaim && (horse.getPastPerformances().size() > 1 && (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
-							|| horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING))) {
+					} else if (horse.getPastPerformances().size() > 1 && (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+							|| (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING
+							&& horse.getPastPerformances().get(1).getClaimingPrice() == 0))) {
 						angles.add("+Maiden to Maiden Claiming Two Races Back");
 					} else {
 						if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING && 
@@ -1119,7 +1120,7 @@ public class Factors {
 					angles.add("-Three year old moving up from claiming - NO PLAY");
 				if (horse.getAge() == 3 && horse.getPastPerformances().get(0).getFinishBeatenLengthsOnly() > 5 && horse.getPastPerformances().get(1).getFinishBeatenLengthsOnly() > 5) 
 					angles.add("-Non-claiming three year old has lost two races in a row, well-beaten in each");
-				if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING) angles.add("Maident Claiming grads are never acceptable in allowance or stakes races.");
+				if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING) angles.add("-Maiden Claiming grads are never acceptable in allowance or stakes races.");
 				break;
 
 			case GRADE_1:

@@ -80,6 +80,8 @@ public class Race implements Serializable {
 	private TrackBias weekTrackBias;
 	
 	private Boolean oneTurn;
+	
+	private String description;
 
 	@Generated("SparkTools")
 	private Race(Builder builder) {
@@ -124,6 +126,7 @@ public class Race implements Serializable {
 		this.TotalSpeedPoints = builder.TotalSpeedPoints;
 		this.furlongs = builder.furlongs;
 		this.miles = builder.miles;
+		this.unscratchedHorsesCount = builder.unscratchedHorsesCount;
 		this.advantagedHorses = builder.advantagedHorses;
 		this.trackCondition = builder.trackCondition;
 		this.OffTheTurfFlag = builder.OffTheTurfFlag;
@@ -134,6 +137,7 @@ public class Race implements Serializable {
 		this.meetTrackBias = builder.meetTrackBias;
 		this.weekTrackBias = builder.weekTrackBias;
 		this.oneTurn = builder.oneTurn;
+		this.description = builder.description;
 	}
 
 	public float getE1Avg() {
@@ -310,6 +314,14 @@ public class Race implements Serializable {
 
 	public void setOneTurn(Boolean oneTurn) {
 		this.oneTurn = oneTurn;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public String getTrack() {
@@ -847,6 +859,7 @@ public class Race implements Serializable {
 		private int TotalSpeedPoints;
 		private float furlongs;
 		private float miles;
+		private int unscratchedHorsesCount;
 		private List<String> advantagedHorses = Collections.emptyList();
 		private String trackCondition;
 		private Boolean OffTheTurfFlag;
@@ -857,6 +870,7 @@ public class Race implements Serializable {
 		private TrackBias meetTrackBias;
 		private TrackBias weekTrackBias;
 		private Boolean oneTurn;
+		private String description;
 
 		private Builder() {
 		}
@@ -1066,6 +1080,11 @@ public class Race implements Serializable {
 			return this;
 		}
 
+		public Builder withUnscratchedHorsesCount(int unscratchedHorsesCount) {
+			this.unscratchedHorsesCount = unscratchedHorsesCount;
+			return this;
+		}
+
 		public Builder withAdvantagedHorses(List<String> advantagedHorses) {
 			this.advantagedHorses = advantagedHorses;
 			return this;
@@ -1113,6 +1132,11 @@ public class Race implements Serializable {
 
 		public Builder withOneTurn(Boolean oneTurn) {
 			this.oneTurn = oneTurn;
+			return this;
+		}
+
+		public Builder withDescription(String description) {
+			this.description = description;
 			return this;
 		}
 

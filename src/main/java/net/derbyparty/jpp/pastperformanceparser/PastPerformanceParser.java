@@ -28,6 +28,12 @@ public class PastPerformanceParser {
 	    Pattern COPYRIGHT_LINE =
 	            Pattern.compile("^\\(c\\) Copyright \\d+");
 	    
+	    Pattern RACE_DESCRIPTION_LINE_BEFORE = 
+	    		Pattern.compile("^PARS:\\s");
+	    
+	    Pattern RACE_DESCRIPTION_LINE_AFTER = 
+	    		Pattern.compile("^Post Time:\\s");
+	    
 	    Pattern RUNNER_LINE =
 	    		Pattern.compile("(\\d+)?(pp(\\d+))?\\s([\\sa-zA-Z\\'\\.]+)\\s(\\([EPSNA\\/\\s0-8]+\\))(Own: ([a-zA-Z\\s]+))?");
 
@@ -102,7 +108,21 @@ public class PastPerformanceParser {
 							thisRace = race;
 						}
 					}
-				}				
+				}			
+				
+				Matcher raceDescriptionLineBeforeMatcher = RACE_DESCRIPTION_LINE_BEFORE.matcher(lines[i]);
+				if (raceDescriptionLineBeforeMatcher.find()) {
+					i++;
+					String description = lines[i];
+					i++;
+					Matcher raceDescriptionLineAfterMatcher = RACE_DESCRIPTION_LINE_AFTER.matcher(lines[i]);
+					while (!raceDescriptionLineAfterMatcher.find()) {
+						description += " " + lines[i];
+						i++;
+						raceDescriptionLineAfterMatcher = RACE_DESCRIPTION_LINE_AFTER.matcher(lines[i]);
+					}
+					thisRace.setDescription(description);
+				}
 					
 				Matcher runnerMatcher = RUNNER_LINE.matcher(lines[i]);
 				if (runnerMatcher.find()) {
@@ -265,6 +285,12 @@ public class PastPerformanceParser {
 	    Pattern COPYRIGHT_LINE =
 	            Pattern.compile("^\\(c\\) Copyright \\d+");
 	    
+	    Pattern RACE_DESCRIPTION_LINE_BEFORE = 
+	    		Pattern.compile("^PARS:\\s");
+	    
+	    Pattern RACE_DESCRIPTION_LINE_AFTER = 
+	    		Pattern.compile("^Post Time:\\s");
+	    
 	    Pattern RUNNER_LINE =
 	    		Pattern.compile("(\\d+)?(pp(\\d+))?\\s([\\sa-zA-Z\\'\\.]+)\\s(\\([EPSNA\\/\\s0-8]+\\))(Own: ([a-zA-Z\\s]+))?");
 
@@ -302,6 +328,8 @@ public class PastPerformanceParser {
 			for (int i = 0; i < lines.length; i++) {
 				if (COPYRIGHT_LINE.matcher(lines[i]).find()) lines[i] += " <-- COPYRIGHT_LINE";
 				if (RACE_HEADER.matcher(lines[i]).find()) lines[i] += " <-- RACE_HEADER";
+				if (RACE_DESCRIPTION_LINE_BEFORE.matcher(lines[i]).find()) lines[i] += " <-- RACE_DESCRIPTION_LINE_BEFORE";
+				if (RACE_DESCRIPTION_LINE_AFTER.matcher(lines[i]).find()) lines[i] += " <-- RACE_DESCRIPTION_LINE_AFTER";
 				if (RUNNER_LINE.matcher(lines[i]).find()) lines[i] += " <-- RUNNER_LINE";
 				if (PRIME_POWER.matcher(lines[i]).find()) lines[i] += " <-- PRIME_POWER";
 				if (SIRE_STATS.matcher(lines[i]).find()) lines[i] += " <-- SIRE_STATS";

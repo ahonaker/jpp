@@ -1,7 +1,7 @@
 <template>
     <b-badge variant="light" border-variant="dark" class="p0">
         <b-icon-circle-fill v-if="workout.timeOfWorkout < 0"></b-icon-circle-fill>
-        {{workout.dateOfWorkoutString}} {{workout.trackOfWorkout}} {{workout.furlongs}}f {{workout.workoutTrackIndicator}} 
+        {{workout.dateOfWorkoutString}} {{workout.trackOfWorkout}} {{workout.furlongs}}f <span v-if="workout.trackIndicator != 'MAIN_DIRT'"><span v-if="workout.trackIndicator == 'MAIN_TURF'"><b-badge variant="secondary">T</b-badge></span><span v-else-if="woirkout.trackIndicator == 'TRAINING_TRACK'">tr.t</span><span v-else>{{workout.trackIndicator}} </span></span>
         <span :class="fastWorkout(workout)">
         {{Math.floor( Math.abs(workout.timeOfWorkout) / 60)}}:{{str_pad_left(Math.floor(Math.abs(workout.timeOfWorkout) - Math.floor(Math.abs(workout.timeOfWorkout) / 60) * 60),'0',2)}}<sup v-if="(Math.floor((Math.abs(workout.timeOfWorkout) % 1) * 5) / 5).toFixed(1) * 5 != 0">{{(Math.floor((Math.abs(workout.timeOfWorkout) % 1) * 5) / 5).toFixed(1) * 5}}</sup>
         </span>

@@ -74,7 +74,7 @@
 						</b-row>
 						<b-collapse :id="'collapse-'+race.race_id" visible>
 							<b-row>
-								<b-col v-b-tooltip.hover.right :title="race.raceConditions" cols="5">
+								<b-col v-b-tooltip.hover.bottom :title="race.description" cols="5">
 									${{race.purse}} <span  v-b-toggle="'collapseNotes-'+race.race_id">{{race.classification}}</span>
 								</b-col>
 								<b-col cols="2" class="text-center">
@@ -862,6 +862,7 @@ export default {
 						this.combinations[i][j] = {a: [], b:[], c:[]};
 						this.combinationsText[i][j] = {tmA: "", tmAB: "", tmB1: "", tmB2: "", tmC1: ""};
 					}
+					this.toggleAll(this.races[i], false);
 				}
 				this.loading = false;
             } catch (err) {
@@ -901,6 +902,9 @@ export default {
                 });
                 //console.log(response.data);
 				this.races = response.data;
+				for (var i=0; i < this.races.length; i++) {
+					this.toggleAll(this.races[i], false);
+				}
 				this.loading = false;
             } catch (err) {
                 console.log(err);
@@ -924,6 +928,9 @@ export default {
                 });
                 //console.log(response.data);
 				this.races = response.data;
+				for (var i=0; i < this.races.length; i++) {
+					this.toggleAll(this.races[i], false);
+				}
 				this.loading = false;
             } catch (err) {
                 console.log(err);
@@ -1020,6 +1027,9 @@ export default {
 		async save() {
             try {
 				this.loading = true;
+				for (var i=0; i < this.races.length; i++) {
+					this.setRaceNote(this.races[i]);
+				}
                 await axios({
                     url: 'save/' + this.file.name, 
                     method: 'GET',
@@ -1044,6 +1054,9 @@ export default {
 									baseURL: 'http://localhost:8080/jpp/rest/remote/'
 								});
 								this.races = response.data;
+								for (var i=0; i < this.races.length; i++) {
+									this.toggleAll(this.races[i], false);
+								}								
 								this.loading = false;
 						}
 					});	
@@ -1061,6 +1074,9 @@ export default {
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
                 this.races = response.data;
+				for (var i=0; i < this.races.length; i++) {
+					this.toggleAll(this.races[i], false);
+				}				
 				this.loading = false;
             } catch (err) {
                 console.log(err.response);
@@ -1076,6 +1092,9 @@ export default {
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
                 this.races = response.data;
+				for (var i=0; i < this.races.length; i++) {
+					this.toggleAll(this.races[i], false);
+				}				
 				this.loading = false;
             } catch (err) {
                 console.log(err.response);
@@ -1091,6 +1110,9 @@ export default {
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
                 this.races = response.data;
+				for (var i=0; i < this.races.length; i++) {
+					this.toggleAll(this.races[i], false);
+				}				
 				this.loading = false;
             } catch (err) {
                 console.log(err.response);
@@ -1276,11 +1298,18 @@ export default {
 		async togglePick (horse) {
 			try {
 				console.log(horse);
+               var formData = new FormData();
+                formData.append("raceNumber", horse.raceNumber);
+                formData.append("name", horse.name);
                 await axios({
-                    url: 'togglePick/' + horse.raceNumber + '/' + horse.programNumber,
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
-                });
+                    url: 'togglePick',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
+                });				
                 horse.pick = false;
 
             } catch (err) {
