@@ -1,6 +1,6 @@
 <template>
 	<b-row>
-		<b-col>
+		<b-col cols="2">
 			<h6 class="text-center">Speed</h6>
 			<trend
 				:data="speeds"
@@ -12,7 +12,7 @@
 			>
 			</trend>
 		</b-col>
-		<b-col>
+		<b-col cols="2">
 			<h6 class="text-center">E1 Pace</h6>
 			<trend
 				:data="e1s"
@@ -24,7 +24,7 @@
 			>
 			</trend>
 		</b-col>
-		<b-col>
+		<b-col cols="2">
 			<h6 class="text-center">E2 Pace</h6>
 			<trend
 				:data="e2s"
@@ -36,7 +36,7 @@
 			>
 			</trend>
 		</b-col>
-		<b-col>
+		<b-col cols="2">
 			<h6 class="text-center">Late Pace</h6>
 			<trend
 				:data="lates"
@@ -48,7 +48,7 @@
 			>
 			</trend>
 		</b-col>
-		<b-col>
+		<b-col cols="2">
 			<h6 class="text-center">Purse</h6>
 			<trend
 				:data="purses"
@@ -60,7 +60,7 @@
 			>
 			</trend>
 		</b-col>
-		<b-col>
+		<b-col cols="2">
 			<h6 class="text-center">Class</h6>
 			<trend
 				:data="classes"

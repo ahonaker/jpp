@@ -25,9 +25,6 @@ public class PastPerformanceParser {
 	    Pattern RACE_HEADER =
 	            Pattern.compile("^Ultimate PP's w\\/ QuickPlay Comments.+ Race (\\d+)");
 	    
-	    Pattern COPYRIGHT_LINE =
-	            Pattern.compile("^\\(c\\) Copyright \\d+");
-	    
 	    Pattern RACE_DESCRIPTION_LINE_BEFORE = 
 	    		Pattern.compile("^PARS:\\s");
 	    

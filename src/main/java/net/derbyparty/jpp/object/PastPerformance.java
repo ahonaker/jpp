@@ -157,6 +157,10 @@ public class PastPerformance implements Serializable {
 	private PotentialKeyRace keyRace;
 	
 	private Boolean oneTurn;
+	
+	private String footnote;
+	private String flag;
+	private String comment;
 
 	@Generated("SparkTools")
 	private PastPerformance(Builder builder) {
@@ -287,6 +291,9 @@ public class PastPerformance implements Serializable {
 		this.e2 = builder.e2;
 		this.keyRace = builder.keyRace;
 		this.oneTurn = builder.oneTurn;
+		this.footnote = builder.footnote;
+		this.flag = builder.flag;
+		this.comment = builder.comment;
 	}
 
 	public float getFurlongs () {
@@ -1089,9 +1096,34 @@ public class PastPerformance implements Serializable {
 	public void setOneTurn(Boolean oneTurn) {
 		this.oneTurn = oneTurn;
 	}
+
+
+	public String getFootnote() {
+		return footnote;
+	}
+
+	public void setFootnote(String footnote) {
+		this.footnote = footnote;
+	}
+
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
 	
 	// Generated
-
 
 
 	public LocalDate getRaceDate() {
@@ -2410,6 +2442,9 @@ public class PastPerformance implements Serializable {
 		private int e2;
 		private PotentialKeyRace keyRace;
 		private Boolean oneTurn;
+		private String footnote;
+		private String flag;
+		private String comment;
 
 		private Builder() {
 		}
@@ -3046,6 +3081,21 @@ public class PastPerformance implements Serializable {
 
 		public Builder withOneTurn(Boolean oneTurn) {
 			this.oneTurn = oneTurn;
+			return this;
+		}
+
+		public Builder withFootnote(String footnote) {
+			this.footnote = footnote;
+			return this;
+		}
+
+		public Builder withFlag(String flag) {
+			this.flag = flag;
+			return this;
+		}
+
+		public Builder withComment(String comment) {
+			this.comment = comment;
 			return this;
 		}
 

@@ -180,7 +180,7 @@
             <span :class="alsoInRace(row.item.showName, row.item)">{{row.item.showName}}</span><sup>{{row.item.showMargin.toFixed(2)}}</sup>
         </template>		
         <template #cell(tripComment)="row">	
-            <span v-b-tooltip.hover.left :title="row.item.extendedStartComment">{{row.item.tripComment}}</span>
+            <span v-b-tooltip.hover.left :title="row.item.footnote? row.item.footnote : row.item.extendedStartComment">{{row.item.tripComment}}</span>
         </template>	
     </b-table>   
 </template>
@@ -196,9 +196,10 @@ export default {
     components: {
 		BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconCameraVideoFill, BIconKey, BIconCircleHalf
     },
-    props : ['horse', 'race', 'charts'],
+    props : ['horse', 'race'],
     data () {
 		return {
+            charts: [],
             ppFields: [
 				{key: "raceDateString", label: "DATE"},
 				{key: "daysSinceLastRace", label: "LR", title: "Days Since Last Race", tdClass: this.highlightDaysSincePP},
@@ -237,6 +238,9 @@ export default {
 				{key: "numberOfEntrants", label: ""}
 			],
         }
+    },
+    computed : {
+
     },
     methods:  {
 		async toggleIgnored(item) {

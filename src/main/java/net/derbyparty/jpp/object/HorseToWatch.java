@@ -1,13 +1,19 @@
 package net.derbyparty.jpp.object;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import javax.annotation.Generated;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Collections;
 
 public class HorseToWatch implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	
+	final static String dir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	
 	private String name;
 	private String flag;
@@ -156,5 +162,25 @@ public class HorseToWatch implements Serializable {
 			return new HorseToWatch(this);
 		}
 	}
+	
+	
+	public void save() throws Exception {
+		
+		ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+	
+		File file = new File(dir + name + ".json");
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+		mapper.writeValue(file, this);
 
+	}
+		
+	public void delete() throws Exception {
+		
+		File file = new File(dir + name + ".json");
+		if (file.exists()) {
+			file.delete();
+		}
+	}
 }

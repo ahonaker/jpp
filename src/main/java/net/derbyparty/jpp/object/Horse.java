@@ -191,7 +191,8 @@ public class Horse implements Serializable {
 	private float BrisCurrentClass;
 	private float BrisAvgLast3Class;
 	
-	private HorseToWatch horseToWatch;
+	private String flag;
+	private String comment;
 
 	@Generated("SparkTools")
 	private Horse(Builder builder) {
@@ -338,21 +339,27 @@ public class Horse implements Serializable {
 		this.SireMudPercent = builder.SireMudPercent;
 		this.SireMudStarts = builder.SireMudStarts;
 		this.SireFirstPercent = builder.SireFirstPercent;
+		this.SireTurfPercent = builder.SireTurfPercent;
+		this.SireFirstTurfPercent = builder.SireFirstTurfPercent;
 		this.SireSPI = builder.SireSPI;
 		this.DamSireAWD = builder.DamSireAWD;
 		this.DamSireMudPercent = builder.DamSireMudPercent;
 		this.DamSireMudStarts = builder.DamSireMudStarts;
 		this.DamSireFirstPercent = builder.DamSireFirstPercent;
+		this.DamSireTurfPercent = builder.DamSireTurfPercent;
+		this.DamSireFirstTurfPercent = builder.DamSireFirstTurfPercent;
 		this.DamSireSPI = builder.DamSireSPI;
 		this.DamDescription = builder.DamDescription;
 		this.DamTwoYearOldPercent = builder.DamTwoYearOldPercent;
+		this.DamTurfWinners = builder.DamTurfWinners;
 		this.DamStarters = builder.DamStarters;
 		this.DamWinners = builder.DamWinners;
 		this.DamStakesWinners = builder.DamStakesWinners;
 		this.DamDPI = builder.DamDPI;
 		this.BrisCurrentClass = builder.BrisCurrentClass;
 		this.BrisAvgLast3Class = builder.BrisAvgLast3Class;
-		this.horseToWatch = builder.horseToWatch;
+		this.flag = builder.flag;
+		this.comment = builder.comment;
 	}
 
 	public float getE1Avg() {
@@ -845,16 +852,21 @@ public class Horse implements Serializable {
 		BrisAvgLast3Class = brisAvgLast3Class;
 	}
 
-
-	public HorseToWatch getHorseToWatch() {
-		return horseToWatch;
+	public String getFlag() {
+		return flag;
 	}
 
-
-	public void setHorseToWatch(HorseToWatch horseToWatch) {
-		this.horseToWatch = horseToWatch;
+	public void setFlag(String flag) {
+		this.flag = flag;
 	}
 
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
@@ -1517,11 +1529,14 @@ public class Horse implements Serializable {
 		result = prime * result + ((DamDescription == null) ? 0 : DamDescription.hashCode());
 		result = prime * result + Float.floatToIntBits(DamSireAWD);
 		result = prime * result + DamSireFirstPercent;
+		result = prime * result + DamSireFirstTurfPercent;
 		result = prime * result + DamSireMudPercent;
 		result = prime * result + DamSireMudStarts;
 		result = prime * result + Float.floatToIntBits(DamSireSPI);
+		result = prime * result + DamSireTurfPercent;
 		result = prime * result + DamStakesWinners;
 		result = prime * result + DamStarters;
+		result = prime * result + DamTurfWinners;
 		result = prime * result + DamTwoYearOldPercent;
 		result = prime * result + DamWinners;
 		result = prime * result + ((DamsSire == null) ? 0 : DamsSire.hashCode());
@@ -1591,10 +1606,12 @@ public class Horse implements Serializable {
 		result = prime * result + ((Sire == null) ? 0 : Sire.hashCode());
 		result = prime * result + Float.floatToIntBits(SireAWD);
 		result = prime * result + SireFirstPercent;
+		result = prime * result + SireFirstTurfPercent;
 		result = prime * result + SireMudPercent;
 		result = prime * result + SireMudStarts;
 		result = prime * result + Float.floatToIntBits(SireSPI);
 		result = prime * result + Float.floatToIntBits(SireStudFee);
+		result = prime * result + SireTurfPercent;
 		result = prime * result + ((SiresSire == null) ? 0 : SiresSire.hashCode());
 		result = prime * result + SpeedPoints;
 		result = prime * result + Float.floatToIntBits(SpeedRating);
@@ -1627,8 +1644,9 @@ public class Horse implements Serializable {
 		result = prime * result + age;
 		result = prime * result + Float.floatToIntBits(bettingLine);
 		result = prime * result + Float.floatToIntBits(combinedPaceAvg);
+		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
 		result = prime * result + finishPosition;
-		result = prime * result + ((horseToWatch == null) ? 0 : horseToWatch.hashCode());
+		result = prime * result + ((flag == null) ? 0 : flag.hashCode());
 		result = prime * result + ((note == null) ? 0 : note.hashCode());
 		result = prime * result + ((pick == null) ? 0 : pick.hashCode());
 		result = prime * result + Float.floatToIntBits(placePayout);
@@ -1747,15 +1765,21 @@ public class Horse implements Serializable {
 			return false;
 		if (DamSireFirstPercent != other.DamSireFirstPercent)
 			return false;
+		if (DamSireFirstTurfPercent != other.DamSireFirstTurfPercent)
+			return false;
 		if (DamSireMudPercent != other.DamSireMudPercent)
 			return false;
 		if (DamSireMudStarts != other.DamSireMudStarts)
 			return false;
 		if (Float.floatToIntBits(DamSireSPI) != Float.floatToIntBits(other.DamSireSPI))
 			return false;
+		if (DamSireTurfPercent != other.DamSireTurfPercent)
+			return false;
 		if (DamStakesWinners != other.DamStakesWinners)
 			return false;
 		if (DamStarters != other.DamStarters)
+			return false;
+		if (DamTurfWinners != other.DamTurfWinners)
 			return false;
 		if (DamTwoYearOldPercent != other.DamTwoYearOldPercent)
 			return false;
@@ -1946,6 +1970,8 @@ public class Horse implements Serializable {
 			return false;
 		if (SireFirstPercent != other.SireFirstPercent)
 			return false;
+		if (SireFirstTurfPercent != other.SireFirstTurfPercent)
+			return false;
 		if (SireMudPercent != other.SireMudPercent)
 			return false;
 		if (SireMudStarts != other.SireMudStarts)
@@ -1953,6 +1979,8 @@ public class Horse implements Serializable {
 		if (Float.floatToIntBits(SireSPI) != Float.floatToIntBits(other.SireSPI))
 			return false;
 		if (Float.floatToIntBits(SireStudFee) != Float.floatToIntBits(other.SireStudFee))
+			return false;
+		if (SireTurfPercent != other.SireTurfPercent)
 			return false;
 		if (SiresSire == null) {
 			if (other.SiresSire != null)
@@ -2036,12 +2064,17 @@ public class Horse implements Serializable {
 			return false;
 		if (Float.floatToIntBits(combinedPaceAvg) != Float.floatToIntBits(other.combinedPaceAvg))
 			return false;
+		if (comment == null) {
+			if (other.comment != null)
+				return false;
+		} else if (!comment.equals(other.comment))
+			return false;
 		if (finishPosition != other.finishPosition)
 			return false;
-		if (horseToWatch == null) {
-			if (other.horseToWatch != null)
+		if (flag == null) {
+			if (other.flag != null)
 				return false;
-		} else if (!horseToWatch.equals(other.horseToWatch))
+		} else if (!flag.equals(other.flag))
 			return false;
 		if (note == null) {
 			if (other.note != null)
@@ -2293,21 +2326,27 @@ public class Horse implements Serializable {
 		private int SireMudPercent;
 		private int SireMudStarts;
 		private int SireFirstPercent;
+		private int SireTurfPercent;
+		private int SireFirstTurfPercent;
 		private float SireSPI;
 		private float DamSireAWD;
 		private int DamSireMudPercent;
 		private int DamSireMudStarts;
 		private int DamSireFirstPercent;
+		private int DamSireTurfPercent;
+		private int DamSireFirstTurfPercent;
 		private float DamSireSPI;
 		private String DamDescription;
 		private int DamTwoYearOldPercent;
+		private int DamTurfWinners;
 		private int DamStarters;
 		private int DamWinners;
 		private int DamStakesWinners;
 		private float DamDPI;
 		private float BrisCurrentClass;
 		private float BrisAvgLast3Class;
-		private HorseToWatch horseToWatch;
+		private String flag;
+		private String comment;
 
 		private Builder() {
 		}
@@ -3027,6 +3066,16 @@ public class Horse implements Serializable {
 			return this;
 		}
 
+		public Builder withSireTurfPercent(int SireTurfPercent) {
+			this.SireTurfPercent = SireTurfPercent;
+			return this;
+		}
+
+		public Builder withSireFirstTurfPercent(int SireFirstTurfPercent) {
+			this.SireFirstTurfPercent = SireFirstTurfPercent;
+			return this;
+		}
+
 		public Builder withSireSPI(float SireSPI) {
 			this.SireSPI = SireSPI;
 			return this;
@@ -3052,6 +3101,16 @@ public class Horse implements Serializable {
 			return this;
 		}
 
+		public Builder withDamSireTurfPercent(int DamSireTurfPercent) {
+			this.DamSireTurfPercent = DamSireTurfPercent;
+			return this;
+		}
+
+		public Builder withDamSireFirstTurfPercent(int DamSireFirstTurfPercent) {
+			this.DamSireFirstTurfPercent = DamSireFirstTurfPercent;
+			return this;
+		}
+
 		public Builder withDamSireSPI(float DamSireSPI) {
 			this.DamSireSPI = DamSireSPI;
 			return this;
@@ -3064,6 +3123,11 @@ public class Horse implements Serializable {
 
 		public Builder withDamTwoYearOldPercent(int DamTwoYearOldPercent) {
 			this.DamTwoYearOldPercent = DamTwoYearOldPercent;
+			return this;
+		}
+
+		public Builder withDamTurfWinners(int DamTurfWinners) {
+			this.DamTurfWinners = DamTurfWinners;
 			return this;
 		}
 
@@ -3097,8 +3161,13 @@ public class Horse implements Serializable {
 			return this;
 		}
 
-		public Builder withHorseToWatch(HorseToWatch horseToWatch) {
-			this.horseToWatch = horseToWatch;
+		public Builder withFlag(String flag) {
+			this.flag = flag;
+			return this;
+		}
+
+		public Builder withComment(String comment) {
+			this.comment = comment;
 			return this;
 		}
 

@@ -1,42 +1,86 @@
 import Vue from 'vue'
 import App from './App.vue'
+import VueRouter from 'vue-router'
+import RacesView from './views/RacesView.vue'
+import PrintView from './views/PrintView.vue'
+import AdminView from './views/AdminView.vue'
+import ChartsView from './views/ChartsView.vue'
+
+Vue.use(VueRouter)
+
+const routes = [
+	{
+		path: "/",
+		name: "Home",
+		component: RacesView
+	},
+	{
+		path: "/races",
+		name: "RacesView",
+		component: RacesView
+	},
+	{
+		path: "/print",
+		name: "PrintView",
+		component: PrintView
+	},
+	{
+		path: "/admin",
+		name: "AdminView",
+		component: AdminView
+	},
+	{
+		path: "/charts",
+		name: "ChartsView",
+		component: ChartsView
+	},
+	{
+		path: "/charts/:track/:year/:month/:day/:raceNumber",
+		name: "ChartsViewRetrieve",
+		component: ChartsView
+	}
+];
+
+const router = new VueRouter({
+	routes // short for `routes: routes`
+})
 
 import {
-  AlertPlugin,
-  BadgePlugin,
-  BreadcrumbPlugin,
-  ButtonGroupPlugin,
-  ButtonPlugin,
-  ButtonToolbarPlugin,
-  CalendarPlugin,
-  CardPlugin,
-  CollapsePlugin,
-  DropdownPlugin,
-  FormPlugin,
-  FormFilePlugin,
-  FormInputPlugin,
-  FormRadioPlugin,
-  FormSelectPlugin,
-  FormGroupPlugin,
-  FormCheckboxPlugin,
-  FormTextareaPlugin,
-  FormDatepickerPlugin,
-  ImagePlugin,
-  InputGroupPlugin,
-  ListGroupPlugin,
-  LayoutPlugin,
-  LinkPlugin,
-  ModalPlugin,
-  NavPlugin,
-  NavbarPlugin,
-  ProgressPlugin,
-  SkeletonPlugin,
-  SpinnerPlugin,
-  TablePlugin,
-  TabsPlugin,
-  ToastPlugin,
-  TooltipPlugin,
-  VBPopoverPlugin
+	AlertPlugin,
+	BadgePlugin,
+	BreadcrumbPlugin,
+	ButtonGroupPlugin,
+	ButtonPlugin,
+	ButtonToolbarPlugin,
+	CalendarPlugin,
+	CardPlugin,
+	CollapsePlugin,
+	DropdownPlugin,
+	FormPlugin,
+	FormFilePlugin,
+	FormInputPlugin,
+	FormRadioPlugin,
+	FormSelectPlugin,
+	FormGroupPlugin,
+	FormCheckboxPlugin,
+	FormTextareaPlugin,
+	FormDatepickerPlugin,
+	ImagePlugin,
+	InputGroupPlugin,
+	ListGroupPlugin,
+	LayoutPlugin,
+	LinkPlugin,
+	ModalPlugin,
+	NavPlugin,
+	NavbarPlugin,
+	ProgressPlugin,
+	SkeletonPlugin,
+	SpinnerPlugin,
+	TablePlugin,
+	TabsPlugin,
+	ToastPlugin,
+	TooltipPlugin,
+	VBPopoverPlugin
 } from 'bootstrap-vue'
 
 import 'bootstrap/dist/css/bootstrap.css'
@@ -81,5 +125,6 @@ Vue.use(VBPopoverPlugin)
 Vue.config.productionTip = false
 
 new Vue({
-  render: h => h(App),
+	router,
+	render: h => h(App)
 }).$mount('#app')

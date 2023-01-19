@@ -19,7 +19,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import net.derbyparty.jpp.chart.ProcessChart;
 import net.derbyparty.jpp.main.Main;
-import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.Track;
 import net.derbyparty.jpp.pastperformanceparser.PastPerformanceParser;
 
@@ -140,6 +139,36 @@ public class Remote {
 
 
 	}
+	
+	@Path("get/{raceNumber}")	
+	@GET
+	public Response get(@PathParam("raceNumber") int raceNumber) throws Exception {
+		
+		try {
+			return Response.ok().entity(Main.get(raceNumber)).build();
+			
+ 		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+ 		} 
+
+
+	}
+	
+	@Path("getNumRaces")	
+	@GET
+	public Response getNumRaces() throws Exception {
+		
+		try {
+			return Response.ok().entity(Main.getNumRaces()).build();
+			
+ 		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+ 		} 
+
+
+	}	
 	
 	@Path("calculate")	
 	@GET	
@@ -547,7 +576,7 @@ public class Remote {
 	  
 	  try {
 		    
-		    return Response.ok().entity(Main.getHorsesToWatch()).build();
+		    return Response.ok().build();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -556,55 +585,7 @@ public class Remote {
 	  
 	  	
 	  
-	}
-	
-	@Path("addHorseToWatch")
-	@POST
-	@Consumes("multipart/form-data")
-	public Response addHorseToWatch(  @FormDataParam("data") String data) throws Exception {
-	  
-	  try {	
-		    Main.addHorseToWatch(mapper.readValue(data, HorseToWatch.class));
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	}
-	
-	@Path("removeHorseToWatch")
-	@POST
-	@Consumes("multipart/form-data")
-	public Response removeHorseToWatch(  @FormDataParam("data") String data) throws Exception {
-	  
-	  try {	
-		    Main.removeHorseToWatch(mapper.readValue(data, HorseToWatch.class));
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	}
-	
-	@Path("updateHorseToWatch")
-	@POST
-	@Consumes("multipart/form-data")
-	public Response updateHorseToWatch(  @FormDataParam("data") String data) throws Exception {
-	  
-	  try {	
-		    Main.updateHorseToWatch(mapper.readValue(data, HorseToWatch.class));
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	}
+	}	
 	
 	@Path("getCharts")
 	@GET
@@ -619,8 +600,6 @@ public class Remote {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
 		} 
 	  
-	  	
-	  
 	}
 	
 	@Path("saveNotes")
@@ -630,22 +609,6 @@ public class Remote {
 	  
 	  try {	
 		    Main.saveNotes(mapper.readTree(notes));
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	}
-	
-	@Path("saveHorsesToWatch")
-	@POST
-	@Consumes("multipart/form-data")
-	public Response saveHorsesToWatch(  @FormDataParam("data") String data) throws Exception {
-	  
-	  try {	
-		    Main.saveHorsesToWatch(Arrays.asList(mapper.readValue(data, HorseToWatch[].class)));
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -683,6 +646,57 @@ public class Remote {
 		} 
 	  
 	  	return Response.noContent().build();
+	}
+	
+	@Path("convertRaceDates")
+	@GET
+	public Response convertRaceDates() throws Exception {
+	  
+	  try {
+		    
+		    Main.convertRaceDates();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("convertNotes")
+	@GET
+	public Response convertNotes() throws Exception {
+	  
+	  try {
+		    
+		    Main.convertNotes();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("markChartsReviewed")
+	@GET
+	public Response markChartsReviewed() throws Exception {
+	  
+	  try {
+		    
+		    Main.markChartsReviewed();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
 	}
 	
 }

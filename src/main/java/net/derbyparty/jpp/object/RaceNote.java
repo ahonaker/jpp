@@ -14,6 +14,7 @@ public class RaceNote implements Serializable {
 	private int position;
 	private float beatenLengths;
 	private String comment;
+	private String footnote;
 	private String flag;
 
 	@Generated("SparkTools")
@@ -24,6 +25,7 @@ public class RaceNote implements Serializable {
 		this.position = builder.position;
 		this.beatenLengths = builder.beatenLengths;
 		this.comment = builder.comment;
+		this.footnote = builder.footnote;
 		this.flag = builder.flag;
 	}
 
@@ -62,6 +64,12 @@ public class RaceNote implements Serializable {
 	}
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+	public String getFootnote() {
+		return footnote;
+	}
+	public void setFootnote(String footnote) {
+		this.footnote = footnote;
 	}
 	public String getFlag() {
 		return flag;
@@ -153,6 +161,7 @@ public class RaceNote implements Serializable {
 		private int position;
 		private float beatenLengths;
 		private String comment;
+		private String footnote;
 		private String flag;
 
 		private Builder() {
@@ -185,6 +194,11 @@ public class RaceNote implements Serializable {
 
 		public Builder withComment(String comment) {
 			this.comment = comment;
+			return this;
+		}
+
+		public Builder withFootnote(String footnote) {
+			this.footnote = footnote;
 			return this;
 		}
 

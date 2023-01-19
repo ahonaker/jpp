@@ -2,11 +2,13 @@ package net.derbyparty.jpp.loader;
 
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.file.Paths;
 import java.text.DateFormatSymbols;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -29,6 +31,7 @@ import net.derbyparty.jpp.object.AgeRestrictionRangeType;
 import net.derbyparty.jpp.object.AgeRestrictionType;
 import net.derbyparty.jpp.object.EquipmentChangeType;
 import net.derbyparty.jpp.object.Horse;
+import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.Jockey;
 import net.derbyparty.jpp.object.MedicationType;
 import net.derbyparty.jpp.object.MultiRaceWager;
@@ -45,6 +48,8 @@ import net.derbyparty.jpp.object.SexRestrictionType;
 public class Loader {
 	
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+	
+	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	
 	public static String externalGet(String urlString) throws Exception {
 
@@ -378,6 +383,11 @@ public class Loader {
 			    		
 			    	}
 			    	
+					File horseToWatchFile = new File(horsesToWatchDir + WordUtils.capitalizeFully(values[44].trim()) + ".json");
+					HorseToWatch horseToWatch = null;
+					if (horseToWatchFile.exists()) {
+						horseToWatch =  mapper.readValue(Paths.get(horsesToWatchDir + WordUtils.capitalizeFully(values[44].trim()) + ".json").toFile(), HorseToWatch.class);
+					}
 			    	    	
 			    	List<PastPerformance> pps = new ArrayList<PastPerformance>();
 			    	Boolean over90Flagged = false, over365Flagged = false;
@@ -517,6 +527,18 @@ public class Loader {
 					    	pp.setSplit2(pp.getFraction3()  == 0 ? 0 : pp.getCalcFraction3() - pp.getCalcFraction2());
 					    	pp.setSplit3(pp.getFraction3()  == 0 ? pp.getCalcFinalTime() - pp.getCalcFraction2() : pp.getCalcFinalTime() - pp.getCalcFraction3());
 					    	    	
+					    	if (horseToWatch != null) {
+					    		for (int j = 0; j < horseToWatch.getRaceNotes().size(); j++) {
+					    			if (horseToWatch.getRaceNotes().get(j).getTrack().equals(pp.getTrackCode())
+					    				&& horseToWatch.getRaceNotes().get(j).getRaceDate().equals(pp.getRaceDate())
+					    				&& horseToWatch.getRaceNotes().get(j).getRaceNumber() == pp.getRaceNumber()) {
+					    					pp.setComment(horseToWatch.getRaceNotes().get(j).getComment());
+					    					pp.setFlag(horseToWatch.getRaceNotes().get(j).getFlag());
+					    					pp.setFootnote(horseToWatch.getRaceNotes().get(j).getFootnote());
+					    			}
+					    		}
+					    	}
+					    	
 			    			pps.add(pp);
 			    		}
 			    		

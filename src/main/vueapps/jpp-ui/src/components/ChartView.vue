@@ -154,7 +154,7 @@
                     <b-col><strong>Payoff</strong></b-col>
                     <b-col><strong>Pool</strong></b-col>
                 </b-row>
-                <b-row v-for="exotic in race.wagering.exotics" :key="'ex'  + race.raceNumber + 'r' + exotic.unit + exotic.name + exotic.numberCorrect + exoticwinningNumbers">
+                <b-row v-for="exotic in race.wagering.exotics" :key="'ex'  + race.raceNumber + 'r' + exotic.unit + exotic.name + exotic.numberCorrect + exotic.exoticwinningNumbers">
                     <b-col cols="4">{{format2PlacesCurrency(exotic.unit)}} {{exotic.name}}</b-col>
                     <b-col cols="4">{{exotic.winningNumbers}} <span v-if="exotic.numberCorrect">({{exotic.numberCorrect}} correct)</span></b-col>
                     <b-col>{{format2PlacesCurrency(exotic.payoff)}}</b-col>
@@ -268,11 +268,21 @@ export default {
         },
         hasChart(lastRaced) {
             if (lastRaced == null) return false;	
-			const chartDates =  _.pluck(_.where(this.charts, {track: lastRaced.track.code}),'date');	
-            const day = "" 
-				+ this.str_pad_left(lastRaced.raceDate[1],0,2) 
-				+ this.str_pad_left(lastRaced.raceDate[2],0,2) 
-				+ lastRaced.raceDate[0];
+
+            var str_pad_left = this.str_pad_left;
+            var track = _.findWhere(this.charts, {code: lastRaced.track.code});
+            if (track == null) return false;
+			const chartDates = _.map(
+                _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
+                , function (d) {
+					return d[0] + "-" 
+						+ str_pad_left(d[1],0,2)  + "-"
+						+ str_pad_left(d[2],0,2); 
+                });
+
+            const day = lastRaced.raceDate[0] + "-"
+				+ str_pad_left(lastRaced.raceDate[1],0,2)   + "-"
+				+ str_pad_left(lastRaced.raceDate[2],0,2);
 			return chartDates.indexOf(day) >  -1;
         }           
     }

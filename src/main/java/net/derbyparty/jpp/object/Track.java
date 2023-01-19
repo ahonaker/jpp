@@ -1,7 +1,6 @@
 package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.util.List;
 import javax.annotation.Generated;
 import java.util.Collections;
@@ -12,14 +11,17 @@ public class Track implements Serializable {
 	
 	private String Code;
 	private String Name;
-	private List<LocalDate> raceDates;
-	
+	private List<RaceDate> raceDates;
+
+
 	@Generated("SparkTools")
 	private Track(Builder builder) {
 		this.Code = builder.Code;
 		this.Name = builder.Name;
 		this.raceDates = builder.raceDates;
 	}
+	
+	
 	public String getCode() {
 		return Code;
 	}
@@ -32,10 +34,10 @@ public class Track implements Serializable {
 	public void setName(String name) {
 		Name = name;
 	}
-	public List<LocalDate> getRaceDates() {
+	public List<RaceDate> getRaceDates() {
 		return raceDates;
 	}
-	public void setRaceDates(List<LocalDate> raceDates) {
+	public void setRaceDates(List<RaceDate> raceDates) {
 		this.raceDates = raceDates;
 	}
 	@Override
@@ -73,7 +75,7 @@ public class Track implements Serializable {
 			return false;
 		return true;
 	}
-	public Track(String code, String name, List<LocalDate> raceDates) {
+	public Track(String code, String name, List<RaceDate> raceDates) {
 		super();
 		Code = code;
 		Name = name;
@@ -92,7 +94,7 @@ public class Track implements Serializable {
 	public static final class Builder {
 		private String Code;
 		private String Name;
-		private List<LocalDate> raceDates = Collections.emptyList();
+		private List<RaceDate> raceDates = Collections.emptyList();
 
 		private Builder() {
 		}
@@ -107,7 +109,7 @@ public class Track implements Serializable {
 			return this;
 		}
 
-		public Builder withRaceDates(List<LocalDate> raceDates) {
+		public Builder withRaceDates(List<RaceDate> raceDates) {
 			this.raceDates = raceDates;
 			return this;
 		}
