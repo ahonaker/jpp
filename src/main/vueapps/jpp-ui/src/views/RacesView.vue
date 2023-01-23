@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<navbar-view></navbar-view>
+		<navbar-view :status="status"></navbar-view>
 		<b-navbar id="nav" toggleable="sm" class="pt-0" >						
 			<b-navbar-nav>
 				<b-nav-form>
@@ -26,9 +26,6 @@
 				<b-nav-item :disabled="!file" @click="retrieve"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
 				<b-nav-item @click="getAll"><b-icon-cloud-download v-b-tooltip.hover.bottom title="Download"></b-icon-cloud-download></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="clearRaces"><b-icon-eraser-fill v-b-tooltip.hover.bottom title="Clear Races"></b-icon-eraser-fill></b-nav-item>	
-			</b-navbar-nav>
-			<b-navbar-nav v-if="loading" class="mx-auto text-right">
-				Loading...
 			</b-navbar-nav>
 		</b-navbar>
 
@@ -557,7 +554,7 @@ export default {
 	},
 	data () {
 		return {
-			loading: false,
+			status: "",
 			races: [],
 			charts: [],
 			file: null,
@@ -679,7 +676,6 @@ export default {
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.charts = response.data;
-				this.loadingCharts = false;
 			} catch (err) {
 				console.log(err.response);
 							
@@ -713,7 +709,7 @@ export default {
 		},	
 		async getAllRaces() {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 const response = await axios({
                     url: 'getAll',
                     method: 'GET',
@@ -722,7 +718,7 @@ export default {
                 //console.log(response);
 				this.races = response.data;
 				this.postGetActions();
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err);
                 
@@ -741,7 +737,7 @@ export default {
 		},
 		async uploadAndCalculate() {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 var formData = new FormData();
                 formData.append("data", this.file);
                 formData.append("filename", this.file.name);
@@ -760,7 +756,7 @@ export default {
                 //console.log(response);
 				this.races = response.data;
 				this.postGetActions();
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err);
                 
@@ -768,7 +764,7 @@ export default {
 		},
 		async augment() {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 var formData = new FormData();
                 formData.append("data", this.file);
                 formData.append("filename", this.file.name);
@@ -786,7 +782,7 @@ export default {
 				for (var i=0; i < this.races.length; i++) {
 					this.toggleAll(this.races[i], false);
 				}
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err);
                 
@@ -794,7 +790,7 @@ export default {
 		},
 		async addProgramNumbers() {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 var formData = new FormData();
                 formData.append("data", this.file);
                 formData.append("filename", this.file.name);
@@ -812,7 +808,7 @@ export default {
 				for (var i=0; i < this.races.length; i++) {
 					this.toggleAll(this.races[i], false);
 				}
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err);
                 
@@ -820,7 +816,7 @@ export default {
 		},						
 		async save() {
             try {
-				this.loading = true;
+				this.status = "Loading";
 				for (var i=0; i < this.races.length; i++) {
 					this.setRaceNote(this.races[i]);
 					for (var j=0; j < this.races[i].horses.length; j++) {
@@ -832,7 +828,7 @@ export default {
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
-				this.loading = false;
+				this.status = "";
 				this.$bvModal.msgBoxOk('Races saved.');									
             } catch (err) {
                 console.log(err.response);
@@ -844,7 +840,7 @@ export default {
 				this.$bvModal.msgBoxConfirm("Retrieve Saved Races?")
 					.then(async confirmed => {
 						if (confirmed) {
-								this.loading = true;
+								this.status = "Loading";
 								const response = await axios({
 									url: 'retrieve/' + this.file.name,
 									method: 'GET',
@@ -854,7 +850,7 @@ export default {
 								for (var i=0; i < this.races.length; i++) {
 									this.toggleAll(this.races[i], false);
 								}								
-								this.loading = false;
+								this.status = "";
 						}
 					});	
 			} catch (err) {
@@ -864,7 +860,7 @@ export default {
 		},
 		async getChanges() {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 const response = await axios({
                     url: 'getChanges/',
                     method: 'GET',
@@ -874,7 +870,7 @@ export default {
 				for (var i=0; i < this.races.length; i++) {
 					this.toggleAll(this.races[i], false);
 				}				
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err.response);
                 
@@ -882,7 +878,7 @@ export default {
 		},	
 		async getResults() {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 const response = await axios({
                     url: 'getResults/',
                     method: 'GET',
@@ -892,7 +888,7 @@ export default {
 				for (var i=0; i < this.races.length; i++) {
 					this.toggleAll(this.races[i], false);
 				}				
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err.response);
                 
@@ -900,7 +896,7 @@ export default {
 		},			
 		async calculate() {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 const response = await axios({
                     url: 'calculate/' + this.options.distance + '/' + this.options.surface + '/' + this.options.condition,
                     method: 'GET',
@@ -910,7 +906,7 @@ export default {
 				for (var i=0; i < this.races.length; i++) {
 					this.toggleAll(this.races[i], false);
 				}				
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err.response);
                 
@@ -926,14 +922,14 @@ export default {
 		},
 		async updateCondition(race) {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 const response = await axios({
                     url: 'setTrackCondition/' + race.raceNumber + '/' + race.trackCondition,
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
 				this.races = response.data;
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err.response);
                 
@@ -941,14 +937,14 @@ export default {
 		},
 		async toggleOffTheTurf(race) {
             try {
-				this.loading = true;
+				this.status = "Loading";
                 const response = await axios({
                     url: 'toggleOffTheTurf/' + race.raceNumber,
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
 				this.races = response.data;
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err.response);
                 
@@ -979,7 +975,7 @@ export default {
 		async setRaceNote(race) {
 			if (race.note) {
 				try {
-					this.loading = true;
+					this.status = "Loading";
 					var formData = new FormData();
 					formData.append("raceNumber", race.raceNumber);
 					formData.append("note", race.note);
@@ -993,7 +989,7 @@ export default {
 						data: formData
 					});
 					//console.log(response);
-					this.loading = false;
+					this.status = "";
 				} catch (err) {
 					console.log(err);
 					
@@ -1003,7 +999,7 @@ export default {
 		async setHorseNote(horse) {
 			if (horse.note) {
 				try {
-					this.loading = true;
+					this.status = "Loading";
 					var formData = new FormData();
 					formData.append("raceNumber", horse.raceNumber);
 					formData.append("name", horse.name);
@@ -1018,7 +1014,7 @@ export default {
 						data: formData
 					});
 					//console.log(response);
-					this.loading = false;
+					this.status = "";
 				} catch (err) {
 					console.log(err);
 				}

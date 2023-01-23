@@ -1,13 +1,10 @@
 <template>
     <div>
-		<navbar-view></navbar-view>
+		<navbar-view :status="status"></navbar-view>
         <b-navbar id="nav" toggleable="sm" class="py-2" >						
             <b-navbar-nav small>			
                 <b-nav-item @click="generatePDF()"><b-icon-file-pdf v-b-tooltip.hover.bottom title="Generate PDF"></b-icon-file-pdf></b-nav-item>             	
-            </b-navbar-nav>   
-            <b-navbar-nav class="mx-auto text-right">
-                {{status}}
-            </b-navbar-nav>                             
+            </b-navbar-nav>                                
         </b-navbar>		
 		<b-table
 			id="summary"
@@ -34,19 +31,21 @@
 </template>
 
 <script>
-//import _ from 'underscore'
+
+import {  BIconFilePdf  } from 'bootstrap-vue'
+import html2pdf from 'html2pdf.js'
 import axios from 'axios'
 import NavbarView from '@/views/NavbarView'
 
 export default {
 	name: 'RacesView',
 	components: {
-		NavbarView
+		NavbarView, BIconFilePdf
 	},
 	data () {
 		return {
 			races: [],
-			status: null,
+			status: "",
 			cols: [
 				{key: "raceNumber", label: "Race"},
 				{key: "AHorses", label: "A"},
@@ -54,7 +53,33 @@ export default {
 				{key: "CHorses", label: "C"},
 				{key: "Others", label: "Others"},
 				{key: "pick", label: "Pick"},
-			]
+			],
+            options: {
+                margin: 10,
+
+                image: {
+                    type: 'jpeg', 
+                    quality: 0.98
+                },
+
+                enableLinks: false,
+
+                pagebreak: { mode: 'avoid-all', after: '.page1' },
+
+                html2canvas: {
+                    scale: 2,
+                    width: 1400,
+                    logging: false
+                },
+
+                jsPDF: {
+                    unit: 'px',
+                    format: [1400, 1811],
+                    orientation: 'portrait',
+                    compress: true
+                },
+                hotfixes : ["px_scaling"]
+            }			
         }       
     },
 	mounted() {
@@ -70,14 +95,18 @@ export default {
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.races = response.data;
-				this.status = "Loaded";
+				this.status = "";
 			} catch (err) {
 				console.log(err.response);
 							
 			}	
 		},	
-		generatedPDF() {
-			//
+		async generatePDF() {
+			const response = await html2pdf()
+				.set(this.options)
+				.from(document.getElementById('summary'))
+				.save(this.races[0].track + this.races[0].date + " Summary");
+			if (!response) this.status += "...done";			
 		},
 		format2Places(amount) {
 			const formatter = new Intl.NumberFormat('en-US', {

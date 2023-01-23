@@ -1,6 +1,6 @@
 <template>
     <span>
-        <navbar-view></navbar-view>
+        <navbar-view :status="status"></navbar-view>
         <b-navbar id="nav" toggleable="sm" class="py-2" >						
             <b-navbar-nav small>			
                 <b-nav-item @click="generatePDFAll()"><b-icon-file-pdf v-b-tooltip.hover.bottom title="Generate All PDFs"></b-icon-file-pdf></b-nav-item>
@@ -13,10 +13,7 @@
                 >
                     <b-dropdown-item v-for="raceNumber in numRaces" :key="raceNumber" @click="generatePDF(raceNumber)">Race {{raceNumber}}</b-dropdown-item>
                 </b-nav-item-dropdown>               	
-            </b-navbar-nav>   
-            <b-navbar-nav class="mx-auto text-right">
-                {{status}}
-            </b-navbar-nav>                             
+            </b-navbar-nav>                              
         </b-navbar>
 
         <span v-if="race">

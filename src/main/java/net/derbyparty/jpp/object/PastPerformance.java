@@ -717,7 +717,6 @@ public class PastPerformance implements Serializable {
 		getTrackName.put("SP4","La Plata (Arg)");
 		getTrackName.put("REO","La Reole");
 		getTrackName.put("LR","La Rinconada");
-		getTrackName.put("LRC","La Rochelle");
 		getTrackName.put("LRY","La Roche-Sur-Yon");
 		getTrackName.put("TDB","La Teste De");
 		getTrackName.put("LBL","Lamballe");

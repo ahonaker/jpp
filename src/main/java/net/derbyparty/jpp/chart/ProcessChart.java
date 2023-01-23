@@ -90,6 +90,8 @@ public class ProcessChart {
 								&& existingRaceNote.getTrack().equals(result.getTrack().getCode())
 								&& existingRaceNote.getRaceNumber() == result.getRaceNumber()) {
 									noteFound = true;
+									existingRaceNote.setFootnote(starter.getFootnote());
+									horseToWatch.save();
 							}
 						}
 						if (!noteFound) {

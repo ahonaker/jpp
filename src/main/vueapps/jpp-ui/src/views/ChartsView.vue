@@ -1,6 +1,6 @@
 <template>
     <div>
-        <navbar-view></navbar-view>
+        <navbar-view :status="status"></navbar-view>
         <b-row>
             <b-col>
                 <b-form inline>
@@ -61,9 +61,7 @@ export default {
 			chartTabIndex: 0,
 			tracks: [],
 			track: null,
-			loading: false,
-			loadingCharts: true,
-			loadingTracks: true
+            status: ""
 		}	
 	},
 	async mounted() {
@@ -144,13 +142,14 @@ export default {
 	methods: {	
 		async getCharts() {
 			try {
+                this.status = "Loading";
 				const response = await axios({
 					url: 'getCharts/',
 					method: 'GET',
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.charts = response.data;
-				this.loadingCharts = false;
+				this.status = "";
 			} catch (err) {
 				console.log(err.response);
 							
@@ -164,7 +163,6 @@ export default {
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.tracks = response.data;
-				this.loadingTracks = false;
 			} catch (err) {
 				console.log(err.response);
 							
@@ -172,14 +170,14 @@ export default {
 		},	
 		async getChart() {
 			try {
-				this.loading = true;
+				this.status = "Loading";
 				const response = await axios({
 					url: 'getChart/' + this.track + "/" + this.chartDate.getFullYear() + "/" + (this.chartDate.getMonth() + 1)+ "/" + this.chartDate.getDate(),
 					method: 'GET',
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.chart = response.data;
-				this.loading = false;
+				this.status = "";
 			} catch (err) {
 				console.log(err.response);
 							
@@ -187,7 +185,7 @@ export default {
 		},
 		async saveNotes() {
             try {
-				this.loading = true;
+				this.status = "Loading";
 				var races = [];
 				for (var i = 0; i < this.chart.length; i++) {
 					var notes = [];
@@ -225,7 +223,7 @@ export default {
                     data: formData
                 });
                 //console.log(response);
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err);
                 

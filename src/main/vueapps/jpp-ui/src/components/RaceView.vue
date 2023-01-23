@@ -80,6 +80,9 @@
                 </span>
             </b-tooltip> 
         </template>
+        <template #cell(aratingFairValue)="row"> 
+            <span v-if="!row.item.scratchedFlag">{{row.value}}</span>
+         </template>
         <template #cell(mlodds)="row">       
             <span class="text-danger" v-if="hideML"><b-icon-eye-slash-fill></b-icon-eye-slash-fill></span>
             <span v-else v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.item.mlodds}}</span>

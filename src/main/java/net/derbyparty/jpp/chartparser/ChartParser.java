@@ -390,11 +390,18 @@ public class ChartParser {
                 String footnotes = Footnotes.parse(lines);
                 raceResultBuilder.footnotes(footnotes);
                 
+                
+                for (Starter starter : starters) {
+                	footnotes = footnotes.replace(starter.getHorse().getName().toUpperCase(), "~~"+starter.getProgram()+"~~");
+                }
+                
                 String[] starterFootnotes = footnotes.split("\\.\\s");
                 
                 for (Starter starter : starters) {
                 	for (String footnote :starterFootnotes) {
-                		if (footnote.startsWith(starter.getHorse().getName().toUpperCase())) starter.setFootnote(footnote);
+                		if (footnote.startsWith("~~"+starter.getProgram()+"~~")) starter.setFootnote(
+                				footnote.replace("~~"+starter.getProgram()+"~~", starter.getHorse().getName().toUpperCase())
+                			);
                 	}
                 }
 

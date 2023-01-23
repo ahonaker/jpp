@@ -1,6 +1,6 @@
 <template>
     <div>
-		<navbar-view></navbar-view>
+		<navbar-view :status="status"></navbar-view>
         <b-row>
             <b-col>
                 <b-button variant="primary" @click="parseCharts">Parse Charts</b-button>
@@ -66,6 +66,7 @@ export default {
 	},
 	data () {
 		return {
+			status: "",
 			track: null,
 			file: null,
 			pp: null,
@@ -125,13 +126,14 @@ export default {
     methods: {
 		async getCharts() {
 			try {
+				this.status = "Loading";
 				const response = await axios({
 					url: 'getCharts/',
 					method: 'GET',
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.charts = response.data;
-				this.loadingCharts = false;
+				this.status = "";
 			} catch (err) {
 				console.log(err.response);
 							
@@ -153,13 +155,13 @@ export default {
 		},			
 		async parseCharts() {
             try {
-				this.loading = true;
+				this.status = "Parsing";
                 await axios({
                     url: 'parseDirectory',
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
-				this.loading = false;
+				this.status = "";
 				this.getCharts();
             } catch (err) {
                 console.log(err);
@@ -168,7 +170,7 @@ export default {
 		},	
 		async extractPP() {
             try {
-				this.loading = true;
+				this.status = "Extracting";
                 var formData = new FormData();
                 formData.append("data", this.file);
                 formData.append("filename", this.file.name);
@@ -183,12 +185,33 @@ export default {
                 });
                 //console.log(response.data);
 				this.pp = response.data;
-				this.loading = false;
+				this.status = "";
             } catch (err) {
                 console.log(err);
                 
             }
 		},
+		async saveDates() {
+            try {
+				this.status = "Saving";
+                var formData = new FormData();
+                formData.append("data", JSON.stringify(this.tracks));
+                await axios({
+                    url: 'saveTracks',
+                    method: 'POST',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    data: formData
+                });
+                //console.log(response.data);
+				this.status = "";
+            } catch (err) {
+                console.log(err);
+                
+            }
+		},		
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);
 		},		

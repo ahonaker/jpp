@@ -1037,12 +1037,16 @@ public class Factors {
 						if (pp.getClaimingPrice() > 0) hasBeenInForClaim = true;
 					}
 					if (!hasBeenInForClaim && (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
-							|| horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING)) {
-						angles.add("+Maiden to Maiden Claiming");
+						|| horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING)) {
+							angles.add("+Maiden to Maiden Claiming");
 					} else if (horse.getPastPerformances().size() > 1 && (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
-							|| (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING
-							&& horse.getPastPerformances().get(1).getClaimingPrice() == 0))) {
-						angles.add("+Maiden to Maiden Claiming Two Races Back");
+						|| (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING
+						&& horse.getPastPerformances().get(1).getClaimingPrice() == 0))) {
+							Boolean hasBeenInForClaim3orMoreBack = false;
+							for (int i=2; i < horse.getPastPerformances().size(); i++) {
+								hasBeenInForClaim3orMoreBack = true;
+							}
+							if (!hasBeenInForClaim3orMoreBack) angles.add("+Maiden to Maiden Claiming Two Races Back");
 					} else {
 						if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING && 
 								race.getPurse() <= 40000 && horse.getPastPerformances().get(0).getPurse() >= 50000) {
@@ -1121,7 +1125,8 @@ public class Factors {
 					angles.add("-Three year old moving up from claiming - NO PLAY");
 				if (horse.getAge() == 3 && horse.getPastPerformances().get(0).getFinishBeatenLengthsOnly() > 5 && horse.getPastPerformances().get(1).getFinishBeatenLengthsOnly() > 5) 
 					angles.add("-Non-claiming three year old has lost two races in a row, well-beaten in each");
-				if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING) angles.add("-Maiden Claiming grads are never acceptable in allowance or stakes races.");
+				if (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING 
+					&& horse.getPastPerformances().get(0).getClaimingPrice() == 0) angles.add("-Maiden Claiming grads are never acceptable in allowance or stakes races.");
 				break;
 
 			case GRADE_1:
