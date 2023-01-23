@@ -24,6 +24,7 @@
 				<b-nav-item :disabled="races.length == 0" @click="calculate"><b-icon-calculator-fill v-b-tooltip.hover.bottom title="Calculate"></b-icon-calculator-fill></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="save"><b-icon-file-earmark-arrow-up v-b-tooltip.hover.bottom title="Save"></b-icon-file-earmark-arrow-up></b-nav-item>			
 				<b-nav-item :disabled="!file" @click="retrieve"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
+				<b-nav-item @click="getAll"><b-icon-cloud-download v-b-tooltip.hover.bottom title="Download"></b-icon-cloud-download></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="clearRaces"><b-icon-eraser-fill v-b-tooltip.hover.bottom title="Clear Races"></b-icon-eraser-fill></b-nav-item>	
 			</b-navbar-nav>
 			<b-navbar-nav v-if="loading" class="mx-auto text-right">
@@ -534,7 +535,7 @@
 						</b-col>
 					</b-row>
 				</b-collapse>
-				<race-view :race="race" :hideML="hideML" @selectionUpdate="tmGenerate" @togglePick="togglePick"></race-view>
+				<race-view :race="race" :hideML="hideML" :charts="charts" @selectionUpdate="tmGenerate" @togglePick="togglePick"></race-view>
 			</b-tab>
 		</b-tabs>	
 	</div>
@@ -542,7 +543,7 @@
 
 <script>
 //import { } from 'bootstrap-vue'
-import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill  } from 'bootstrap-vue'
+import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill  } from 'bootstrap-vue'
 import RaceView from '@/components/RaceView'
 import NavbarView from '@/views/NavbarView'
 
@@ -552,13 +553,13 @@ import _ from 'underscore'
 export default {
 	name: 'RacesView',
 	components: {
-		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill
+		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill
 	},
 	data () {
 		return {
 			loading: false,
 			races: [],
-			horsesToWatch : [],
+			charts: [],
 			file: null,
 			pp: "",
 			hideML: true,
@@ -613,7 +614,7 @@ export default {
 		}	
 	},
 	mounted() {
-
+		this.getCharts();
 	},
 	computed: {	
 		hasResults() {
@@ -670,6 +671,20 @@ export default {
 		}
 	},
 	methods: {
+		async getCharts() {
+			try {
+				const response = await axios({
+					url: 'getCharts/',
+					method: 'GET',
+					baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});
+				this.charts = response.data;
+				this.loadingCharts = false;
+			} catch (err) {
+				console.log(err.response);
+							
+			}	
+		},		
 		load() {
 			if (this.races.length == 0) {
 				this.uploadAndCalculate();
@@ -683,6 +698,47 @@ export default {
 					});
 			}
 		},		
+		getAll() {
+			if (this.races.length == 0) {
+				this.getAllRaces();
+			} else {
+				this.$bvModal.msgBoxConfirm("Reload and Start Over?")
+					.then(confirmed => {
+						if (confirmed) {
+							this.races = [];
+							this.getAllRaces();
+						}
+					});
+			}
+		},	
+		async getAllRaces() {
+            try {
+				this.loading = true;
+                const response = await axios({
+                    url: 'getAll',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+                });
+                //console.log(response);
+				this.races = response.data;
+				this.postGetActions();
+				this.loading = false;
+            } catch (err) {
+                console.log(err);
+                
+            }
+		},
+		postGetActions() {
+			for (var i=0; i < this.races.length; i++) {
+				this.combinations[i] = [];
+				this.combinationsText[i] = []; 
+				for (var j=0; j < this.races[i].multiRaceWagers.length; j++) {
+					this.combinations[i][j] = {a: [], b:[], c:[]};
+					this.combinationsText[i][j] = {tmA: "", tmAB: "", tmB1: "", tmB2: "", tmC1: ""};
+				}
+				this.toggleAll(this.races[i], false);
+			}
+		},
 		async uploadAndCalculate() {
             try {
 				this.loading = true;
@@ -703,23 +759,13 @@ export default {
                 });
                 //console.log(response);
 				this.races = response.data;
-
-				for (var i=0; i < this.races.length; i++) {
-					this.combinations[i] = [];
-					this.combinationsText[i] = []; 
-					for (var j=0; j < this.races[i].multiRaceWagers.length; j++) {
-						this.combinations[i][j] = {a: [], b:[], c:[]};
-						this.combinationsText[i][j] = {tmA: "", tmAB: "", tmB1: "", tmB2: "", tmC1: ""};
-					}
-					this.toggleAll(this.races[i], false);
-				}
+				this.postGetActions();
 				this.loading = false;
             } catch (err) {
                 console.log(err);
                 
             }
 		},
-
 		async augment() {
             try {
 				this.loading = true;
@@ -777,6 +823,9 @@ export default {
 				this.loading = true;
 				for (var i=0; i < this.races.length; i++) {
 					this.setRaceNote(this.races[i]);
+					for (var j=0; j < this.races[i].horses.length; j++) {
+						this.setHorseNote(this.races[i].horses[j]);
+					}
 				}
                 await axios({
                     url: 'save/' + this.file.name, 
@@ -928,27 +977,53 @@ export default {
 			});
 		},
 		async setRaceNote(race) {
-            try {
-				this.loading = true;
-                var formData = new FormData();
-                formData.append("raceNumber", race.raceNumber);
-                formData.append("note", race.note);
-                await axios({
-                    url: 'setRaceNote',
-                    method: 'POST',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    },
-                    data: formData
-                });
-                //console.log(response);
-				this.loading = false;
-            } catch (err) {
-                console.log(err);
-                
-            }
-		},				
+			if (race.note) {
+				try {
+					this.loading = true;
+					var formData = new FormData();
+					formData.append("raceNumber", race.raceNumber);
+					formData.append("note", race.note);
+					await axios({
+						url: 'setRaceNote',
+						method: 'POST',
+						baseURL: 'http://localhost:8080/jpp/rest/remote/',
+						headers: {
+							'Content-Type': 'multipart/form-data'
+						},
+						data: formData
+					});
+					//console.log(response);
+					this.loading = false;
+				} catch (err) {
+					console.log(err);
+					
+				}
+			}
+		},	
+		async setHorseNote(horse) {
+			if (horse.note) {
+				try {
+					this.loading = true;
+					var formData = new FormData();
+					formData.append("raceNumber", horse.raceNumber);
+					formData.append("name", horse.name);
+					formData.append("note", horse.note);
+					await axios({
+						url: 'setHorseNote',
+						method: 'POST',
+						baseURL: 'http://localhost:8080/jpp/rest/remote/',
+						headers: {
+							'Content-Type': 'multipart/form-data'
+						},
+						data: formData
+					});
+					//console.log(response);
+					this.loading = false;
+				} catch (err) {
+					console.log(err);
+				}
+			}
+        },  					
 		formatCurrency(amount) {
 			const formatter = new Intl.NumberFormat('en-US', {
 				style: 'currency',

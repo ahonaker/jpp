@@ -7,51 +7,15 @@
         @row-clicked="toggleIgnored"
     >
         <template #head()="data">
-            <span v-b-tooltip.hover :title="data.field.title">{{ data.label }}</span>
+            {{ data.label }}>
         </template>  
         <template #cell(raceDateString)="row">
-            <a 
-                v-if="!hasChart(row.item)"
-                v-b-tooltip.hover.right :title="dayOfWeek(row.item.raceDate)"
-                :href="'https://www.twinspires.com/bet/product/download/INC/TB/' 
-                    + row.item.trackCode + '/'
-                    + row.item.raceDate[0] + '-' + str_pad_left(row.item.raceDate[1],0,2) + '-' + str_pad_left(row.item.raceDate[2],0,2) 
-                    + '/D/' + row.item.raceNumber" 
-                target="_blank"            
-            >{{row.item.raceDateString}}<sup>{{row.item.raceNumber}}</sup>
-            </a>
-            <b-link 
-                class="chart-link"
-                v-if="hasChart(row.item)" 
-                v-b-tooltip.hover.right :title="dayOfWeek(row.item.raceDate)"
-                target="_blank"
-                :to="'/charts/'+row.item.trackCode+'/'+row.item.raceDate[0]+'/'+row.item.raceDate[1]+'/'+row.item.raceDate[2]+'/'+row.item.raceNumber"
-            >{{row.item.raceDateString}}<sup>{{row.item.raceNumber}}</sup>
-            </b-link>
+            {{row.item.raceDateString}}<sup>{{row.item.raceNumber}}</sup>
             &nbsp;
-            <span v-if="row.item.keyRace != null" v-b-popover.hover.html.right="keyRaceHorsesFormat(row.item.keyRace.horses)" :title="row.item.keyRace.track + ' ' + formatDate(row.item.keyRace.raceDate) + ' Race ' + row.item.keyRace.raceNumber">
-                <a 
-                    :href="'https://www.twinspires.com/bet/results/' 
-                        + row.item.keyRace.raceDate[0] + '-' + str_pad_left(row.item.keyRace.raceDate[1],0,2) + '-' + str_pad_left(row.item.keyRace.raceDate[2],0,2) + '/'
-                        + row.item.keyRace.track                   
-                        + '/Thoroughbred/' + row.item.keyRace.raceNumber" 
-                    target="_blank"            
-                >
-                    <b-icon-key variant="success" font-scale="2" rotate="90"></b-icon-key>&nbsp;
-                </a>
+            <span v-if="row.item.keyRace != null">
+                <b-icon-key variant="success" font-scale="2" rotate="90"></b-icon-key>&nbsp;
             </span>
-            <a 
-                :href="'https://www.twinspires.com/bet/video/replay/'
-                    + row.item.raceDate[0] + '-' + str_pad_left(row.item.raceDate[1],0,2) + '-' + str_pad_left(row.item.raceDate[2],0,2) 
-                    + '/' + row.item.trackCode
-                    + '/Thoroughbred/' + row.item.raceNumber" 
-                target="_blank"  
-            ><b-icon-camera-video-fill></b-icon-camera-video-fill>
-            </a>
-        </template>
-        <template #cell(trackCode)="row">
-            <span v-b-tooltip.hover :title="row.item.trackName">{{ row.item.trackCode }}</span>
-        </template>       
+        </template>    
         <template #cell(dist)="row">
             <span v-if="row.item.distance<0"><sup>*</sup></span>
             <span v-if="Math.abs(row.item.miles)==1.5">1&frac12;m</span>
@@ -82,10 +46,9 @@
             <span v-if="row.item.offTheTurfFlag"><b-badge pill variant="secondary">&nbsp;X&nbsp;</b-badge></span>
         </template>
         <template #cell(trainerAndClaimFlag)="row">
-            <b-badge pill v-if="row.item.claimedCode != 'c' && row.item.claimingPrice > 0" variant="danger" v-b-tooltip.hover :title="'Price: $' + row.item.claimingPrice">C</b-badge>
-            <b-badge pill v-if="row.item.claimedCode == 'c'" variant="success" v-b-tooltip.html.hover :title="'Price: $' + row.item.claimingPrice + '<br>' + row.item.extraCommentLine">C</b-badge>
-            <b-badge pill v-if="row.item.trainerChangeDate" variant="success"  v-b-tooltip.hover :title="'Prev Trnr: ' + row.item.trainerChangeStarts 
-            + '  ' + row.item.trainerChangeWins + '-' + row.item.trainerChangePlaces + '-' + row.item.trainerChangeShows + '  ' + formatInt(row.item.trainerChangeWins / row.item.trainerChangeStarts * 100) + '%'">T</b-badge>
+            <b-badge pill v-if="row.item.claimedCode != 'c' && row.item.claimingPrice > 0" variant="danger">C</b-badge>
+            <b-badge pill v-if="row.item.claimedCode == 'c'" variant="success">C</b-badge>
+            <b-badge pill v-if="row.item.trainerChangeDate" variant="success">T</b-badge>
              {{shortenName(row.item.trainer)}}
         </template>
         <template #cell(fraction1)="row">
@@ -93,16 +56,14 @@
             {{format2Places(row.item.calcFraction1)}}</span><br>
         </template>									
         <template #cell(fraction2)="row">
-            <span v-if="row.item.fraction2 != 0" v-b-tooltip.hover :title="Math.floor(row.item.calcFraction2 / 60) + ':' + str_pad_left(Math.floor(row.item.calcFraction2 - Math.floor(row.item.calcFraction2 / 60) * 60),'0',2) + '.' + ((row.item.calcFraction2 - Math.floor(row.item.calcFraction2)) * 100).toFixed(0)
-            + ' (LDR : '
-            + Math.floor(row.item.fraction2 / 60) + ':' +  str_pad_left(Math.floor(row.item.fraction2 - Math.floor(row.item.fraction2 / 60) * 60),'0',2) + '.' + str_pad_left(((row.item.fraction2 - Math.floor(row.item.fraction2)) * 100).toFixed(0),'0',2) + ')'">
-            {{format2Places(row.item.split1)}}</span>
+            <span v-if="row.item.fraction2 != 0">
+                {{format2Places(row.item.split1)}}
+            </span>
         </template>									
         <template #cell(fraction3)="row">
-            <span v-if="row.item.calcFraction3 != 0" v-b-tooltip.hover :title="Math.floor(row.item.calcFraction3 / 60) + ':' + str_pad_left(Math.floor(row.item.calcFraction3 - Math.floor(row.item.calcFraction3 / 60) * 60),'0',2) + '.' + ((row.item.calcFraction3 - Math.floor(row.item.calcFraction3)) * 100).toFixed(0)
-            + ' (LDR : '
-            + Math.floor(row.item.fraction3 / 60) + ':' +  str_pad_left(Math.floor(row.item.fraction3 - Math.floor(row.item.fraction3 / 60) * 60),'0',2) + '.' + str_pad_left(((row.item.fraction3 - Math.floor(row.item.fraction3)) * 100).toFixed(0),'0',2) + ')'">
-            {{format2Places(row.item.split2)}}</span>
+            <span v-if="row.item.calcFraction3 != 0">
+                {{format2Places(row.item.split2)}}
+            </span>
         </template>
         <template #cell(finalTime)="row">
             <span v-b-tooltip.hover :title="Math.floor(row.item.calcFinalTime / 60) + ':' + str_pad_left(Math.floor(row.item.calcFinalTime - Math.floor(row.item.calcFinalTime / 60) * 60),'0',2) + '.' + ((row.item.calcFinalTime - Math.floor(row.item.calcFinalTime)) * 100).toFixed(0)
@@ -164,7 +125,7 @@
            <span v-if="row.item.stretchPosition != 0"> {{row.item.stretchPosition}}<sup>{{row.item.stretchBeatenLengthsLeader.toFixed(2)}}</sup></span>
         </template>	
         <template #cell(finishPosition)="row">
-            <span v-if="row.item.extraCommentLine.substring(0,1) == '(' || row.item.extraCommentLine == 'Dead heat'" v-b-tooltip.hover :title="row.item.extraCommentLine" class="text-danger">*</span>{{row.item.finishPosition}}<sup>{{row.item.finishBeatenLengthsLeader.toFixed(2)}}</sup>
+            <span v-if="row.item.extraCommentLine.substring(0,1) == '(' || row.item.extraCommentLine == 'Dead heat'" class="text-danger">*</span>{{row.item.finishPosition}}<sup>{{row.item.finishBeatenLengthsLeader.toFixed(2)}}</sup>
         </template>	
         <template #cell(jockey)="row">	
             {{shortenName(row.item.jockey)}}<sup>{{row.item.weight}}</sup>
@@ -181,19 +142,13 @@
             <span :class="alsoInRace(row.item.showName, row.item)">{{row.item.showName}}</span><sup>{{row.item.showMargin.toFixed(2)}}</sup>
         </template>		
         <template #cell(tripComment)="row">	
-            <span 
-				:class="{'text-success': row.item.comment || row.item.flag}"
-                v-b-tooltip.html.hover.left
-                :title="tripText(row.item)"
-				>
-					{{row.item.tripComment}}
-				</span>
+            <span>{{row.item.tripComment}}</span>
         </template>	
     </b-table>   
 </template>
 
 <script>
-import { BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconCameraVideoFill, BIconKey, BIconCircleHalf } from 'bootstrap-vue'
+import { BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconKey, BIconCircleHalf } from 'bootstrap-vue'
 
 import axios from 'axios'
 import _ from 'underscore'
@@ -201,11 +156,12 @@ import _ from 'underscore'
 export default {
     name: 'PastPerformanceView',
     components: {
-		BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconCameraVideoFill, BIconKey, BIconCircleHalf
+		BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconKey, BIconCircleHalf
     },
-    props : ['horse', 'race', 'charts'],
+    props : ['horse', 'race'],
     data () {
 		return {
+            charts: [],
             ppFields: [
 				{key: "raceDateString", label: "DATE"},
 				{key: "daysSinceLastRace", label: "LR", title: "Days Since Last Race", tdClass: this.highlightDaysSincePP},
@@ -539,37 +495,19 @@ export default {
         goToChart(pp) {
             this.$emit("goToChart", pp);
         },
-        hasChart(pp) {
-            var str_pad_left = this.str_pad_left;
-            var track = _.findWhere(this.charts, {code: pp.trackCode});
-            if (track == null) return false;
-			const chartDates = _.map(
-                _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
-                , function (d) {
-					return d[0] + "-" 
-						+ str_pad_left(d[1],0,2)  + "-"
-						+ str_pad_left(d[2],0,2); 
-                });
-
-            const day = pp.raceDate[0] + "-"
-				+ str_pad_left(pp.raceDate[1],0,2)   + "-"
-				+ str_pad_left(pp.raceDate[2],0,2);
+        hasChart(pp) {	
+			const chartDates =  _.pluck(_.where(this.charts, {track: pp.trackCode}),'date');	
+            const day = "" 
+				+ this.str_pad_left(pp.raceDate[1],0,2) 
+				+ this.str_pad_left(pp.raceDate[2],0,2) 
+				+ pp.raceDate[0];
 			return chartDates.indexOf(day) >  -1;
         },
         dayOfWeek(raceDate) {
             const weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
             var dt = new Date(raceDate[0] + "/" + this.str_pad_left(raceDate[1],0,2) + "/" + this.str_pad_left(raceDate[2],0,2));
             return weekday[dt.getDay()];
-        },
-		tripText(pp) {
-			//row.item.footnote ? row.item.flag + ' - ' row.item.footnote : row.item.extendedStartComment
-			var txt = "";
-			txt += (pp.flag ? pp.flag : "");
-			txt += (pp.flag && pp.comment ? " - " : "");
-			txt += (pp.comment ? pp.comment : "");
-			txt += (pp.flag || pp.comment) ? "<br>-----------<br>" : "";
-			return txt += (pp.footnote || pp.extendedStartComment);
-		}
+        }  
     }
 }
 </script>

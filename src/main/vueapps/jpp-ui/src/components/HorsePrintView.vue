@@ -389,9 +389,23 @@
             <span v-if="horse.flag == 'Star'"><b-icon-star-fill variant="success"></b-icon-star-fill> {{horse.comment}}<br></span>        
             {{horse.note}}
         </b-row>
-        <horse-extra-view v-if="horse.pastPerformances.length > 3 && !horse.scratchedFlag" :horse="horse"></horse-extra-view>      
+        <horse-extra-view v-if="horse.pastPerformances.length > 3 && !horse.scratchedFlag" :horse="horse"></horse-extra-view>   
+        <b-row v-if="horse.pastPerformances.length > 0" class="horse">
+            <b-col cols="8" class="text-center">
+                <span v-if="horse.pastPerformances[0].flag || horse.pastPerformances[0].comment || horse.pastPerformances[0].footnote">
+                    <strong>Last race:</strong> {{horse.pastPerformances[0].flag}} <span v-if="horse.pastPerformances[0].flag">/</span> {{horse.pastPerformances[0].comment}}&nbsp;
+                    <span v-if="horse.pastPerformances[0].comment">-</span>{{horse.pastPerformances[0].footnote}}<br>
+                </span>
+			</b-col>
+			<b-col class="text-center">
+                <span v-if="horse.pastPerformances[0].keyRace">
+					<strong>Exits Key Race: {{horse.pastPerformances[0].keyRace.track}} {{formatDate(horse.pastPerformances[0].keyRace.raceDate)}} Race {{horse.pastPerformances[0].keyRace.raceNumber}}</strong><br>
+					<span v-html="keyRaceHorsesFormat(horse.pastPerformances[0].keyRace.horses)"></span>
+                </span>
+            </b-col>
+        </b-row>
         <b-row class="table b-table table-sm">       
-            <past-performance-view v-if="!horse.scratchedFlag" :horse="horse" :race="race" :charts="charts"></past-performance-view>
+            <past-performance-print-view v-if="!horse.scratchedFlag" :horse="horse" :race="race" :charts="charts"></past-performance-print-view>
         </b-row>
         <b-row v-if="!horse.scratchedFlag">
             <span v-for="workout in horse.workouts" :key="workout.date">
@@ -403,7 +417,7 @@
 
 <script>
 import { BIconStarFill } from 'bootstrap-vue'
-import PastPerformanceView from '@/components/PastPerformanceView'
+import PastPerformancePrintView from '@/components/PastPerformancePrintView'
 import WorkoutView from '@/components/WorkoutView'
 import HorseExtraView from '@/components/HorseExtraView'
 
@@ -412,7 +426,7 @@ import _ from 'underscore'
 export default {
     name: 'HorsePrintView',
     components: {
-		PastPerformanceView, WorkoutView, HorseExtraView, BIconStarFill
+		PastPerformancePrintView, WorkoutView, HorseExtraView, BIconStarFill
     },
     props : ['race', 'horse', 'hideML', 'charts'],
     data () {
@@ -455,12 +469,28 @@ export default {
 				maximumFractionDigits: 2, // (causes 2500.99 to be printed as $2,501)
 			});
 			return formatter.format(amount);
-		},        	            
+		},  
+        formatDate (date) {
+			return date[1] + "/" + date[2] + "/" + date[0];
+		},	              	            
 		alsoInRace(nameToMatch, row) {
 			var names = _.pluck(this.race.horses, "name");
 			if (names.indexOf(nameToMatch) > -1 && nameToMatch != row.name) return "alsoInRace";
 
 		},
+        keyRaceHorsesFormat(horses) {
+            var ret = "<span class='horse'>";
+            for (var i=0; i < horses.length; i++) {
+                ret += horses[i].name 
+                    + " @ " + horses[i].track
+                    + " " + this.formatDate(horses[i].raceDate)
+                    + "<sup>" + horses[i].raceNumber + "</sup>"
+                    + " Pos: " + horses[i].position 
+                    + " BL: " + this.format2Places(horses[i].beatenLengths);
+                if (i < horses.length-1) ret += "<br>";
+            }
+            return ret + "</span>";
+        },        
         properize (name) {
             var upperCase = /^[A-Z]/; //Regexp for all UPPERCASE words
             var suffixes = new Array("II", "(II)", "III", "(III)", "IV", "(IV)", "VI", "(VI)", "VII", "(VII)", "2nd", "(2nd)", "3rd", "(3rd)", "4th", "(4th)", "5th", "(5th)");

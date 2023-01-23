@@ -530,7 +530,7 @@
                 <b-collapse :id="'extra-'+race.raceNumber+'-'+row.index" class="mt-2">
                     <horse-extra-view :horse="row.item"></horse-extra-view>
                 </b-collapse>               
-                <past-performance-view :horse="row.item" :race="race" @goToChart="goToChart"></past-performance-view>
+                <past-performance-view :horse="row.item" :race="race" :charts="charts" @goToChart="goToChart"></past-performance-view>
                 <span v-for="workout in row.item.workouts" :key="workout.date">
                     <workout-view :workout="workout"></workout-view>
                 </span>										
@@ -554,7 +554,7 @@ export default {
     components: {
 		PastPerformanceView, WorkoutView, HorseExtraView, BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill
     },
-    props : ['race', 'hideML'],
+    props : ['race', 'hideML', 'charts'],
     data () {
 		return {
             transProps: {

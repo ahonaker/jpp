@@ -30,7 +30,7 @@
                 <b-button v-if="this.chart" variant="primary" @click="saveNotes()">Save Notes</b-button>
             </b-col>
         </b-row>
-        <b-tabs v-model="chartTabIndex" @changed="tabsChanged" class="mt-2">
+        <b-tabs v-model="chartTabIndex" class="mt-2">
             <b-tab v-for="(race, racekey) in chart" :key="racekey">
                 <template #title>
                     Race {{race.raceNumber}}&nbsp;
@@ -59,7 +59,6 @@ export default {
 			charts: [],
 			chartDate: null,
 			chartTabIndex: 0,
-			chartRaceFromPP: 0,
 			tracks: [],
 			track: null,
 			loading: false,
@@ -67,10 +66,37 @@ export default {
 			loadingTracks: true
 		}	
 	},
-	mounted() {
-		this.getCharts();
+	async mounted() {
+		await this.getCharts();
 		this.getTracks();
+        if (this.$route.params.track) {
+			this.track = this.$route.params.track;
+		}
+        if (this.$route.params.year) {
+            this.chartDate = new Date (this.$route.params.year, this.$route.params.month - 1, this.$route.params.day);
+        }
+        if (this.track && this.chartDate) {
+            await this.getChart();
+            this.chartTabIndex = this.$route.params.raceNumber - 1;
+        }
 	},
+    created() {
+        this.$watch(
+             () => this.$route.params,
+                async function () {
+                    if (this.$route.params.track) {
+                            this.track = this.$route.params.track;
+                        }
+                        if (this.$route.params.year) {
+                            this.chartDate = new Date (this.$route.params.year, this.$route.params.month, this.$route.params.day);
+                        }
+                        if (this.track && this.chartDate) {
+                            await this.getChart();
+                            this.chartTabIndex = this.$route.params.raceNumber - 1;
+                        }
+                }
+        )
+    },    
 	computed: {
 		chartTracks() {
 			return _.uniq(_.pluck(this.charts, "code"));
@@ -87,7 +113,7 @@ export default {
 						+ str_pad_left(d[2],0,2); 
                 });
             
-		},		
+		},
 		starterFields() {
 			var starterFields = [];
 
@@ -210,10 +236,7 @@ export default {
 		},
 		disableDates(ymd) {
 			return this.chartDates.indexOf(ymd) ==  -1;
-		},
-		tabsChanged() {
-			this.chartTabIndex = this.chartRaceFromPP;
-		},
+		},        
         goToChart(e) {
             console.log(e);
         }

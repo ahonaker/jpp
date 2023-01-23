@@ -5,6 +5,7 @@
                 <b-nav-item class="brand">JPP-UI</b-nav-item>
                 <b-nav-item to="/">Races</b-nav-item>
                 <b-nav-item to="/print">Print</b-nav-item>
+                <b-nav-item to="/summary">Summary</b-nav-item>                
                 <b-nav-item to="/admin">Admin</b-nav-item>
                 <b-nav-item to="/horses">Horses</b-nav-item>
                 <b-nav-item to="/charts">Charts</b-nav-item>

@@ -849,7 +849,7 @@ public class Factors {
 				if ((float) horse.getSpeedPoints() / race.getTotalSpeedPoints() >= 0.30) 
 					angles.add("+Horse possesses 30 percent or more of a race's early speed.");
 				if (horse.getPastPerformances().get(0).getRaceShape().equals("FF") && OKRace(horse.getPastPerformances().get(0))) 
-					angles.add("+Exiting Key Race (An OK or better FF Race");
+					angles.add("+Exiting Key Race (An OK or better FF Race)");
 			}
 			
 			Boolean firstTimeAtDistanceType = true;
@@ -861,8 +861,9 @@ public class Factors {
 			}
 			
 			if (horse.getPastPerformances().size() > 0 && race.getFurlongs() >= 8 && firstTimeAtDistanceType) {
-				if (horse.getRunStyle().equals("P") || horse.getRunStyle().equals("S") || horse.getLatePaceAvg() > horse.getE2Avg()) {
-					angles.add("-Late Running sprinters may not be dependable in routes.");
+				if (horse.getRunStyle().equals("P") || horse.getRunStyle().equals("S") || 
+					(horse.getE2Avg() > 0 && horse.getLatePaceAvg() > horse.getE2Avg())) {
+						angles.add("-Late Running sprinters may not be dependable in routes.");
 				} else if ((horse.getRunStyle().equals("E") || horse.getRunStyle().equals("E/P")) && horse.getE2Avg() >=  horse.getSpeedRating() + 2) {
 					angles.add("-Front runners with signficantly higher pace figures than speed figures may not be dependable in routes.");
 				} else {

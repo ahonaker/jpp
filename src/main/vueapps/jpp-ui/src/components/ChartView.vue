@@ -2,11 +2,11 @@
 <template>
     <div class="card-body mt-2">
 		<a 
-				:href="'https://www.twinspires.com/bet/video/replay/'
-					+ race.raceDate[0] + '-' + str_pad_left(race.raceDate[1],0,2) + '-' + str_pad_left(race.raceDate[2],0,2) 
-					+ '/' + race.track.code
-					+ '/Thoroughbred/' + race.raceNumber" 
-				target="_blank"  
+            :href="'https://www.twinspires.com/bet/video/replay/'
+                + race.raceDate[0] + '-' + str_pad_left(race.raceDate[1],0,2) + '-' + str_pad_left(race.raceDate[2],0,2) 
+                + '/' + race.track.code
+                + '/Thoroughbred/' + race.raceNumber" 
+            target="_blank"  
 			><b-icon-camera-video-fill></b-icon-camera-video-fill>
 		</a>&nbsp;
         <strong>{{race.track.name}} {{formatDate(race.raceDate)}} Race {{race.raceNumber}} <b-icon-key v-if="race.keyRace != null" variant="success" font-scale="1.5" rotate="90"></b-icon-key></strong><br>
@@ -27,7 +27,13 @@
             class="mt-2 horse"
         >
             <template #cell(lastRaced)="row">
-                <b-icon-bar-chart-steps v-if="hasChart(row.item.lastRaced)" @click="goToChart(row.item)"></b-icon-bar-chart-steps>
+				<b-link 
+					v-if="hasChart(row.item.lastRaced)" 
+					target="_blank" 
+					:to="'/charts/'+row.item.lastRaced.track.code+'/'+row.item.lastRaced.raceDate[0]+'/'+row.item.lastRaced.raceDate[1]+'/'+row.item.lastRaced.raceDate[2]+'/'+row.item.lastRaced.raceNumber"
+				>
+					<b-icon-bar-chart-steps></b-icon-bar-chart-steps>
+				</b-link>
                 <span v-if="row.item.lastRaced && row.item.lastRacedKeyRace != null" v-b-popover.hover.html.right="keyRaceHorsesFormat(row.item.lastRacedKeyRace.horses)" :title="row.item.lastRacedKeyRace.track + ' ' + formatDate(row.item.lastRacedKeyRace.raceDate) + ' Race ' + row.item.lastRacedKeyRace.raceNumber">
                     {{formatDate(row.item.lastRaced.raceDate)}}<sup>{{row.item.lastRaced.raceNumber}}</sup> {{row.item.lastRaced.track.code}}<sup>{{row.item.lastRaced.officialPosition}}</sup>
                     <b-icon-key v-if="row.item.lastRacedKeyRace != null" variant="success" font-scale="1.5" rotate="90"></b-icon-key>
@@ -258,13 +264,6 @@ export default {
                 if (i < horses.length-1) ret += "<br>";
             }
             return ret + "</span>";
-        },
-        goToChart(starter) {
-             this.$emit("goToChart", {
-                trackCode: starter.lastRaced.track.code,
-                raceDate: starter.lastRaced.raceDate,
-                raceNumber: starter.lastRaced.raceNumber
-             });
         },
         hasChart(lastRaced) {
             if (lastRaced == null) return false;	

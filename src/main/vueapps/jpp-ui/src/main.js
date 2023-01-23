@@ -5,6 +5,7 @@ import RacesView from './views/RacesView.vue'
 import PrintView from './views/PrintView.vue'
 import AdminView from './views/AdminView.vue'
 import ChartsView from './views/ChartsView.vue'
+import SummaryView from './views/SummaryView.vue'
 
 Vue.use(VueRouter)
 
@@ -23,6 +24,11 @@ const routes = [
 		path: "/print",
 		name: "PrintView",
 		component: PrintView
+	},
+	{
+		path: "/summary",
+		name: "SummaryView",
+		component: SummaryView
 	},
 	{
 		path: "/admin",

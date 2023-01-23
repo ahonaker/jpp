@@ -31,7 +31,7 @@ import net.derbyparty.jpp.pastperformanceparser.PastPerformanceParser;
 
 public class Main {
 
-	static List<Race> races;
+	static List<Race> races = new ArrayList<Race>();
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 	
 	static String distanceOption = "all";
@@ -102,6 +102,31 @@ public class Main {
 			if (race.getRaceNumber() == raceNumber) return mapper.writeValueAsString(race);
 		}
  		throw new Exception("Race not found.");
+	}
+	
+	public static String getSelectionSummary() throws Exception {
+		
+		ArrayNode rs = mapper.createArrayNode();
+		for (Race race : races) {
+			ObjectNode r = mapper.createObjectNode();
+			r.put("raceNumber", race.getRaceNumber());
+			r.put("postTimes", race.getPostTimes());
+			ArrayNode hs = mapper.createArrayNode();
+			for (Horse horse : race.getUnscratchedHorses()) {
+				ObjectNode h = mapper.createObjectNode();
+				h.put("programNumber", horse.getProgramNumber());
+				h.put("pick", horse.getPick());
+				h.put("selection", horse.getSelection());
+				h.put("afv", horse.getARatingFairValue());
+				h.put("bettingLine", horse.getBettingLine());
+				h.put("mlodds", horse.getMLOdds());
+				h.put("finishPosition", horse.getFinishPosition());
+				hs.add(h);
+			}
+			r.set("horses", hs);
+			rs.add(r);
+		}
+		return mapper.writeValueAsString(rs);
 	}
 	
 	
