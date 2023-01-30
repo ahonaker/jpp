@@ -20,47 +20,46 @@ public class PastPerformanceParser {
 	
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 	
-	public static void extractPastPerformance(List<Race> races, File PPFile) throws Exception {
-		
-	    Pattern RACE_HEADER =
-	            Pattern.compile("^Ultimate PP's w\\/ QuickPlay Comments.+ Race (\\d+)");
-	    
-	    Pattern RACE_DESCRIPTION_LINE_BEFORE = 
-	    		Pattern.compile("^PARS:\\s");
-	    
-	    Pattern RACE_DESCRIPTION_LINE_AFTER = 
-	    		Pattern.compile("^Post Time:\\s");
-	    
-	    Pattern RUNNER_LINE =
-	    		Pattern.compile("(\\d+)?(pp(\\d+))?\\s([\\sa-zA-Z\\'\\.]+)\\s(\\([EPSNA\\/\\s0-8]+\\))(Own: ([a-zA-Z\\s]+))?");
+    final static Pattern RACE_HEADER =
+            Pattern.compile("^Ultimate PP's w\\/ QuickPlay Comments.+ Race (\\d+)");
+    
+    final static Pattern RACE_DESCRIPTION_LINE_BEFORE = 
+    		Pattern.compile("^PARS:\\s");
+    
+    final static Pattern RACE_DESCRIPTION_LINE_AFTER = 
+    		Pattern.compile("^Post Time:\\s");
+    
+    final static Pattern RUNNER_LINE =
+    		Pattern.compile("(\\d+)?(pp(\\d+))?\\s([\\sa-zA-Z\\'\\.]+)\\s(\\((E|P|E\\/P|S|NA)\\s[0-8]+\\))(Own: ([a-zA-Z\\s]+))?");
 
-	    Pattern PRIME_POWER =
-	    		Pattern.compile("^Prime Power: ([0-9\\.]+)");
-	    
-	    Pattern SIRE_STATS =
-	    		Pattern.compile("^Sire Stats:\\s*AWD\\s*([\\d\\.]+)\\s*([\\d]+)\\%Mud\\s*(\\d+)MudSts\\s*(([\\d]+)\\%Turf\\s*)?(([\\d]+)\\%1stT\\s*)?(([\\d]+)\\%1st\\s*)?([\\d\\.]+)spi");	
+    final static Pattern PRIME_POWER =
+    		Pattern.compile("^Prime Power: ([0-9\\.]+)");
+    
+    final static Pattern SIRE_STATS =
+    		Pattern.compile("^Sire Stats:\\s*AWD\\s*([\\d\\.]+)\\s*([\\d]+)\\%Mud\\s*(\\d+)MudSts\\s*(([\\d]+)\\%Turf\\s*)?(([\\d]+)\\%1stT\\s*)?(([\\d]+)\\%1st\\s*)?([\\d\\.]+)spi");	
 
-	    Pattern DAMS_SIRE_STATS =
-	    		Pattern.compile("^Dam\\'sSire:\\s*AWD\\s*([\\d\\.]+)\\s*([\\d]+)\\%Mud\\s*(\\d+)MudSts\\s*(([\\d]+)\\%Turf\\s*)?(([\\d]+)\\%1stT\\s*)?(([\\d]+)\\%1st\\s*)?([\\d\\.]+)spi");	
+    final static Pattern DAMS_SIRE_STATS =
+    		Pattern.compile("^Dam\\'sSire:\\s*AWD\\s*([\\d\\.]+)\\s*([\\d]+)\\%Mud\\s*(\\d+)MudSts\\s*(([\\d]+)\\%Turf\\s*)?(([\\d]+)\\%1stT\\s*)?(([\\d]+)\\%1st\\s*)?([\\d\\.]+)spi");	
 
-	    Pattern DAM_STATS =
-	    		Pattern.compile("^Dam\\'s\\s*Stats:\\s*([a-zA-Z]+)\\s*(([\\d]+)\\%2yo)?\\s*(([\\d]+)trfW)?\\s*([\\d]+)str\\s*([\\d]+)w\\s*([\\d]+)sw\\s*([\\d\\.]+)?dpi");	
+    final static Pattern DAM_STATS =
+    		Pattern.compile("^Dam\\'s\\s*Stats:\\s*([a-zA-Z]+)\\s*(([\\d]+)\\%2yo)?\\s*(([\\d]+)trfW)?\\s*([\\d]+)str\\s*([\\d]+)w\\s*([\\d]+)sw\\s*([\\d\\.]+)?dpi");	
 
-	    Pattern JOCKEY_TYPE_STATS =
-	    		Pattern.compile("^\\+*JKYw\\/\\s*([EPSNA]+\s*types)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)\\%\\s*([\\-\\+0-9.]+)");	
+    final static Pattern JOCKEY_TYPE_STATS =
+    		Pattern.compile("^\\+*JKYw\\/\\s*([EPSNA]+\s*types)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)\\%\\s*([\\-\\+0-9.]+)");	
 
-	    Pattern JOCKEY_TRN_STATS =
-	    		Pattern.compile("^\\+*JKYw\\/\\s*(Trn\\s*L60)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)%\\s*([\\-\\+0-9.]+)");	
-	    
-	    Pattern ANGLE_LINE = 
-	    		Pattern.compile("([ñ|×]\\s)([a-zA-Z0-9\\%\\s\\':\\(\\)\\-\\/\\+\\.]+)");
-	    
-	    Pattern RANK_LIST = 
-	    		Pattern.compile("^(([\\d\\.NA]+)\\s+([a-zA-Z\\'\\s]+))");
-	    
-	    Pattern RANK_LIST_MEMBER = 
-	    		Pattern.compile("^([\\d\\.NA]+)\\s+([a-zA-Z\\'\\s]+)");
-	    
+    final static  Pattern JOCKEY_TRN_STATS =
+    		Pattern.compile("^\\+*JKYw\\/\\s*(Trn\\s*L60)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)%\\s*([\\-\\+0-9.]+)");	
+    
+    final static Pattern ANGLE_LINE = 
+    		Pattern.compile("([ñ|×]\\s)([a-zA-Z0-9\\%\\s\\':\\(\\)\\-\\/\\+\\.]+)");
+    
+    final static Pattern RANK_LIST = 
+    		Pattern.compile("^(([\\d\\.NA]+)\\s+([a-zA-Z\\'\\s]+))");
+    
+    final static Pattern RANK_LIST_MEMBER = 
+    		Pattern.compile("^([\\d\\.NA]+)\\s+([a-zA-Z\\'\\s]+)");
+	
+	public static void extractPastPerformance(List<Race> races, File PPFile) throws Exception {    
 	    
 		try {
 			PDDocument doc = PDDocument.load(PPFile);  
@@ -70,8 +69,22 @@ public class PastPerformanceParser {
 			String lines[] = text.split("\\r?\\n");
 			doc.close();
 			
-			Race thisRace = races.get(0);
+			Race thisRace = null;;
 			Horse horse = null;
+			
+			for (int i = 0; i < lines.length; i++) {
+				Matcher firstRaceMatcher = RACE_HEADER.matcher(lines[i]);
+				if (firstRaceMatcher.find()) {
+					for (Race race: races) {
+						if (race.getRaceNumber() == Integer.parseInt(firstRaceMatcher.group(1).trim())) {
+							thisRace = race;
+							break;
+						}
+					}
+					
+				}
+				if (thisRace != null) break;
+			}
 			
 			List<String> rankStrings = new ArrayList<String>();
 					
@@ -80,7 +93,6 @@ public class PastPerformanceParser {
 				if (raceMatcher.find() && Integer.parseInt(raceMatcher.group(1).trim()) != thisRace.getRaceNumber()) {
 					for (Race race: races) {
 						if (race.getRaceNumber() == Integer.parseInt(raceMatcher.group(1).trim())) {
-							
 							List<String> currentStrings = rankStrings.subList(thisRace.getHorses().size() * 2, thisRace.getHorses().size() * 3);							
 							List<String> last3Strings = rankStrings.subList(thisRace.getHorses().size() * 3, thisRace.getHorses().size() * 4);
 							
@@ -276,46 +288,6 @@ public class PastPerformanceParser {
 	
 	public static String extractText (File PPFile) throws Exception {
 		
-	    Pattern RACE_HEADER =
-	            Pattern.compile("^Ultimate PP's w\\/ QuickPlay Comments.+ Race (\\d+)");
-	    
-	    Pattern COPYRIGHT_LINE =
-	            Pattern.compile("^\\(c\\) Copyright \\d+");
-	    
-	    Pattern RACE_DESCRIPTION_LINE_BEFORE = 
-	    		Pattern.compile("^PARS:\\s");
-	    
-	    Pattern RACE_DESCRIPTION_LINE_AFTER = 
-	    		Pattern.compile("^Post Time:\\s");
-	    
-	    Pattern RUNNER_LINE =
-	    		Pattern.compile("(\\d+)?(pp(\\d+))?\\s([\\sa-zA-Z\\'\\.]+)\\s(\\([EPSNA\\/\\s0-8]+\\))(Own: ([a-zA-Z\\s]+))?");
-
-	    Pattern PRIME_POWER =
-	    		Pattern.compile("^Prime Power: ([0-9\\.]+)");
-	    
-	    Pattern SIRE_STATS =
-	    		Pattern.compile("^Sire Stats:\\s*AWD\\s*([\\d\\.]+)\\s*([\\d]+)\\%Mud\\s*(\\d+)MudSts\\s*(([\\d]+)\\%Turf\\s*)?(([\\d]+)\\%1stT\\s*)?(([\\d]+)\\%1st\\s*)?([\\d\\.]+)spi");	
-
-	    Pattern DAMS_SIRE_STATS =
-	    		Pattern.compile("^Dam\\'sSire:\\s*AWD\\s*([\\d\\.]+)\\s*([\\d]+)\\%Mud\\s*(\\d+)MudSts\\s*(([\\d]+)\\%Turf\\s*)?(([\\d]+)\\%1stT\\s*)?(([\\d]+)\\%1st\\s*)?([\\d\\.]+)spi");	
-
-	    Pattern DAM_STATS =
-	    		Pattern.compile("^Dam\\'s\\s*Stats:\\s*([a-zA-Z]+)\\s*(([\\d]+)\\%2yo)?\\s*(([\\d]+)trfW)?\\s*([\\d]+)str\\s*([\\d]+)w\\s*([\\d]+)sw\\s*([\\d\\.]+)?dpi");	
-
-	    Pattern JOCKEY_TYPE_STATS =
-	    		Pattern.compile("^\\+*JKYw\\/\\s*([EPSNA]+\s*types)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)\\%\\s*([\\-\\+0-9.]+)");	
-
-	    Pattern JOCKEY_TRN_STATS =
-	    		Pattern.compile("^\\+*JKYw\\/\\s*(Trn\\s*L60)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)%\\s*([\\-\\+0-9.]+)");	
-	    
-	    Pattern ANGLE_LINE = 
-	    		Pattern.compile("([ñ×]\\s)([a-zA-Z0-9\\%\\s\\']+)");
-	    
-	    Pattern RANK_LIST = 
-	    		Pattern.compile("^(([\\d\\.NA]+)\\s+([a-zA-Z\\'\\s]+))");
-	   
-		
 		try {
 			PDDocument doc = PDDocument.load(PPFile);  
 			PDFTextStripper stripper = new PDFTextStripper();
@@ -323,7 +295,6 @@ public class PastPerformanceParser {
 			String text = stripper.getText(doc);
 			String lines[] = text.split("\\r?\\n");
 			for (int i = 0; i < lines.length; i++) {
-				if (COPYRIGHT_LINE.matcher(lines[i]).find()) lines[i] += " <-- COPYRIGHT_LINE";
 				if (RACE_HEADER.matcher(lines[i]).find()) lines[i] += " <-- RACE_HEADER";
 				if (RACE_DESCRIPTION_LINE_BEFORE.matcher(lines[i]).find()) lines[i] += " <-- RACE_DESCRIPTION_LINE_BEFORE";
 				if (RACE_DESCRIPTION_LINE_AFTER.matcher(lines[i]).find()) lines[i] += " <-- RACE_DESCRIPTION_LINE_AFTER";

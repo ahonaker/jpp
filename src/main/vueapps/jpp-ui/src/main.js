@@ -6,6 +6,7 @@ import PrintView from './views/PrintView.vue'
 import AdminView from './views/AdminView.vue'
 import ChartsView from './views/ChartsView.vue'
 import SummaryView from './views/SummaryView.vue'
+import HorsesView from './views/HorsesView.vue'
 
 Vue.use(VueRouter)
 
@@ -44,6 +45,16 @@ const routes = [
 		path: "/charts/:track/:year/:month/:day/:raceNumber",
 		name: "ChartsViewRetrieve",
 		component: ChartsView
+	},
+	{
+		path: "/horses",
+		name: "HorsesView",
+		component: HorsesView
+	},
+	{
+		path: "/horses/:horse",
+		name: "HorsesViewRetrieve",
+		component: HorsesView
 	}
 ];
 

@@ -1,13 +1,18 @@
 package net.derbyparty.jpp.main;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +44,7 @@ public class Main {
 	static String conditionOption = "all";
 	
 	final static String dir = "/Users/ahonaker/Google Drive/pp/jpp/";
+	final static String saveDir = "/Users/ahonaker/Google Drive/pp/jpp/saveDir/";
 	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	final static String tracksFile = "/Users/ahonaker/Google Drive/pp/jpp/tracks.json";
 	final static String raceDatesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceDates.json";
@@ -61,25 +67,53 @@ public class Main {
 		return getAll();
 	}
 	
-	public static void save(String filename) throws Exception {
+	public static void save() throws Exception {
 		
 		try {
-			mapper.writeValue(Paths.get(dir + filename).toFile(), races);
+			mapper.writeValue(Paths.get(
+				saveDir
+				+ races.get(0).getTrack() 
+				+ races.get(0).getDate().format(DateTimeFormatter.ofPattern("MMddYYYY"))
+				+ ".json"
+			).toFile(), races);
 		} catch (Exception e) {
 			throw e;
 		}
 
 	}
 	
-	public static String retrieve(String filename) throws Exception {
+	public static String retrieve(String track, LocalDate date) throws Exception {
 		
 		try {
-			races = Arrays.asList(mapper.readValue(Paths.get(dir + filename).toFile(), Race[].class));
+			races = Arrays.asList(mapper.readValue(Paths.get(saveDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
 			return getAll();
 		} catch (Exception e) {
 			throw e;
 		}
 
+	}
+	
+	public static String getSavedList() throws Exception {
+		
+		try {
+			ArrayNode saves = mapper.createArrayNode();
+	        Files.list(new File(saveDir).toPath())
+            .forEach(path -> {
+            	if (path.toString().contains(".json")) {
+            		ObjectNode save = mapper.createObjectNode();
+            		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
+            		Matcher matcher =  pattern.matcher(path.toString());
+            		if (matcher.find()) {
+            			save.put("track", matcher.group(1));
+            			save.put("date", LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))).toString());
+            			saves.add(save);
+            		}
+            	}
+		 	});
+            return mapper.writeValueAsString(saves);
+    		} catch (Exception e) {
+    			throw e;
+    		}
 	}
 	
 	public static int getNumRaces() throws Exception {
@@ -155,9 +189,10 @@ public class Main {
 			
 			for (Race race : races) {
 				for (Horse horse : race.getHorses()) {
-					File horseToWatchFile = new File(horsesToWatchDir + horse.getName() + ".json");
+					File horseToWatchFile = new File(horsesToWatchDir + horse.getName().replaceAll("\\s\\(.+\\)", "") + ".json");
 					if (horseToWatchFile.exists()) {
-						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + horse.getName() + ".json").toFile(), HorseToWatch.class);
+						String name = horse.getName().replaceAll("\\s\\(.+\\)", "");
+						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + name + ".json").toFile(), HorseToWatch.class);
 						horse.setComment(horseToWatch.getComment());
 						horse.setFlag(horseToWatch.getFlag());
 					}
@@ -255,11 +290,22 @@ public class Main {
 		
 		try {
 			List<Race> updatedRaces =  Loader.get(dir + filename);
-			for (int i = 0; i < races.size(); i++) {
-				races.get(i).setWagerTypes(updatedRaces.get(i).getWagerTypes());
-				for (int j = 0; j < races.get(i).getHorses().size(); j++) {
-					races.get(i).getHorses().get(j).setProgramNumber(updatedRaces.get(i).getHorses().get(j).getProgramNumber());
-					races.get(i).getHorses().get(j).setMLOdds(updatedRaces.get(i).getHorses().get(j).getMLOdds());
+			for (Race race : races) {
+				for (Race updatedRace : updatedRaces) {
+					if (race.getRaceNumber() == updatedRace.getRaceNumber()) {
+						race.setWagerTypes(updatedRace.getWagerTypes());
+						for (Horse horse : race.getHorses()) {
+							Boolean found = false;
+							for (Horse updatedHorse : updatedRace.getHorses()) {
+								if (horse.getName().equals(updatedHorse.getName())) {
+									horse.setProgramNumber(updatedHorse.getProgramNumber());
+									horse.setMLOdds(updatedHorse.getMLOdds());
+									found = true;
+								}
+							}
+							if (!found) toggleScratch(race.getRaceNumber(),horse.getName());
+						}
+					}
 				}
 					
 			}
@@ -416,13 +462,13 @@ public class Main {
 		}
 	}
 	
-	public static void toggleScratch(int raceNumber, String programNumber) throws Exception {
+	public static void toggleScratch(int raceNumber, String name) throws Exception {
 		
 		try {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					for (Horse horse : race.getHorses()) {
-						if (horse.getProgramNumber().equals(programNumber)) {
+						if (horse.getName().equals(name)) {
 							horse.setScratchedFlag(!horse.getScratchedFlag());
 							if (horse.getScratchedFlag()) horse.setSelection("X");
 							if (horse.getScratchedFlag()) horse.setPick(false);
@@ -758,9 +804,9 @@ public class Main {
 			for (JsonNode race : data) {
 				LocalDate raceDate = LocalDate.of(race.get("raceDate").get(0).asInt(), race.get("raceDate").get(1).asInt(), race.get("raceDate").get(2).asInt());
 				for (JsonNode starter : race.get("starters")) {
-					File horseFile = new File(horsesToWatchDir + starter.get("name").asText() + ".json");
+					File horseFile = new File(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json");
 					if (horseFile.exists()) {
-						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + starter.get("name").asText() + ".json").toFile(), HorseToWatch.class);
+						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
 						if (!starter.get("horseFlag").isNull()) horseToWatch.setFlag(starter.get("horseFlag").asText());
 						Boolean raceFound = false;
 						for (RaceNote raceNote : horseToWatch.getRaceNotes()) {
@@ -872,12 +918,55 @@ public class Main {
 		}
 	}
 	
+	public static String getHorsesToWatch() throws Exception {
+		
+		try {
+			ArrayNode horses = mapper.createArrayNode();
+	        Files.list(new File(horsesToWatchDir).toPath())
+            .forEach(path -> {
+            	if (path.toString().contains(".json")) {
+            		ObjectNode node = mapper.createObjectNode();
+            		String name = path.toString().replace(".json", "").replace(horsesToWatchDir, "");
+            		node.put("name", name);
+            		try {
+						HorseToWatch horse = mapper.readValue(Paths.get(horsesToWatchDir + name + ".json").toFile(), HorseToWatch.class);
+						node.put("flag", horse.getFlag());
+						node.put("comment", horse.getComment());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}   		
+            		horses.add(node);
+            	}
+		 	});
+            return mapper.writeValueAsString(horses);
+    		} catch (Exception e) {
+    			throw e;
+    		}
+	}
+	
+	public static String getHorseToWatch(String name) throws Exception {
+		try {
+			HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + name + ".json").toFile(), HorseToWatch.class);
+			return mapper.writeValueAsString(horseToWatch);
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public static void saveHorseToWatch(HorseToWatch horse) throws Exception {
+		try {
+			horse.save();
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
 	public static void convertNotes() throws Exception {
 		
 		try {
 			JsonNode horses = mapper.readTree(Path.of("/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch.json").toFile());
 			for (JsonNode horse : horses) {
-				HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + horse.get("name").asText() + ".json").toFile(), HorseToWatch.class);
+				HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + horse.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
 				horseToWatch.setFlag(horse.get("flag").asText());
 				for (JsonNode raceNote : horse.get("raceNotes")) {
 					LocalDate raceNoteDate = LocalDate.of(

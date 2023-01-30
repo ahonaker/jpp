@@ -64,14 +64,15 @@
         </template>
         <template #cell(bettingLine)="row">
             <b-form-select 
-                :id="'bettingLine'+row.item.raceNumber+'-'+row.item.programNumber"
+                :id="'bettingLine'+row.item.raceNumber+'-'+row.item.postPosition"
                 class="fv"
                 v-model="row.item.bettingLine" 
                 :options="bettingLineOptions" 
                 @change="updateBettingLine(row.item)" 
                 :state="row.item.bettingLine == 0 ? null : (bettingLinesInvalid ? false : true)"
             ></b-form-select>
-            <b-tooltip v-if="row.item.bettingLine == 0 && bettingLinesInvalid" :target="'bettingLine'+row.item.raceNumber+'-'+row.item.programNumber" placement="right">
+            <b-tooltip v-if="row.item.bettingLine == 0 && bettingLinesInvalid" :target="'bettingLine'+row.item.raceNumber+'-'+row.item.postPosition" placement="right">
+                Total: {{format2Places(contenderTotal)}}%<br>
                 <span v-for="(bettingLine,key) in matchingBettingLines" :key="key">
                     <span v-for="(odds, oddsKey) in bettingLine" :key="oddsKey">
                         {{convertOddsToFraction(odds)}} <span v-if="oddsKey < bettingLine.length - 1">-</span>
@@ -106,6 +107,22 @@
             <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
                 + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
                 + '<br>Basic Fitness: ' + row.item.basicFitness">{{row.value}}</span>
+        </template>
+        <template #cell(e2Avg)="row">
+            <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
+                + '<br>Early Position: ' +format2Places(row.item.earlyPosition) + ' (' + rankOf(row.item.earlyPosition, 'earlyPosition', false) + ' of ' + race.unscratchedHorsesCount + ')'">{{row.value}}</span>
+        </template>
+        <template #cell(latePaceAvg)="row">
+            <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
+                + '<br>Late Position: ' +format2Places(row.item.latePosition) + ' (' + rankOf(row.item.latePosition, 'latePosition', false) + ' of ' + race.unscratchedHorsesCount + ')'
+                + '<br>Closing Ratio: ' + format2Places(row.item.closingRatio) + ' (' + rankOf(row.item.closingRatio, 'closingRatio', false) + ' of ' + race.unscratchedHorsesCount + ')'">{{row.value}}</span>
+        </template>
+        <template #cell(classShift)="row">
+            <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
+                + (row.item.lastRaceStrength > 0 ? '<br>Last Race Strength: ' + format2Places(row.item.lastRaceStrength) + ' (' + rankOf(row.item.lastRaceStrength, 'lastRaceStrength', false) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.value}}</span>
         </template>
         <template #cell(detailsButton)="row">				
             <b-button
@@ -676,7 +693,7 @@ export default {
 		async toggleScratch(item) {
             try {
                 await axios({
-                    url: 'toggleScratch/' + this.race.raceNumber + '/' + item.programNumber,
+                    url: 'toggleScratch/' + this.race.raceNumber + '/' + item.name,
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });

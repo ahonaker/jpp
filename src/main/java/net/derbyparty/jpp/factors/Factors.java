@@ -29,13 +29,19 @@ public class Factors {
 	public static float CalcE1Avg (List<PastPerformance> pps) throws Exception {
 		
 		try {
-			if (pps.size() == 0) return 0;
+			
 			int total = 0;
+			int count = 0;
 			
 			for (PastPerformance pp : pps) {
-				total += (pp.getFurlongs() < 8) ? pp.getPaceFigure2F() : pp.getPaceFigure4F();
+				int pace = (pp.getFurlongs() < 8) ? pp.getPaceFigure2F() : pp.getPaceFigure4F();
+				if (pace > 0) {
+					total += pace;
+					count++;
+				}
 			}
-			return (float) total / pps.size();
+			if (count == 0) return 0;
+			return (float) total / count;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -63,14 +69,13 @@ public class Factors {
 	public static float CalcE2Avg (List<PastPerformance> pps) throws Exception {
 		
 		try {
-			if (pps.size() == 0) return 0;
 			int total = 0;
 			int count = 0;
 
 			for (PastPerformance pp : pps) {
-				float e2 = (pp.getFurlongs() < 8) ? pp.getPaceFigure4F() : pp.getPaceFigure6F();
-				if (e2 > 0) {
-					total += e2;
+				float pace = (pp.getFurlongs() < 8) ? pp.getPaceFigure4F() : pp.getPaceFigure6F();
+				if (pace > 0) {
+					total += pace;
 					count++;
 				}
 
@@ -142,13 +147,17 @@ public class Factors {
 	public static float CalcLatePaceAvg (List<PastPerformance> pps) throws Exception {
 		
 		try {
-			if (pps.size() == 0) return 0;
 			int total = 0;
+			int count = 0;
 
 			for (PastPerformance pp : pps) {
-				total += pp.getPaceFigureLate();
+				if (pp.getPaceFigureLate() > 0) {
+					total += pp.getPaceFigureLate();
+					count++;
+				}
 			}
-			return (float) total / pps.size();
+			if (count == 0) return 0;
+			return (float) total / count;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -160,13 +169,17 @@ public class Factors {
 	public static float CalcAverageAdjustedSpeedRating (List<PastPerformance> pps) throws Exception {
 		
 		try {
-			if (pps.size() == 0) return 0;
 			int total = 0;
+			int count = 0;
 			
 			for (PastPerformance pp : pps) {
-				total += pp.getAdjustedSpeedRating();
+				if (pp.getAdjustedSpeedRating() > 0) {
+					total += pp.getAdjustedSpeedRating();
+					count++;
+				}
 			}
-			return (float) total / pps.size();
+			if (count == 0) return 0;
+			return (float) total / count;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -393,7 +406,7 @@ public class Factors {
 					} else if ((race.getDate().minusDays(180).isBefore(pp.getRaceDate()))) {
 						thisWeight += 1;
 					}
-					if (thisWeight > 0) {
+					if (thisWeight > 0 && pp.getSpeedPar() > 0) {
 						total += pp.getSpeedPar() * thisWeight;
 						weight += thisWeight;
 					}
@@ -481,7 +494,7 @@ public class Factors {
 				} else if ((race.getDate().minusDays(180).isBefore(pp.getRaceDate()))) {
 					thisWeight += 1;
 				}
-				if (thisWeight > 0) {
+				if (thisWeight > 0 && pp.getBRISSpeedRating() > 0) {
 					total += pp.getBRISSpeedRating() * thisWeight;
 					weight += thisWeight;
 				}
@@ -840,8 +853,8 @@ public class Factors {
 						angles.add("-Potential layoff bounce - lengthy absence followed by overexertion");
 				if (horse.getPastPerformances().get(0).getTurfFlag() && race.getFurlongs() < 8 && horse.getPastPerformances().get(0).getFurlongs() >= 8 
 					&& horse.getPastPerformances().get(0).getFirstCallBeatenLengthsOnly() > 1 && horse.getPastPerformances().get(0).getSecondCallBeatenLengthsOnly() > 1
-					&& horse.getPastPerformances().get(0).getStretchBeatenLengthsOnly() > 1)
-					angles.add("-Horse exiting route where it failed to run withing a length of the leader at the first three calls.");
+					&& horse.getPastPerformances().get(0).getStretchBeatenLengthsOnly() > 1 && horse.getPastPerformances().get(0).getFinishPosition() != "1")
+					angles.add("-Horse exiting route where it failed to run within a length of the leader at the first three calls.");
 				if (race.getTurfFlag() && horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
 					&& horse.getPastPerformances().get(0).getFinishPosition().equals("1") && horse.getPedigreeRatingTurf().charAt(0) != '?'
 					&& Integer.parseInt(horse.getPedigreeRatingTurf()) > 105) 
@@ -1235,7 +1248,7 @@ public class Factors {
 			case GRADE_2:
 				if (race.getAgeRestriction() == AgeRestrictionType.FOUR_YEAR_OLDS && race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_AND_UP) {
 					notes.add("More than 12 races, prefer winners of two or more Grade 1/Grade 2 events");
-					notes.add("More than 12 races, has won a single Grade 1/Grade 2 stakes, demand the horses also have matched par for the Grade 1/Grade 2 levels.");
+					notes.add("Less than 12 races, has won a single Grade 1/Grade 2 stakes, demand the horses also have matched par for the Grade 1/Grade 2 levels.");
 				}
 				if (race.getAgeRestriction() == AgeRestrictionType.THREE_YEAR_OLDS && race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_AND_UP) {				
 					notes.add("3 Year Olds and lightly raced 4 Year Olds, accept winners of a single Grade 1/Grade 2 event.");
@@ -1272,7 +1285,7 @@ public class Factors {
 			}
 			
 		if (race.getTrackCondition().equals("wf")) notes.add("Prefer early speed; likes the wet; competitive to superior wet-fast figures; and attractive odds.");
-		if (race.getFurlongs() >= 12) notes.add("Marathongs are prety for a) horses that have won impressively at marathon distances in the past and b) lone front-runners that can set sluggish factors.  Inexperienced horses should possess a pedigree that smacks of endurance.");
+		if (race.getFurlongs() >= 12) notes.add("Marathons are prey for a) horses that have won impressively at marathon distances in the past and b) lone front-runners that can set sluggish factors.  Inexperienced horses should possess a pedigree that smacks of endurance.");
 		if (race.getTurfFlag() && race.getFurlongs() <= 5.5) notes.add("Turf Sprint best bets have a) won two or more similar races (one if a Three Year Old and b) equaled or exceeded today's par.");
 		if (race.getAgeRestriction() == AgeRestrictionType.TWO_YEAR_OLDS) notes.add("Favor speed in juvenile races, as measured by speed figures. Class is irrelevant.");
 		} catch (Exception e) {

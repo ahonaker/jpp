@@ -81,9 +81,9 @@ public class ProcessChart {
 								: 0)
 						.withFootnote(starter.getFootnote())
 						.build();
-					File horseToWatchFile = new File(horsesToWatchDir + starter.getHorse().getName() + ".json");
+					File horseToWatchFile = new File(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json");
 					if (horseToWatchFile.exists()) {
-						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + starter.getHorse().getName() + ".json").toFile(), HorseToWatch.class);
+						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
 						Boolean noteFound = false;
 						for (RaceNote existingRaceNote : horseToWatch.getRaceNotes()) {
 							if (existingRaceNote.getRaceDate().equals(result.getRaceDate())
@@ -265,9 +265,9 @@ public class ProcessChart {
 
 			for (RaceResult race : chart) {
 				for (Starter starter : race.getStarters()) {
-					File horseToWatchFile = new File(horsesToWatchDir + starter.getHorse().getName() + ".json");
+					File horseToWatchFile = new File(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json");
 					if (horseToWatchFile.exists()) {
-						HorseToWatch horse = mapper.readValue(Path.of(horsesToWatchDir + starter.getHorse().getName() + ".json").toFile(), HorseToWatch.class);
+						HorseToWatch horse = mapper.readValue(Path.of(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
 						if (starter.getHorse().getName().equals(horse.getName())) {
 							starter.setHorseFlag(horse.getFlag());
 							for (RaceNote raceNote : horse.getRaceNotes()) {

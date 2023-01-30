@@ -4,6 +4,25 @@
 		<b-navbar id="nav" toggleable="sm" class="pt-0" >						
 			<b-navbar-nav>
 				<b-nav-form>
+                    <b-form-select
+                        id="ppTrack"
+                        class="mx-2"
+						siz="sm"
+                        :options="ppTracks"
+                        v-model="ppTrack"
+                        placeholder="Select Track"
+                    ></b-form-select>
+                    <b-form-datepicker 
+                        value-as-date id="ppDate" 
+                        v-model="ppDate" 
+                        class="mx-2"
+						style="min-width: 250px;"
+						size="sm"
+                        :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"
+                        :date-disabled-fn="disableDates"
+                        no-highlight-today
+                        hide-header
+                    ></b-form-datepicker>					
 					<b-form-file
 						id="filenameform"
 						size="sm" 
@@ -23,7 +42,7 @@
 				<b-nav-item :disabled="races.length == 0" @click="getResults"><b-icon-currency-dollar v-b-tooltip.hover.bottom title="Results"></b-icon-currency-dollar></b-nav-item>					
 				<b-nav-item :disabled="races.length == 0" @click="calculate"><b-icon-calculator-fill v-b-tooltip.hover.bottom title="Calculate"></b-icon-calculator-fill></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="save"><b-icon-file-earmark-arrow-up v-b-tooltip.hover.bottom title="Save"></b-icon-file-earmark-arrow-up></b-nav-item>			
-				<b-nav-item :disabled="!file" @click="retrieve"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
+				<b-nav-item :disabled="!ppTrack && !ppDate" @click="retrieve"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
 				<b-nav-item @click="getAll"><b-icon-cloud-download v-b-tooltip.hover.bottom title="Download"></b-icon-cloud-download></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="clearRaces"><b-icon-eraser-fill v-b-tooltip.hover.bottom title="Clear Races"></b-icon-eraser-fill></b-nav-item>	
 			</b-navbar-nav>
@@ -402,7 +421,7 @@
 					<b-row class="my-2">
 						<b-col cols="10">
 							<b-form-textarea
-								sizae="sm"
+								size="sm"
 								v-model="race.note"
 								placeholder="Enter something..."
 								max-rows="4"
@@ -557,7 +576,10 @@ export default {
 			status: "",
 			races: [],
 			charts: [],
+			saved: [],
 			file: null,
+			ppTrack: null,
+			ppDate: null,
 			pp: "",
 			hideML: true,
 			options: {
@@ -612,8 +634,16 @@ export default {
 	},
 	mounted() {
 		this.getCharts();
+		this.getSaved();
 	},
 	computed: {	
+		ppTracks() {
+			return _.uniq(_.pluck(this.saved, "track"));
+		},
+		ppDates() {          
+			if (!this.ppTrack) return [];			
+            return  _.pluck(_.where(this.saved, {track: this.ppTrack}), "date");
+		},		
 		hasResults() {
 			var has = [];
 			for (var i = 0; i < this.races.length; i++ ) {
@@ -680,7 +710,20 @@ export default {
 				console.log(err.response);
 							
 			}	
-		},		
+		},
+		async getSaved() {
+			try {
+				const response = await axios({
+					url: 'getSaved/',
+					method: 'GET',
+					baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});
+				this.saved = response.data;
+			} catch (err) {
+				console.log(err.response);
+							
+			}	
+		},				
 		load() {
 			if (this.races.length == 0) {
 				this.uploadAndCalculate();
@@ -709,7 +752,7 @@ export default {
 		},	
 		async getAllRaces() {
             try {
-				this.status = "Loading";
+				this.status = "Fetching";
                 const response = await axios({
                     url: 'getAll',
                     method: 'GET',
@@ -718,7 +761,7 @@ export default {
                 //console.log(response);
 				this.races = response.data;
 				this.postGetActions();
-				this.status = "";
+				this.loading = "";
             } catch (err) {
                 console.log(err);
                 
@@ -764,7 +807,7 @@ export default {
 		},
 		async augment() {
             try {
-				this.status = "Loading";
+				this.status = "Augmenting";
                 var formData = new FormData();
                 formData.append("data", this.file);
                 formData.append("filename", this.file.name);
@@ -790,7 +833,7 @@ export default {
 		},
 		async addProgramNumbers() {
             try {
-				this.status = "Loading";
+				this.status = "Updating";
                 var formData = new FormData();
                 formData.append("data", this.file);
                 formData.append("filename", this.file.name);
@@ -816,7 +859,7 @@ export default {
 		},						
 		async save() {
             try {
-				this.status = "Loading";
+				this.status = "Saving";
 				for (var i=0; i < this.races.length; i++) {
 					this.setRaceNote(this.races[i]);
 					for (var j=0; j < this.races[i].horses.length; j++) {
@@ -824,11 +867,12 @@ export default {
 					}
 				}
                 await axios({
-                    url: 'save/' + this.file.name, 
+                    url: 'save', 
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
 				this.status = "";
+				this.getSaved();
 				this.$bvModal.msgBoxOk('Races saved.');									
             } catch (err) {
                 console.log(err.response);
@@ -840,9 +884,9 @@ export default {
 				this.$bvModal.msgBoxConfirm("Retrieve Saved Races?")
 					.then(async confirmed => {
 						if (confirmed) {
-								this.status = "Loading";
+								this.status = "Retrieving";
 								const response = await axios({
-									url: 'retrieve/' + this.file.name,
+									url: 'retrieve/' + this.ppTrack + "/" + this.ppDate.getFullYear() + "/" + (this.ppDate.getMonth() + 1)+ "/" + this.ppDate.getDate(),
 									method: 'GET',
 									baseURL: 'http://localhost:8080/jpp/rest/remote/'
 								});
@@ -860,7 +904,7 @@ export default {
 		},
 		async getChanges() {
             try {
-				this.status = "Loading";
+				this.status = "Getting Changes";
                 const response = await axios({
                     url: 'getChanges/',
                     method: 'GET',
@@ -878,7 +922,7 @@ export default {
 		},	
 		async getResults() {
             try {
-				this.status = "Loading";
+				this.status = "Getting Results";
                 const response = await axios({
                     url: 'getResults/',
                     method: 'GET',
@@ -896,7 +940,7 @@ export default {
 		},			
 		async calculate() {
             try {
-				this.status = "Loading";
+				this.status = "Recalculating";
                 const response = await axios({
                     url: 'calculate/' + this.options.distance + '/' + this.options.surface + '/' + this.options.condition,
                     method: 'GET',
@@ -922,7 +966,7 @@ export default {
 		},
 		async updateCondition(race) {
             try {
-				this.status = "Loading";
+				this.status = "Updating";
                 const response = await axios({
                     url: 'setTrackCondition/' + race.raceNumber + '/' + race.trackCondition,
                     method: 'GET',
@@ -937,7 +981,7 @@ export default {
 		},
 		async toggleOffTheTurf(race) {
             try {
-				this.status = "Loading";
+				this.status = "Updating";
                 const response = await axios({
                     url: 'toggleOffTheTurf/' + race.raceNumber,
                     method: 'GET',
@@ -975,7 +1019,7 @@ export default {
 		async setRaceNote(race) {
 			if (race.note) {
 				try {
-					this.status = "Loading";
+					this.status = "Updating";
 					var formData = new FormData();
 					formData.append("raceNumber", race.raceNumber);
 					formData.append("note", race.note);
@@ -999,7 +1043,7 @@ export default {
 		async setHorseNote(horse) {
 			if (horse.note) {
 				try {
-					this.status = "Loading";
+					this.status = "Updating";
 					var formData = new FormData();
 					formData.append("raceNumber", horse.raceNumber);
 					formData.append("name", horse.name);
@@ -1070,7 +1114,6 @@ export default {
 		},
 		async togglePick (horse) {
 			try {
-				console.log(horse);
                var formData = new FormData();
                 formData.append("raceNumber", horse.raceNumber);
                 formData.append("name", horse.name);
@@ -1106,9 +1149,9 @@ export default {
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);
 		},
-		goToChart(pp) {
-			console.log(pp);				
-		}
+		disableDates(ymd) {
+			return this.ppDates.indexOf(ymd) ==  -1;
+		},   		
 	}
 }
 </script>

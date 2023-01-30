@@ -43,8 +43,8 @@ table#pps .flip-list-move {
   transition: transform 1s;
 }
 
-#filenameform {
-	width: 400px;
+.form-inline {
+	flex-flow: row nowrap !important;
 }
 
 .chart-link {

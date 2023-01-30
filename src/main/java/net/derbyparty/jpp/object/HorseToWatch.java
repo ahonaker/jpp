@@ -54,6 +54,7 @@ public class HorseToWatch implements Serializable {
 	}
 
 	public List<RaceNote> getRaceNotes() {
+		Collections.sort(raceNotes);
 		return raceNotes;
 	}
 
@@ -168,7 +169,7 @@ public class HorseToWatch implements Serializable {
 		
 		ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 	
-		File file = new File(dir + name + ".json");
+		File file = new File(dir + name.replaceAll("\\s\\(.+\\)", "") + ".json");
 		if (!file.exists()) {
 			file.createNewFile();
 		}
@@ -178,7 +179,7 @@ public class HorseToWatch implements Serializable {
 		
 	public void delete() throws Exception {
 		
-		File file = new File(dir + name + ".json");
+		File file = new File(dir + name.replaceAll("\\s\\(.+\\)", "") + ".json");
 		if (file.exists()) {
 			file.delete();
 		}

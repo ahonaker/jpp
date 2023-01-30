@@ -19,6 +19,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import net.derbyparty.jpp.chart.ProcessChart;
 import net.derbyparty.jpp.main.Main;
+import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.Track;
 import net.derbyparty.jpp.pastperformanceparser.PastPerformanceParser;
 
@@ -93,12 +94,12 @@ public class Remote {
 
 	}
 	
-	@Path("save/{filename}")	
+	@Path("save")	
 	@GET
-	public Response save(@PathParam("filename") String filename) throws Exception {
+	public Response save() throws Exception {
 		
 		try {
-			Main.save(filename.split("\\.")[0] + ".json");
+			Main.save();
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -109,12 +110,15 @@ public class Remote {
 
 	}
 	
-	@Path("retrieve/{filename}")	
+	@Path("retrieve/{track}/{year}/{month}/{day}")	
 	@GET
-	public Response retrieve(@PathParam("filename") String filename) throws Exception {
+	public Response retrieve(@PathParam("track") String track ,
+			@PathParam("year") int year,
+			@PathParam("month") int month,
+			@PathParam("day") int day) throws Exception {
 		
 		try {
-			return Response.ok().entity(Main.retrieve(filename.split("\\.")[0] + ".json")).build();
+			return Response.ok().entity(Main.retrieve(track, LocalDate.of(year, month, day))).build();
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -122,6 +126,21 @@ public class Remote {
  		} 
 
 
+	}
+	
+	@Path("getSaved")
+	@GET
+	public Response getSaved() throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Main.getSavedList()).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
 	}
 	
 	
@@ -251,13 +270,13 @@ public class Remote {
 	  
 	}
 	
-	@Path("toggleScratch/{raceNumber}/{programNumber}")	
+	@Path("toggleScratch/{raceNumber}/{name}")	
 	@GET
 
-	public Response toggleScratch(@PathParam("raceNumber") int raceNumber, @PathParam("programNumber") String programNumber) throws Exception {
+	public Response toggleScratch(@PathParam("raceNumber") int raceNumber, @PathParam("name") String name) throws Exception {
 		
 		try {
-			Main.toggleScratch(raceNumber, programNumber);
+			Main.toggleScratch(raceNumber, name);
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -584,23 +603,6 @@ public class Remote {
 	  
 	}
 	
-	@Path("getHorsesToWatch")
-	@GET
-	public Response getHorsesToWatch() throws Exception {
-	  
-	  try {
-		    
-		    return Response.ok().build();
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	
-	  
-	}	
-	
 	@Path("getCharts")
 	@GET
 	public Response getCharts() throws Exception {
@@ -677,6 +679,52 @@ public class Remote {
 	  
 	  	return Response.noContent().build();
 	  
+	}
+	
+	@Path("getHorsesToWatch")
+	@GET
+	public Response getHorsesToWatch() throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Main.getHorsesToWatch()).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	}
+	
+	@Path("getHorseToWatch/{name}")
+	@GET
+	public Response getHorseToWatch(@PathParam("name") String name) throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Main.getHorseToWatch(name)).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	}
+	
+	@Path("saveHorseToWatch")
+	@POST
+	@Consumes("multipart/form-data")
+	public Response saveHorseToWatch(  @FormDataParam("data") String data) throws Exception {
+	  
+	  try {	
+		    Main.saveHorseToWatch(mapper.readValue(data, HorseToWatch.class));;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
 	}
 	
 	@Path("convertNotes")

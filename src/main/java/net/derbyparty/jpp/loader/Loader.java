@@ -209,6 +209,7 @@ public class Loader {
 		// 7 1/2  - 4950
 		// 7 - 4620
 		twoTurnBreakMap.put("AQU", 5940);
+		twoTurnBreakMap.put("BAQ", 5940);		
 		twoTurnBreakMap.put("BEL", 6270);
 		twoTurnBreakMap.put("CT", 4620);
 		twoTurnBreakMap.put("CD", 5610);
@@ -217,7 +218,28 @@ public class Loader {
 		twoTurnBreakMap.put("HAW", 5490);
 		twoTurnBreakMap.put("KEE", 5610);
 		twoTurnBreakMap.put("MNR", 4620);
-		twoTurnBreakMap.put("WO", 5490);		
+		twoTurnBreakMap.put("WO", 5490);
+		
+		Map<String, Integer> twoTurnTurfBreakMap = new HashMap<String, Integer>();
+		// 1 3/16 - 6270
+		// 1 1/8 - 5940
+		// 1 1/16 - 5610
+		// 1 70 - 5490
+		// 1 - 5280
+		// 7 1/2  - 4950
+		// 7 - 4620
+		twoTurnTurfBreakMap.put("BEL", 5610);
+		twoTurnTurfBreakMap.put("CBY", 4950);
+		twoTurnTurfBreakMap.put("DEL", 4950);
+		twoTurnTurfBreakMap.put("DMR", 4950);
+		twoTurnTurfBreakMap.put("FG", 4950);
+		twoTurnTurfBreakMap.put("GP", 4950);
+		twoTurnTurfBreakMap.put("IND", 4950);
+		twoTurnTurfBreakMap.put("LS", 4950);
+		twoTurnTurfBreakMap.put("LAD", 4950);
+		twoTurnTurfBreakMap.put("MNR", 4950);
+		twoTurnTurfBreakMap.put("PRX", 4950);
+		twoTurnTurfBreakMap.put("WO", 6270);
 		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 		
@@ -403,7 +425,11 @@ public class Loader {
 			    					.withRaceNumber(Integer.parseInt(values[295+i].trim()))
 			    					.withTrackCondition(values[305+i].trim().toLowerCase())
 			    					.withDistance(Integer.parseInt(values[315+i].trim()))
-			    					.withOneTurn(Integer.parseInt(values[315+i].trim()) < twoTurnBreakMap.getOrDefault(values[275+i].trim(),5280))
+			    					.withOneTurn(Integer.parseInt(values[315+i].trim()) * 3 < 
+			    							((surfaceTypeMap.get(values[325+i].trim()) == SurfaceType.TURF) 
+			    								? twoTurnTurfBreakMap.getOrDefault(values[275+i].trim(),5280)
+			    								: twoTurnBreakMap.getOrDefault(values[275+i].trim(),5280))
+			    							)
 			    					.withSurface(surfaceTypeMap.get(values[325+i].trim()))
 			    					.withOffTheTurfFlag(values[1253+i].trim().equals("X"))
 			    					.withAllWeatherSurfaceFlag(values[1402+i].trim())
@@ -419,9 +445,9 @@ public class Loader {
 			    					.withWinnersWeight(Integer.parseInt(values[435+i].trim()))
 			    					.withPlaceWeight(Integer.parseInt(values[445+i].trim()))
 			    					.withShowWeight(Integer.parseInt(values[455+i].trim()))
-			    					.withWinnersMargin(Float.parseFloat(values[465+i].trim()))
-			    					.withPlaceMargin(Float.parseFloat(values[475+i].trim()))
-			    					.withShowMargin(Float.parseFloat(values[485+i].trim()))
+			    					.withWinnersMargin(values[465+i].isBlank() ? 0 : Float.parseFloat(values[465+i].trim()))
+			    					.withPlaceMargin(values[475+i].isBlank() ? 0 : Float.parseFloat(values[475+i].trim()))
+			    					.withShowMargin(values[485+i].isBlank() ? 0 : Float.parseFloat(values[485+i].trim()))
 			    					.withExtraCommentLine(values[495+i].trim())
 			    					.withWeight(Integer.parseInt(values[505+i].trim()))
 			    					.withOdds(Float.parseFloat(values[515+i].trim()))

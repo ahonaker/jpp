@@ -399,9 +399,13 @@ public class ChartParser {
                 
                 for (Starter starter : starters) {
                 	for (String footnote :starterFootnotes) {
-                		if (footnote.startsWith("~~"+starter.getProgram()+"~~")) starter.setFootnote(
-                				footnote.replace("~~"+starter.getProgram()+"~~", starter.getHorse().getName().toUpperCase())
-                			);
+                		if (footnote.startsWith("~~"+starter.getProgram()+"~~")) { 
+                			String footnoteSubbed = footnote;
+                			for (Starter st : starters) {
+                				footnoteSubbed = footnoteSubbed.replace("~~"+st.getProgram()+"~~", st.getHorse().getName().toUpperCase());
+                			}
+                			starter.setFootnote(footnoteSubbed);
+                		}
                 	}
                 }
 

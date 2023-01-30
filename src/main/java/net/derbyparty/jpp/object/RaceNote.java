@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import javax.annotation.Generated;
 
-public class RaceNote implements Serializable {
+public class RaceNote implements Serializable, Comparable<RaceNote> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -135,6 +135,11 @@ public class RaceNote implements Serializable {
 				.append(beatenLengths).append(", comment=").append(comment).append("]");
 		return builder.toString();
 	}
+	@Override
+	public int compareTo(RaceNote o) {
+		return raceDate.compareTo(o.getRaceDate());
+	}
+
 	public RaceNote(String track, LocalDate raceDate, int raceNumber, int position, int beatenLengths, String comment) {
 		super();
 		this.track = track;

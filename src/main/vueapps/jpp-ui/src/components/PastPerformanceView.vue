@@ -155,13 +155,13 @@
             <span v-if="row.item.postPosition != 0">{{row.item.postPosition}}</span>
         </template>            			
         <template #cell(firstCallPosition)="row">
-            <span v-if="row.item.firstCallPosition != 0">{{row.item.firstCallPosition}}<sup>{{row.item.firstCallBeatenLengthsLeader.toFixed(2)}}</sup></span>
+            <span v-if="row.item.firstCallPosition != 0" :class="{'font-weight-bold': row.item.firstCallPosition == 1}">{{row.item.firstCallPosition}}<sup>{{row.item.firstCallBeatenLengthsLeader.toFixed(2)}}</sup></span>
         </template>	
         <template #cell(secondCallPosition)="row">
-            <span v-if="row.item.secondCallPosition != 0">{{row.item.secondCallPosition}}<sup>{{row.item.secondCallBeatenLengthsLeader.toFixed(2)}}</sup></span>
+            <span v-if="row.item.secondCallPosition != 0" :class="{'font-weight-bold': row.item.secondCallPosition == 1}">{{row.item.secondCallPosition}}<sup>{{row.item.secondCallBeatenLengthsLeader.toFixed(2)}}</sup></span>
         </template>
         <template #cell(stretchPosition)="row">
-           <span v-if="row.item.stretchPosition != 0"> {{row.item.stretchPosition}}<sup>{{row.item.stretchBeatenLengthsLeader.toFixed(2)}}</sup></span>
+           <span v-if="row.item.stretchPosition != 0" :class="{'font-weight-bold': row.item.stretchPosition == 1}"> {{row.item.stretchPosition}}<sup>{{row.item.stretchBeatenLengthsLeader.toFixed(2)}}</sup></span>
         </template>	
         <template #cell(finishPosition)="row">
             <span v-if="row.item.extraCommentLine.substring(0,1) == '(' || row.item.extraCommentLine == 'Dead heat'" v-b-tooltip.hover :title="row.item.extraCommentLine" class="text-danger">*</span>{{row.item.finishPosition}}<sup>{{row.item.finishBeatenLengthsLeader.toFixed(2)}}</sup>
@@ -535,9 +535,6 @@ export default {
                 if (i < horses.length-1) ret += "<br>";
             }
             return ret + "</span>";
-        },
-        goToChart(pp) {
-            this.$emit("goToChart", pp);
         },
         hasChart(pp) {
             var str_pad_left = this.str_pad_left;
