@@ -6,6 +6,9 @@
                 <b-button variant="primary" @click="parseCharts">Parse Charts</b-button>
             </b-col>
             <b-col>
+                <b-button variant="primary" @click="updateAllHorsesToWatchWithPPs">Update H2W</b-button>
+            </b-col>			
+            <b-col>
 				<b-form-file
 					id="filenameform"
 					size="sm" 
@@ -167,7 +170,21 @@ export default {
                 console.log(err);
                 
             }
-		},	
+		},
+		async updateAllHorsesToWatchWithPPs() {
+            try {
+				this.status = "Updating";
+                await axios({
+                    url: 'updateAllHorsesToWatchWithPPs',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});
+				this.status = "";
+            } catch (err) {
+                console.log(err);
+                
+            }
+		},			
 		async extractPP() {
             try {
 				this.status = "Extracting";

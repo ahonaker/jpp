@@ -39,11 +39,38 @@
                     <b-icon-key v-if="row.item.lastRacedKeyRace != null" variant="success" font-scale="1.5" rotate="90"></b-icon-key>
                 </span>
                 <span v-if="row.item.lastRaced && row.item.lastRacedKeyRace == null">
-                    {{formatDate(row.item.lastRaced.raceDate)}}<sup>{{row.item.lastRaced.raceNumber}}</sup> {{row.item.lastRaced.track.code}}<sup>{{row.item.lastRaced.officialPosition}}</sup>
+                    {{formatDate(row.item.lastRaced.raceDate)}}<sup>{{row.item.lastRaced.raceNumber}}</sup> {{row.item.lastRaced.track.code}}<sup :class="{'font-weight-bold': row.item.lastRaced.officialPosition == 1}">{{row.item.lastRaced.officialPosition}}</sup>
                 </span>
-            </template>
+				<span v-if="row.item.nextOutRaceNote != null">
+					<br>
+					<b-link 
+						v-if="hasChart(row.item.nextOutRaceNote)" 
+						target="_blank" 
+						:to="'/charts/'+row.item.nextOutRaceNote.track+'/'+row.item.nextOutRaceNote.raceDate[0]+'/'+row.item.nextOutRaceNote.raceDate[1]+'/'+row.item.nextOutRaceNote.raceDate[2]+'/'+row.item.nextOutRaceNote.raceNumber"
+					>
+						<b-icon-bar-chart-steps></b-icon-bar-chart-steps>
+					</b-link>
+					<span :id="'next-'+row.item.horse.name" v-b-tooltip.right>
+						{{formatDate(row.item.nextOutRaceNote.raceDate)}}<sup>{{row.item.nextOutRaceNote.raceNumber}}</sup> {{row.item.nextOutRaceNote.track}}<sup :class="{'font-weight-bold': row.item.nextOutRaceNote.position == 1}">{{row.item.nextOutRaceNote.position}}</sup>
+					</span>
+					<b-tooltip :target="'next-'+row.item.horse.name">
+						{{row.item.nextOutRaceNote.type}} {{row.item.nextOutRaceNote.raceClassification}} ${{row.item.nextOutRaceNote.purse}}
+					</b-tooltip>
+					<b-icon-arrow-up variant="success" v-if="riseInClass(row.item)"></b-icon-arrow-up>
+					<b-icon-arrow-down variant="danger" v-if="dropInClass(row.item)"></b-icon-arrow-down>
+					<b-badge pill variant="secondary" v-if="switchToTurf(row.item)" class="ml-1">&nbsp;T&nbsp;</b-badge>
+					<b-badge pill variant="secondary" v-if="switchToDirt(row.item)" class="ml-1">&nbsp;D&nbsp;</b-badge>
+					<b-badge pill variant="secondary" v-if="switchToAW(row.item)" class="ml-1">&nbsp;A&nbsp;</b-badge>
+					<b-badge pill variant="secondary" v-if="offTrack(row.item)" class="ml-1">&nbsp;X&nbsp;</b-badge>
+					<span v-if="switchToSprint(row.item)" class="ml-1">Sp</span>
+					<span v-if="switchToRoute(row.item)" class="ml-1">Rt</span>
+				</span>
+			</template>
             <template #cell(horsename)="row">
-                <span v-if="row.item.disqualified">DQ-</span>{{row.item.horse.name}} ({{row.item.jockey.name}})
+                <span v-if="row.item.disqualified"><strong>DQ</strong> - </span>
+				<span :class="{winnerNextOut: row.item.nextOutRaceNote && row.item.nextOutRaceNote.position == 1, placeNextOut: row.item.nextOutRaceNote && row.item.nextOutRaceNote.position == 2}">
+					{{row.item.horse.name}}
+				</span> ({{row.item.jockey.name}})
             </template> 
             <template #cell(pointsOfCall0)="row">
                 {{row.item.pointsOfCall[0].relativePosition.position}}
@@ -88,7 +115,7 @@
             </template>  
             <template #cell(raceFlag)="row">
 				<b-form-select v-model="row.item.raceFlag" :options="flags"></b-form-select>
-            </template>  					                                            
+            </template>			                                            
 		</b-table>     
 		<strong>Fractional Times: </strong>&nbsp;&nbsp;<span v-for="(fractional, findex) in race.fractionals" :key="'f' + findex">{{fractional.time}}&nbsp;&nbsp;&nbsp;</span><br>
 		<strong>Split Times: </strong>&nbsp;&nbsp;<span v-for="(split, sindex) in race.splits" :key="'s' + sindex">({{split.time}})&nbsp;&nbsp;&nbsp;</span><br><br>
@@ -176,13 +203,13 @@
 </template>
 
 <script>
-import { BIconStar, BIconStarFill, BIconCameraVideoFill, BIconKey, BIconBarChartSteps } from 'bootstrap-vue'
+import { BIconStar, BIconStarFill, BIconCameraVideoFill, BIconKey, BIconBarChartSteps, BIconArrowUp, BIconArrowDown } from 'bootstrap-vue'
 import _ from 'underscore'
 
 export default {
     name: 'ChartView',
     components: {
-		BIconStar, BIconStarFill, BIconCameraVideoFill, BIconKey, BIconBarChartSteps
+		BIconStar, BIconStarFill, BIconCameraVideoFill, BIconKey, BIconBarChartSteps, BIconArrowUp, BIconArrowDown
     },
     props : ['race', 'starterFields', 'charts'],
     data () {
@@ -265,11 +292,11 @@ export default {
             }
             return ret + "</span>";
         },
-        hasChart(lastRaced) {
-            if (lastRaced == null) return false;	
-
+        hasChart(race) {
+            if (race == null) return false;	
+			var trackCode = (race.track.code || race.track);
             var str_pad_left = this.str_pad_left;
-            var track = _.findWhere(this.charts, {code: lastRaced.track.code});
+            var track = _.findWhere(this.charts, {code: trackCode});
             if (track == null) return false;
 			const chartDates = _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
@@ -279,11 +306,43 @@ export default {
 						+ str_pad_left(d[2],0,2); 
                 });
 
-            const day = lastRaced.raceDate[0] + "-"
-				+ str_pad_left(lastRaced.raceDate[1],0,2)   + "-"
-				+ str_pad_left(lastRaced.raceDate[2],0,2);
+            const day = race.raceDate[0] + "-"
+				+ str_pad_left(race.raceDate[1],0,2)   + "-"
+				+ str_pad_left(race.raceDate[2],0,2);
 			return chartDates.indexOf(day) >  -1;
-        }           
+        },
+		riseInClass(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.purse > this.race.purse.value;
+		},
+		dropInClass(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.purse < this.race.purse.value;
+		},   
+		switchToTurf(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.surface == 'Turf' && this.race.surface != 'Turf';
+		},
+		switchToDirt(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.surface == 'Dirt' && this.race.surface != 'Dirt';
+		},	
+		switchToAW(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.surface == 'All Weather Track' && this.race.surface != 'All Weather Track';
+		},
+		switchToSprint(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.distance < 5280 && this.race.distance.value >= 5280;
+		},
+		switchToRoute(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.distance >= 5280 && this.race.distance.value < 5280;
+		},		
+		offTrack(starter) {
+			if (!starter.nextOutRaceNote) return false;
+			return starter.nextOutRaceNote.trackCondition != 'Fast' && starter.nextOutRaceNote.trackCondition != 'Firm';
+		}					
     }
 }
 </script>

@@ -102,10 +102,11 @@ export default {
 			}	
 		},	
 		async generatePDF() {
+			var race = this.races[0];
 			const response = await html2pdf()
 				.set(this.options)
 				.from(document.getElementById('summary'))
-				.save(this.races[0].track + this.races[0].date + " Summary");
+				.save(race.track + race.date + " Summary");
 			if (!response) this.status += "...done";			
 		},
 		format2Places(amount) {

@@ -37,11 +37,12 @@
 			<b-navbar-nav small>
 				<b-nav-item :disabled="!file" @click="load"><b-icon-cloud-upload v-b-tooltip.hover.bottom title="Upload"></b-icon-cloud-upload></b-nav-item>
 				<b-nav-item :disabled="races.length == 0 || !file" @click="augment"><b-icon-cloud-plus title="Augment"></b-icon-cloud-plus></b-nav-item>
-				<b-nav-item :disabled="races.length == 0 || !file" @click="addProgramNumbers"><b-icon-file-earmark-binary title="Add Program Numbers"></b-icon-file-earmark-binary></b-nav-item>				
+				<b-nav-item :disabled="races.length == 0 || !file" @click="addProgramNumbers"><b-icon-file-earmark-binary title="Add Program Numbers"></b-icon-file-earmark-binary></b-nav-item>
+				<b-nav-item :disabled="races.length == 0" @click="updateHorsesToWatch"><b-icon-file-earmark-word title="Update Horses To Watch"></b-icon-file-earmark-word></b-nav-item>			
 				<b-nav-item :disabled="races.length == 0" @click="getChanges"><b-icon-triangle-fill v-b-tooltip.hover.bottom title="Get Changes"></b-icon-triangle-fill></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="getResults"><b-icon-currency-dollar v-b-tooltip.hover.bottom title="Results"></b-icon-currency-dollar></b-nav-item>					
 				<b-nav-item :disabled="races.length == 0" @click="calculate"><b-icon-calculator-fill v-b-tooltip.hover.bottom title="Calculate"></b-icon-calculator-fill></b-nav-item>
-				<b-nav-item :disabled="races.length == 0" @click="save"><b-icon-file-earmark-arrow-up v-b-tooltip.hover.bottom title="Save"></b-icon-file-earmark-arrow-up></b-nav-item>			
+				<b-nav-item :disabled="races.length == 0" @click="save(false)"><b-icon-file-earmark-arrow-up v-b-tooltip.hover.bottom title="Save"></b-icon-file-earmark-arrow-up></b-nav-item>			
 				<b-nav-item :disabled="!ppTrack && !ppDate" @click="retrieve"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
 				<b-nav-item @click="getAll"><b-icon-cloud-download v-b-tooltip.hover.bottom title="Download"></b-icon-cloud-download></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="clearRaces"><b-icon-eraser-fill v-b-tooltip.hover.bottom title="Clear Races"></b-icon-eraser-fill></b-nav-item>	
@@ -559,7 +560,7 @@
 
 <script>
 //import { } from 'bootstrap-vue'
-import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill  } from 'bootstrap-vue'
+import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill, BIconFileEarmarkWord  } from 'bootstrap-vue'
 import RaceView from '@/components/RaceView'
 import NavbarView from '@/views/NavbarView'
 
@@ -569,7 +570,7 @@ import _ from 'underscore'
 export default {
 	name: 'RacesView',
 	components: {
-		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill
+		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill, BIconFileEarmarkWord
 	},
 	data () {
 		return {
@@ -761,7 +762,7 @@ export default {
                 //console.log(response);
 				this.races = response.data;
 				this.postGetActions();
-				this.loading = "";
+				this.status = "";
             } catch (err) {
                 console.log(err);
                 
@@ -807,6 +808,7 @@ export default {
 		},
 		async augment() {
             try {
+				await this.save(true);
 				this.status = "Augmenting";
                 var formData = new FormData();
                 formData.append("data", this.file);
@@ -833,6 +835,7 @@ export default {
 		},
 		async addProgramNumbers() {
             try {
+				await this.save(true);
 				this.status = "Updating";
                 var formData = new FormData();
                 formData.append("data", this.file);
@@ -856,8 +859,21 @@ export default {
                 console.log(err);
                 
             }
-		},						
-		async save() {
+		},	
+		async updateHorsesToWatch() {
+            try {
+				this.status = "Updating";
+                await axios({
+                    url: 'updateHorsesToWatchWithPPs/' + this.races[0].track + "/" + this.races[0].date[0] + "/" + this.races[0].date[1] + "/" + this.races[0].date[2],
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
+                });
+				this.status = "";
+            } catch (err) {
+                console.log(err);
+            }
+		},				
+		async save(noNotify) {
             try {
 				this.status = "Saving";
 				for (var i=0; i < this.races.length; i++) {
@@ -873,7 +889,7 @@ export default {
                 });
 				this.status = "";
 				this.getSaved();
-				this.$bvModal.msgBoxOk('Races saved.');									
+				if (!noNotify) this.$bvModal.msgBoxOk('Races saved.');									
             } catch (err) {
                 console.log(err.response);
                 
@@ -904,6 +920,7 @@ export default {
 		},
 		async getChanges() {
             try {
+				await this.save(true);
 				this.status = "Getting Changes";
                 const response = await axios({
                     url: 'getChanges/',
@@ -922,6 +939,7 @@ export default {
 		},	
 		async getResults() {
             try {
+				await this.save(true);
 				this.status = "Getting Results";
                 const response = await axios({
                     url: 'getResults/',
@@ -940,6 +958,7 @@ export default {
 		},			
 		async calculate() {
             try {
+				await this.save(true);
 				this.status = "Recalculating";
                 const response = await axios({
                     url: 'calculate/' + this.options.distance + '/' + this.options.surface + '/' + this.options.condition,
@@ -966,6 +985,7 @@ export default {
 		},
 		async updateCondition(race) {
             try {
+				await this.save(true);
 				this.status = "Updating";
                 const response = await axios({
                     url: 'setTrackCondition/' + race.raceNumber + '/' + race.trackCondition,
@@ -981,6 +1001,7 @@ export default {
 		},
 		async toggleOffTheTurf(race) {
             try {
+				await this.save(true);
 				this.status = "Updating";
                 const response = await axios({
                     url: 'toggleOffTheTurf/' + race.raceNumber,

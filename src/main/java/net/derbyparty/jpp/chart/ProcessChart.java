@@ -75,6 +75,15 @@ public class ProcessChart {
 						.withTrack(result.getTrack().getCode())
 						.withRaceDate(result.getRaceDate())
 						.withRaceNumber(result.getRaceNumber())
+						.withType(result.getRaceConditions().getRaceTypeNameBlackTypeBreed().getType())
+						.withRaceClassification(result.getRaceConditions().getRaceClassification())
+						.withPurse(result.getPurse().getValue())
+						.withClaimingPrice(starter.getClaim() == null ? 0 : starter.getClaim().getPrice())
+						.withDistance(result.getDistanceSurfaceTrackRecord().getRaceDistance().getValue())
+						.withExactDistance(result.getDistanceSurfaceTrackRecord().getRaceDistance().isExact())
+						.withSurface(result.getDistanceSurfaceTrackRecord().getSurface())
+						.withOffTurf(result.getDistanceSurfaceTrackRecord().isOffTurf())
+						.withTrackCondition(result.getDistanceSurfaceTrackRecord().getTrackCondition())
 						.withPosition(starter.getFinishPosition() != null ? starter.getFinishPosition() : 0)
 						.withBeatenLengths(starter.getFinishPosition() != null && starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
 								? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths().floatValue() 
@@ -274,6 +283,9 @@ public class ProcessChart {
 								if (race.getTrack().getCode().equals(raceNote.getTrack()) && race.getRaceDate().equals(raceNote.getRaceDate())) {
 									starter.setNote(raceNote.getComment());
 									starter.setRaceFlag(raceNote.getFlag());
+								}
+								if (raceNote.getRaceDate().isAfter(race.getRaceDate())) {
+									starter.setNextOutRaceNote(raceNote);
 								}
 							}
 						}

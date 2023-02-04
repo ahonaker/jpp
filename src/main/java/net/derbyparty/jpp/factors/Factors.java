@@ -857,7 +857,7 @@ public class Factors {
 					angles.add("-Horse exiting route where it failed to run within a length of the leader at the first three calls.");
 				if (race.getTurfFlag() && horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
 					&& horse.getPastPerformances().get(0).getFinishPosition().equals("1") && horse.getPedigreeRatingTurf().charAt(0) != '?'
-					&& Integer.parseInt(horse.getPedigreeRatingTurf()) > 105) 
+					&& !horse.getPedigreeRatingTurf().contains("?") && Integer.parseInt(horse.getPedigreeRatingTurf()) > 105) 
 						angles.add("+Well bred maiden winner can move ahead in class and beat turf winners if final fraction less than :12 per furlong.");
 				if ((float) horse.getSpeedPoints() / race.getTotalSpeedPoints() >= 0.30) 
 					angles.add("+Horse possesses 30 percent or more of a race's early speed.");
@@ -1226,13 +1226,29 @@ public class Factors {
 					notes.add("Focus on: Younger horses; lightly raced horses; horse that have lost no more than six similar races; horses that have run impressively in stakes;" +
 						"European imports that have won a non-maiden race in the native land; Maiden grads that have exceeded maiden par, provided the pace of the maiden race was faster than normal");
 				}
+				if (race.getClassification().contains("n1x")) {
+					notes.add("Can be a deceptively strong race in which multiple-claiming winners deserve preference over horses that have lost a few similar allowance races.  "
+						+ "Multiple-claiming winners have one thing their rivals do not: considerable experience defeating winners.");
+				}
 				if (race.getClassification().contains("n2")) {
 					notes.add("Focus on: Horses that have won an open or graded stakes; Horses that have not lost more than four NW2 Allowances; " +
 						"European imports that have impressed in group stakes; Horses that have recorded a triple-digit speed figure; " +
 						"Imports of South America, Australia, New Zealand, South Africa and Dubai that have won 2 or more Group 1 races " +
 						"Horses that have not lost claiming races below $50,000.");
-				}		
-				notes.add("Many winners of NW2 races will arrive with speed figures somewhat shy of par");
+					notes.add("Many winners of NW2 races will arrive with speed figures somewhat shy of par");
+				}	
+				if (race.getClassification().contains("n2l")) {
+					notes.add("May be easy prey for a fast recent maiden grad, or the horse that has performed well in limited starts against similar or better allowance rivals, or a horse that ran credibly"
+						+ "in a recent open claiming race against multiple winners.");
+				}
+				if (race.getClassification().contains("n2x")) {
+					notes.add("May be won by high-priced claiming winners, but they will have no special edge over recent allowance winners who seem to have stakes potential and/or the lightly raced horses in"
+							+ "the field that have one or two good races at this level.");
+				}	
+				if (race.getClassification().contains("n3x") || race.getClassification().contains("n$x")) {
+					notes.add("Rarely won by claiming horses, unless we are talking about the top level of claiming, e.g. ~$100k.  Most top-of-the-line allowance races will be won by proven stakes horses, or by "
+							+ "multiple-allowance winners who have already completed well at this level.");
+				}	
 				notes.add("If shippers from minor tracks were fast, versatile and consistent at home and performed well enough at a major track at first asking, they may be worth a bet. " +
 					"After 2 losses where performance was impressive, third time may be the charm.");
 				break;
@@ -1253,10 +1269,22 @@ public class Factors {
 				if (race.getAgeRestriction() == AgeRestrictionType.THREE_YEAR_OLDS && race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_AND_UP) {				
 					notes.add("3 Year Olds and lightly raced 4 Year Olds, accept winners of a single Grade 1/Grade 2 event.");
 				}
+				if (race.getAgeRestriction() == AgeRestrictionType.THREE_YEAR_OLDS && race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_ONLY) {
+					if (race.getDate().getMonth().getValue() <= 5) {				
+						notes.add("Dominated by horses with Triple Crown potential");
+					} else {
+						notes.add("3 Year Old Grade 1/2 Stakes are won  by: 1) Horses who previously competed in Triple Crown races and preps, 2) Tpo 2-year olds of the previous "
+								+ "year who were forced to miss the Triple Crown season, 3) Developing summer stars who have won a few allowance races and/or low-level stakes "
+								+ "while earning above-average speed figures and/or style points.");
+					}
+				}
 				notes.add("Authentic contenders should match par and possess pace figures within two lengths of par.");
 				notes.add("Preferred combinations are abovepar pace figures in combination with a par or better speed figure - outstanding Grade 1/Grade 2 closes excepted.");
 				break;
 			case GRADE_3:
+				if (race.getAgeRestriction() == AgeRestrictionType.FOUR_YEAR_OLDS && race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_AND_UP) {
+					notes.add("Horses will have varying credentials, from Grade 1 and Grade 2 drop-downs to improving allowance types.");
+				}
 				break;
 			case MAIDEN_CLAIMING:
 				notes.add("All horses typically will have speed figures below par, so not a reliable factor.");

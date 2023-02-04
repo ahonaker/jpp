@@ -27,6 +27,7 @@ import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.Re
 import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition.TotalLengthsBehind;
 import net.derbyparty.jpp.chartparser.tracks.TrackService;
 import net.derbyparty.jpp.object.PotentialKeyRace;
+import net.derbyparty.jpp.object.RaceNote;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -76,6 +77,7 @@ public class Starter {
     private String horseFlag;
     private PotentialKeyRace lastRacedKeyRace;
     private String footnote;
+    private RaceNote nextOutRaceNote;
     
     private Starter(Builder builder) {
         lastRaced = builder.lastRaced;
@@ -249,6 +251,14 @@ public class Starter {
 
 	public void setFootnote(String footnote) {
 		this.footnote = footnote;
+	}
+
+	public RaceNote getNextOutRaceNote() {
+		return nextOutRaceNote;
+	}
+
+	public void setNextOutRaceNote(RaceNote nextOutRaceNote) {
+		this.nextOutRaceNote = nextOutRaceNote;
 	}
 
 	/**

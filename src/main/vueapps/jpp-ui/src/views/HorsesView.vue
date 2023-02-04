@@ -43,19 +43,27 @@
 						><b-icon-camera-video-fill></b-icon-camera-video-fill>
 						</a>						
 						{{formatDate(note.raceDate)}}<sup>{{note.raceNumber}}</sup> {{note.track}}<sup>{{note.position}}</sup> <span v-if="note.beatenLengths > 0">{{note.beatenLengths}}BL</span>
-						<span v-if="note.flag || note.comment"> - </span>
+						{{note.type}} {{note.raceClassification}} Purse: ${{note.purse}} <span v-if="note.claimingPrice > 0">Claiming Price: ${{note.claimingPrice}}</span>
+						<br>
 						<strong>{{note.flag}} </strong>
-						<span v-if="note.flag">/</span>
-						{{note.comment}}
+						<span v-if="note.flag">/ </span>
+						<strong>{{note.comment}}</strong>
 						<span v-if="note.flag || note.comment"> : </span>
 						<p class="mb-1">{{note.footnote}}</p>
 					</b-list-group-item>
 				</b-list-group>
 			</b-card-text>
-
 			<b-button href="#" variant="primary" @click="save" class="mx-2">Save and Go Back</b-button>
 			<b-button href="#" variant="danger" @click="horse = null">Discard Changes</b-button>
 		</b-card>
+		<b-row v-if="horse && horse.pastPerformances"  class="table b-table table-sm">
+			<b-col>
+				<h5 class="text-center">Past Performances</h5>
+				<b-container fluid class="pp border">
+					<past-performance-view :horse="horse"></past-performance-view>
+				</b-container>
+			</b-col>
+		</b-row>
 		<b-list-group v-show="!horse">
 			<b-list-group-item v-for="listedHorse in horsesFiltered" :key="listedHorse.name" @click="getHorse(listedHorse.name)" href="#">
 				<b-icon-star-fill variant="success" v-if="listedHorse.flag == 'Star'" class="mx-1"></b-icon-star-fill>{{listedHorse.name}}<span v-if="listedHorse.comment">&nbsp;&nbsp;: {{listedHorse.comment}}</span>
@@ -66,6 +74,7 @@
 
 <script>
 import NavbarView from '@/views/NavbarView'
+import PastPerformanceView from '@/components/PastPerformanceView'
 import { BIconStar, BIconStarFill, BIconCameraVideoFill, BIconBarChartSteps} from 'bootstrap-vue'
 
 
@@ -75,7 +84,7 @@ import _ from 'underscore'
 export default {
 	name: 'HorsesView',
 	components: {
-		NavbarView, BIconStar, BIconStarFill, BIconCameraVideoFill, BIconBarChartSteps
+		NavbarView, PastPerformanceView, BIconStar, BIconStarFill, BIconCameraVideoFill, BIconBarChartSteps
 	},
 	data () {
 		return {

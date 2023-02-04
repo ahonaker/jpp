@@ -640,6 +640,9 @@ export default {
                 {value: 4.5, text: "9/2 - 18.2%"},
                 {value: 5, text: "5 - 16.7%"},
                 {value: 6, text: "6 - 14.3%"},
+                {value: 7, text: "7 - 12.5%"},
+                {value: 8, text: "8 - 11.1%"},
+                {value: 9, text: "9 - 10%"}
             ],
             validBettingLineCombinations: [
                 [1,5,6],

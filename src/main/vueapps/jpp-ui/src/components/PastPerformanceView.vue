@@ -142,7 +142,7 @@
             <span v-if="row.item.e2 != 0"><span v-if="row.item.raceShapeSecondCall > 0">+</span>{{row.item.raceShapeSecondCall}}</span>
         </template>		
          <template #cell(brisspeedRating)="row">
-            <span v-if="row.item.brisspeedRating != 0">{{row.item.brisspeedRating}}</span><span v-if="row.item.speedPar != 0" :class="{'text-success font-weight-bold': row.item.speedPar >= race.parSpeed}"> / {{row.item.speedPar}}</span>
+            <span v-if="row.item.brisspeedRating != 0">{{row.item.brisspeedRating}}</span><span v-if="row.item.speedPar != 0" :class="{'text-success font-weight-bold': race && row.item.speedPar >= race.parSpeed}"> / {{row.item.speedPar}}</span>
         </template>						
         <template #cell(speedRating)="row">
             <span v-if="row.item.speedRating != 0">
@@ -251,6 +251,7 @@ export default {
     methods:  {
 		async toggleIgnored(item) {
             try {
+				if (!this.race) return;
                 var formData = new FormData();
                 formData.append("raceNumber", this.race.raceNumber);
                 formData.append("name", this.horse.name);
@@ -404,6 +405,7 @@ export default {
 			if (item.favoriteFlag && item.finishPosition != "1") return "yellowHighlight";
 		},
 		highlightPurseShift(value,key,item) {
+			if (!this.race) return;
 			if (item.purse >= this.race.purse + 20000 ) return "greenHighlight";
 			if (item.purse > this.race.purse) return "lightGreenHighlight";
 			if (item.purse == this.race.purse) return "";
@@ -412,13 +414,16 @@ export default {
 			if (item.purse < this.race.purse - 30000) return "redHighlight";
 		},
 		highlightSpeedInRange(value,key,item) {
+			if (!this.race) return;
 			if (item.brisspeedRating >= this.race.parSpeed) return "greenHighlight";
 			if (item.brisspeedRating >= this.race.parSpeed - 3) return "lightGreenHighlight";
 		},
         highlightRaceStrength(value,key,item) {
+			if (!this.race) return;
             if (item.raceStrength >= this.race.parSpeed - 2) return "greenHighlight";
         },
         highlightPace(value,key,item) {
+			if (!this.race) return;
             if (item.e1 >= (this.race.furlongs < 8 ? this.race.parPace2F : this.race.parPace4F) -2 
                 && item.e2 >= (this.race.furlongs < 8 ? this.race.parPace4F : this.race.parPace6F) -2 
                 && item.paceFigureLate >= this.race.parLatePace -2)
@@ -451,6 +456,7 @@ export default {
             }
         },
         highlightFinalFraction(value,key,item) {
+			if (!this.race) return;
             if (this.race.turfFlag && this.race.furlongs >= 8) {
                 var final;
                 var target;
@@ -486,6 +492,7 @@ export default {
 			if (value > 0) return "yellowHighlight";
 		},
 		highlightSimilarSurfDist(value, key, item) {
+			if (!this.race) return;
 			if (this.race.surface.indexOf("TURF") > -1 && !this.race.offTheTurfFlag) {
 				if (
 					item.surface.indexOf("TURF") > -1 
@@ -501,6 +508,7 @@ export default {
 			}
 		},
 		alsoInRace(nameToMatch, row) {
+			if (!this.race) return;
 			var names = _.pluck(this.race.horses, "name");
 			if (names.indexOf(nameToMatch) > -1 && nameToMatch != row.name) return "alsoInRace";
 

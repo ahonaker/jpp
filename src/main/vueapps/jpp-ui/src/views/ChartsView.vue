@@ -117,7 +117,7 @@ export default {
 
 			for (var i = 0; i < this.chart.length; i++) {
 				var fields=[];
-				fields.push({key: "lastRaced", title: "Last Racesd", label: "Last Raced"}); 
+				fields.push({key: "lastRaced", title: "Last Raced", label: "Last Raced/Next Out"}); 
 				fields.push({key: "program", title: "Program", label: "Pgm"});
 				fields.push({key: "horsename", title: "Horse Name and Jockey", label: "Horse Name (Jockey)"});
 				fields.push({key: "medicationEquipment.text", title: "Medication and Equipment", label: "M/E"});
@@ -200,7 +200,8 @@ export default {
 								beatenLengths: (this.chart[i].starters[j].finishPosition == 1) ? 0 : this.chart[i].starters[j].pointsOfCall[this.chart[i].starters[j].pointsOfCall.length-1].relativePosition.totalLengthsBehind.lengths,
 								note: this.chart[i].starters[j].note,
 								raceFlag: this.chart[i].starters[j].raceFlag,
-								horseFlag: this.chart[i].starters[j].horseFlag
+								horseFlag: this.chart[i].starters[j].horseFlag,
+                                claimingPrice: this.chart[i].starters[j].claim ? this.chart[i].starters[j].claim.price : 0
 							});
 					}
 					if (notes.length > 0)
@@ -208,6 +209,13 @@ export default {
 							track: this.chart[i].track.code,
 							raceDate: this.chart[i].raceDate,
 							raceNumber: this.chart[i].raceNumber,
+                            raceClassification: this.chart[i].conditions.raceClassification,
+                            purse: this.chart[i].purse.value,
+                            distance: this.chart[i].distance.value,
+                            exactDistanceFlag: this.chart[i].distance.exact,
+                            surface: this.chart[i].surface,
+                            offTurfFlag: this.chart[i].offTurf,
+                            trackCondition: this.chart[i].trackCondition,
 							starters: notes
 						});
 				}

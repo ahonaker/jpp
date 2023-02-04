@@ -18,6 +18,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
 
 import net.derbyparty.jpp.chart.ProcessChart;
 import net.derbyparty.jpp.factors.Factors;
@@ -31,6 +34,7 @@ import net.derbyparty.jpp.object.PotentialKeyRace;
 import net.derbyparty.jpp.object.Race;
 import net.derbyparty.jpp.object.RaceDate;
 import net.derbyparty.jpp.object.RaceNote;
+import net.derbyparty.jpp.object.RaceTime;
 import net.derbyparty.jpp.object.Track;
 import net.derbyparty.jpp.pastperformanceparser.PastPerformanceParser;
 
@@ -48,6 +52,7 @@ public class Main {
 	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	final static String tracksFile = "/Users/ahonaker/Google Drive/pp/jpp/tracks.json";
 	final static String raceDatesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceDates.json";
+	final static String raceTimesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceTimes.csv";
 
 	public static void updateOptions(String dOption, String sOption, String cOption) throws Exception {
 		distanceOption = dOption;
@@ -801,6 +806,7 @@ public class Main {
 	public static void saveNotes(JsonNode data) throws Exception {
 		
 		try {
+			Boolean firstTime = true;
 			for (JsonNode race : data) {
 				LocalDate raceDate = LocalDate.of(race.get("raceDate").get(0).asInt(), race.get("raceDate").get(1).asInt(), race.get("raceDate").get(2).asInt());
 				for (JsonNode starter : race.get("starters")) {
@@ -825,6 +831,15 @@ public class Main {
 								.withTrack(race.get("track").asText())
 								.withRaceDate(raceDate)
 								.withRaceNumber(race.get("raceNumber").asInt())
+								.withType(race.get("type").asText())
+								.withRaceClassification(race.get("raceClassification").asText())
+								.withPurse(race.get("purse").asInt())
+								.withClaimingPrice(starter.has("claimingPrice") ? starter.get("claimingPrice").asInt() : 0)								
+								.withDistance(race.get("distance").asInt())
+								.withExactDistance(race.get("exactDistanceFlag").asBoolean())
+								.withSurface(race.get("surface").asText())
+								.withOffTurf(race.get("offTurfFlag").asBoolean())
+								.withTrackCondition(race.get("trackCondition").asText())
 								.withPosition(starter.get("position").asInt())
 								.withBeatenLengths(starter.get("beatenLengths").floatValue())
 								.withComment(!starter.get("note").isNull()? starter.get("note").asText() : "")
@@ -833,12 +848,25 @@ public class Main {
 							horseToWatch.setRaceNotes(raceNotes);
 						}
 						horseToWatch.save();
+						if (firstTime) {
+							markChartReviewed(race.get("track").asText(), raceDate);
+							firstTime = false;
+						}
 					} else {
 						List<RaceNote> raceNotes = new ArrayList<RaceNote>();
 						raceNotes.add(RaceNote.builder()
 							.withTrack(race.get("track").asText())
 							.withRaceDate(raceDate)
 							.withRaceNumber(race.get("raceNumber").asInt())
+							.withType(race.get("type").asText())
+							.withRaceClassification(race.get("raceClassification").asText())
+							.withPurse(race.get("purse").asInt())
+							.withClaimingPrice(race.has("claimingPrice") ? race.get("claimingPrice").asInt() : 0)								
+							.withDistance(race.get("distance").asInt())
+							.withExactDistance(race.get("exactDistanceFlag").asBoolean())
+							.withSurface(race.get("surface").asText())
+							.withOffTurf(race.get("offTurfFlag").asBoolean())
+							.withTrackCondition(race.get("trackCondition").asText())							
 							.withPosition(starter.get("position").asInt())
 							.withBeatenLengths(starter.get("beatenLengths").floatValue())
 							.withComment(!starter.get("note").isNull() ? starter.get("note").asText() : "")
@@ -850,6 +878,10 @@ public class Main {
 							.withRaceNotes(raceNotes)
 							.build();
 						horseToWatch.save();
+						if (firstTime) {
+							markChartReviewed(race.get("track").asText(), raceDate);
+							firstTime = false;
+						}
 					}
 				}
 			}
@@ -1021,4 +1053,193 @@ public class Main {
 		}
 	}
 	
+	public static void markChartReviewed(String trackToMark, LocalDate date) throws Exception {
+		
+		try {
+			List<Track> raceDates = new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
+			for (Track track : raceDates) {
+				if (track.getCode().equals(trackToMark))
+					for (RaceDate raceDate: track.getRaceDates()) {
+						if (raceDate.getRaceDate().equals(date)) raceDate.setReviewedFlag(true);
+					}
+			}
+			mapper.writeValue(Paths.get(raceDatesFile).toFile(), raceDates);
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public static void updateHorsesToWatchWithPPs(String track, LocalDate date) throws Exception {
+		
+		try {
+			List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
+			for (Race race : card) {
+				for (Horse horse : race.getHorses()) {
+					File horseToWatchFile = new File(horsesToWatchDir + horse.getName().replaceAll("\\s\\(.+\\)", "") + ".json");
+					if (horseToWatchFile.exists()) {
+						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + horse.getName().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
+						if (horseToWatch.getPastPerformances().size() == 0) {
+							horseToWatch.setPastPerformances(horse.getPastPerformances());
+						} else {
+							for (PastPerformance newPP : horse.getPastPerformances()) {
+								Boolean found = false;
+								for (PastPerformance existingPP : horseToWatch.getPastPerformances()) {
+									if (existingPP.equals(newPP)) {
+										found = true;
+										break;
+									}
+								}
+								if (!found) horseToWatch.getPastPerformances().add(newPP);
+							}
+						}
+						horseToWatch.save();
+					} else {
+						HorseToWatch horseToWatch = HorseToWatch.builder()
+							.withName(horse.getName())
+							.withPastPerformances(horse.getPastPerformances())
+							.build();
+						horseToWatch.save();
+					}
+				}
+			}
+		} catch (Exception e) {
+			
+			throw e;
+		}
+	}
+	
+	public static void updateAllHorsesToWatchWithPPs() throws Exception {
+		try {
+
+	        Files.list(new File(saveDir).toPath())
+            .forEach(path -> {
+            	if (path.toString().contains(".json")) {
+            		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
+            		Matcher matcher =  pattern.matcher(path.toString());
+            		if (matcher.find()) {            			
+            			try {
+							updateHorsesToWatchWithPPs(matcher.group(1), LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+            		}
+            	}
+		 	});
+		
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public static List<RaceTime> generateRaceTimes() throws Exception {
+		
+		try {
+    		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
+			List<RaceTime> raceTimes = new ArrayList<RaceTime>();
+			
+			Files.list(new File(saveDir).toPath())
+            .forEach(path -> {
+            	if (path.toString().contains(".json")) {
+            		Matcher matcher =  pattern.matcher(path.toString());
+            		if (matcher.find()) {  
+            			try {
+            				List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + matcher.group(1) + LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))).format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
+            				for (Race race : card) {
+            					for (Horse horse : race.getHorses()) {
+            						for (PastPerformance pp : horse.getPastPerformances()) {
+            							RaceTime raceTime = RaceTime.builder()
+            								.withTrack(pp.getTrackCode())
+            								.withRaceDate(pp.getRaceDate())
+            								.withRaceNumber(pp.getRaceNumber())
+            								.withRaceType(pp.getRaceType())
+            								.withRaceClassification(pp.getRaceClassification())
+            								.withDistance(pp.getDistance())
+            								.withSurface(pp.getSurface())
+            								.withAllWeatherFlag(pp.getAllWeatherSurfaceFlag())
+            								.withTrackCondition(pp.getTrackCondition())
+            								.withFraction1(pp.getFraction1())
+            								.withFraction2(pp.getFraction2())
+            								.withFraction3(pp.getFraction3())
+            								.withFinalTime(pp.getFinalTime())
+            								.withSpeedPar(pp.getSpeedPar())
+            								.withRaceShapeFirstCall(pp.getRaceShapeFirstCall())
+            								.withRaceShapeSecondCall(pp.getRaceShapeSecondCall())
+            								.build();
+            							if (!raceTimes.contains(raceTime)) raceTimes.add(raceTime);
+            						}
+            					}
+            				}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+            			
+            		}
+            	}
+            });
+			
+			Files.list(new File(saveDir).toPath())
+            .forEach(path -> {
+            	if (path.toString().contains(".json")) {
+            		Matcher matcher =  pattern.matcher(path.toString());
+            		if (matcher.find()) {  
+            			try {
+            				List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + matcher.group(1) + LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))).format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
+            				for (Race race : card) {
+            					for (Horse horse : race.getHorses()) {
+            						for (PastPerformance pp : horse.getPastPerformances()) {
+            							if (pp.getFinishBeatenLengthsOnly() == 0) {
+            								for (RaceTime raceTime : raceTimes) {
+            									if (raceTime.getTrack().equals(race.getTrack())
+            										&& raceTime.getRaceDate().equals(race.getDate())
+            										&& raceTime.getRaceNumber() == race.getRaceNumber()) {
+            										raceTime.setWinnerPar(pp.getBRISSpeedRating());
+            										raceTime.setPaceFigure2F(pp.getPaceFigure2F());
+            										raceTime.setPaceFigure4F(pp.getPaceFigure4F());
+            										raceTime.setPaceFigure6F(pp.getPaceFigure6F());
+            										raceTime.setPaceFigure8F(pp.getPaceFigure8F());
+            										raceTime.setPaceFigure10F(pp.getPaceFigure10F());
+            										raceTime.setPaceFigureLate(pp.getPaceFigureLate());
+            										break;
+            									}
+            								}
+            							}
+            						}
+            					}
+            				}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+            			
+            		}
+            	}
+            });
+			
+			return raceTimes;
+			//mapper.writeValue(Paths.get(raceTimesFile).toFile(), raceTimes);
+			
+		} catch (Exception e) {
+			throw e;
+		}	
+		
+	}
+	
+	public static void generateRaceTimesCSV() throws Exception {
+		
+		try {
+			JsonNode node = mapper.valueToTree(generateRaceTimes());
+			
+			Builder csvSchemaBuilder = CsvSchema.builder();
+			JsonNode firstObject = node.elements().next();
+			firstObject.fieldNames().forEachRemaining(fieldName -> {csvSchemaBuilder.addColumn(fieldName);} );
+			CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
+			
+			CsvMapper csvMapper = new CsvMapper();
+			csvMapper.writerFor(JsonNode.class)
+			  .with(csvSchema)
+			  .writeValue(new File(raceTimesFile), node);
+			
+		} catch (Exception e) {
+			throw e;
+		}	
+	}
 }

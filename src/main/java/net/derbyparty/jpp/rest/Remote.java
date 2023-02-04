@@ -761,4 +761,56 @@ public class Remote {
 	  
 	}
 	
+	@Path("updateHorsesToWatchWithPPs/{track}/{year}/{month}/{day}")	
+	@GET
+	public Response updateHorsesToWatchWithPPs(@PathParam("track") String track ,
+			@PathParam("year") int year,
+			@PathParam("month") int month,
+			@PathParam("day") int day) throws Exception {
+		
+		try {
+			Main.updateHorsesToWatchWithPPs(track, LocalDate.of(year, month, day));
+			
+ 		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+ 		} 
+		return Response.noContent().build();
+
+	}
+	
+	@Path("updateAllHorsesToWatchWithPPs")
+	@GET
+	public Response uppdateAllHorsesToWatchWithPPs() throws Exception {
+	  
+	  try {
+		    
+		    Main.updateAllHorsesToWatchWithPPs();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("generateRaceTimes")
+	@GET
+	public Response generateRaceTimes() throws Exception {
+	  
+	  try {
+		    
+		    Main.generateRaceTimesCSV();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
 }

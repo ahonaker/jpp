@@ -8,7 +8,7 @@ import java.util.Locale;
 
 import javax.annotation.Generated;
 
-public class PastPerformance implements Serializable {
+public class PastPerformance implements Serializable, Comparable<PastPerformance> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -1823,107 +1823,10 @@ public class PastPerformance implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((AgeRestriction == null) ? 0 : AgeRestriction.hashCode());
-		result = prime * result + ((AgeRestrictionRange == null) ? 0 : AgeRestrictionRange.hashCode());
-		result = prime * result + ((AllWeatherSurfaceFlag == null) ? 0 : AllWeatherSurfaceFlag.hashCode());
-		result = prime * result + ApprenticeWeightAllowed;
-		result = prime * result + BRISSpeedRating;
-		result = prime * result + ((BRISTrackCode == null) ? 0 : BRISTrackCode.hashCode());
-		result = prime * result + ((BarShoeFlag == null) ? 0 : BarShoeFlag.hashCode());
-		result = prime * result + ((ChuteIndicator == null) ? 0 : ChuteIndicator.hashCode());
-		result = prime * result + ((ClaimedCode == null) ? 0 : ClaimedCode.hashCode());
-		result = prime * result + ClaimingPrice;
-		result = prime * result + Float.floatToIntBits(ClassRating);
-		result = prime * result + ((CompanyLineCodes == null) ? 0 : CompanyLineCodes.hashCode());
-		result = prime * result + ((CompleteRaceCondition == null) ? 0 : CompleteRaceCondition.hashCode());
-		result = prime * result + DaysSinceLastRace;
-		result = prime * result + Distance;
-		result = prime * result + ((EntryFlag == null) ? 0 : EntryFlag.hashCode());
-		result = prime * result + ((Equipment == null) ? 0 : Equipment.hashCode());
-		result = prime * result + ((ExtendedStartComment == null) ? 0 : ExtendedStartComment.hashCode());
-		result = prime * result + ((ExtraCommentLine == null) ? 0 : ExtraCommentLine.hashCode());
-		result = prime * result + FavoriteFlag;
-		result = prime * result + Float.floatToIntBits(FinalTime);
-		result = prime * result + Float.floatToIntBits(FinishBeatenLengthsLeader);
-		result = prime * result + Float.floatToIntBits(FinishBeatenLengthsOnly);
-		result = prime * result + ((FinishPosition == null) ? 0 : FinishPosition.hashCode());
-		result = prime * result + Float.floatToIntBits(FirstCallBeatenLengthsLeader);
-		result = prime * result + Float.floatToIntBits(FirstCallBeatenLengthsOnly);
-		result = prime * result + ((FirstCallPosition == null) ? 0 : FirstCallPosition.hashCode());
-		result = prime * result + Float.floatToIntBits(Fraction1);
-		result = prime * result + Float.floatToIntBits(Fraction10F);
-		result = prime * result + Float.floatToIntBits(Fraction12F);
-		result = prime * result + Float.floatToIntBits(Fraction14F);
-		result = prime * result + Float.floatToIntBits(Fraction16F);
-		result = prime * result + Float.floatToIntBits(Fraction2);
-		result = prime * result + Float.floatToIntBits(Fraction2F);
-		result = prime * result + Float.floatToIntBits(Fraction3);
-		result = prime * result + Float.floatToIntBits(Fraction3F);
-		result = prime * result + Float.floatToIntBits(Fraction4F);
-		result = prime * result + Float.floatToIntBits(Fraction5F);
-		result = prime * result + Float.floatToIntBits(Fraction6F);
-		result = prime * result + Float.floatToIntBits(Fraction7F);
-		result = prime * result + Float.floatToIntBits(Fraction8F);
-		result = prime * result + FrontBandagesFlag;
-		result = prime * result + ((GateCallPosition == null) ? 0 : GateCallPosition.hashCode());
-		result = prime * result + HighClaimingPriceOfRace;
-		result = prime * result + ((Jockey == null) ? 0 : Jockey.hashCode());
-		result = prime * result + Float.floatToIntBits(Last5AverageSpeed);
-		result = prime * result + LowClaimingPriceOfRace;
-		result = prime * result + ((Medication == null) ? 0 : Medication.hashCode());
-		result = prime * result + ((MoneyPosition == null) ? 0 : MoneyPosition.hashCode());
-		result = prime * result + NumberOfEntrants;
-		result = prime * result + Float.floatToIntBits(Odds);
-		result = prime * result + ((OffTheTurfFlag == null) ? 0 : OffTheTurfFlag.hashCode());
-		result = prime * result + PaceFigure10F;
-		result = prime * result + PaceFigure2F;
-		result = prime * result + PaceFigure4F;
-		result = prime * result + PaceFigure6F;
-		result = prime * result + PaceFigure8F;
-		result = prime * result + PaceFigureLate;
-		result = prime * result + Float.floatToIntBits(PlaceMargin);
-		result = prime * result + ((PlaceName == null) ? 0 : PlaceName.hashCode());
-		result = prime * result + PlaceWeight;
-		result = prime * result + PostPosition;
-		result = prime * result + Purse;
-		result = prime * result + ((RaceClassification == null) ? 0 : RaceClassification.hashCode());
 		result = prime * result + ((RaceDate == null) ? 0 : RaceDate.hashCode());
 		result = prime * result + RaceNumber;
-		result = prime * result + Float.floatToIntBits(RaceRating);
-		result = prime * result + Float.floatToIntBits(RaceShapeFirstCall);
-		result = prime * result + Float.floatToIntBits(RaceShapeSecondCall);
-		result = prime * result + Float.floatToIntBits(RaceStrength);
-		result = prime * result + ((RaceType == null) ? 0 : RaceType.hashCode());
-		result = prime * result + ((RestrictedQualifierFlag == null) ? 0 : RestrictedQualifierFlag.hashCode());
-		result = prime * result + ((SealedTrackFlag == null) ? 0 : SealedTrackFlag.hashCode());
-		result = prime * result + Float.floatToIntBits(SecondCallBeatenLengthsLeader);
-		result = prime * result + Float.floatToIntBits(SecondCallBeatenLengthsOnly);
-		result = prime * result + ((SecondCallPosition == null) ? 0 : SecondCallPosition.hashCode());
-		result = prime * result + ((SexRestriction == null) ? 0 : SexRestriction.hashCode());
-		result = prime * result + Float.floatToIntBits(ShowMargin);
-		result = prime * result + ((ShowName == null) ? 0 : ShowName.hashCode());
-		result = prime * result + ShowWeight;
-		result = prime * result + SpeedPar;
-		result = prime * result + SpeedRating;
-		result = prime * result + ((StartCallPosition == null) ? 0 : StartCallPosition.hashCode());
-		result = prime * result + ((StatebredFlag == null) ? 0 : StatebredFlag.hashCode());
-		result = prime * result + Float.floatToIntBits(StretchBeatenLengthsLeader);
-		result = prime * result + Float.floatToIntBits(StretchBeatenLengthsOnly);
-		result = prime * result + ((StretchPosition == null) ? 0 : StretchPosition.hashCode());
-		result = prime * result + ((Surface == null) ? 0 : Surface.hashCode());
 		result = prime * result + ((TrackCode == null) ? 0 : TrackCode.hashCode());
-		result = prime * result + ((TrackCondition == null) ? 0 : TrackCondition.hashCode());
-		result = prime * result + TrackVariant;
-		result = prime * result + ((Trainer == null) ? 0 : Trainer.hashCode());
-		result = prime * result + ((TripComment == null) ? 0 : TripComment.hashCode());
-		result = prime * result + ((WagerTypes == null) ? 0 : WagerTypes.hashCode());
-		result = prime * result + Weight;
-		result = prime * result + Float.floatToIntBits(WinnersMargin);
-		result = prime * result + ((WinnersName == null) ? 0 : WinnersName.hashCode());
-		result = prime * result + WinnersWeight;
-		result = prime * result + ((ignore == null) ? 0 : ignore.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + thisRaceNumber;
 		return result;
 	}
 	@Override
@@ -1935,192 +1838,6 @@ public class PastPerformance implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		PastPerformance other = (PastPerformance) obj;
-		if (AgeRestriction != other.AgeRestriction)
-			return false;
-		if (AgeRestrictionRange != other.AgeRestrictionRange)
-			return false;
-		if (AllWeatherSurfaceFlag == null) {
-			if (other.AllWeatherSurfaceFlag != null)
-				return false;
-		} else if (!AllWeatherSurfaceFlag.equals(other.AllWeatherSurfaceFlag))
-			return false;
-		if (ApprenticeWeightAllowed != other.ApprenticeWeightAllowed)
-			return false;
-		if (BRISSpeedRating != other.BRISSpeedRating)
-			return false;
-		if (BRISTrackCode == null) {
-			if (other.BRISTrackCode != null)
-				return false;
-		} else if (!BRISTrackCode.equals(other.BRISTrackCode))
-			return false;
-		if (BarShoeFlag == null) {
-			if (other.BarShoeFlag != null)
-				return false;
-		} else if (!BarShoeFlag.equals(other.BarShoeFlag))
-			return false;
-		if (ChuteIndicator == null) {
-			if (other.ChuteIndicator != null)
-				return false;
-		} else if (!ChuteIndicator.equals(other.ChuteIndicator))
-			return false;
-		if (ClaimedCode == null) {
-			if (other.ClaimedCode != null)
-				return false;
-		} else if (!ClaimedCode.equals(other.ClaimedCode))
-			return false;
-		if (ClaimingPrice != other.ClaimingPrice)
-			return false;
-		if (Float.floatToIntBits(ClassRating) != Float.floatToIntBits(other.ClassRating))
-			return false;
-		if (CompanyLineCodes == null) {
-			if (other.CompanyLineCodes != null)
-				return false;
-		} else if (!CompanyLineCodes.equals(other.CompanyLineCodes))
-			return false;
-		if (CompleteRaceCondition == null) {
-			if (other.CompleteRaceCondition != null)
-				return false;
-		} else if (!CompleteRaceCondition.equals(other.CompleteRaceCondition))
-			return false;
-		if (DaysSinceLastRace != other.DaysSinceLastRace)
-			return false;
-		if (Distance != other.Distance)
-			return false;
-		if (EntryFlag == null) {
-			if (other.EntryFlag != null)
-				return false;
-		} else if (!EntryFlag.equals(other.EntryFlag))
-			return false;
-		if (Equipment == null) {
-			if (other.Equipment != null)
-				return false;
-		} else if (!Equipment.equals(other.Equipment))
-			return false;
-		if (ExtendedStartComment == null) {
-			if (other.ExtendedStartComment != null)
-				return false;
-		} else if (!ExtendedStartComment.equals(other.ExtendedStartComment))
-			return false;
-		if (ExtraCommentLine == null) {
-			if (other.ExtraCommentLine != null)
-				return false;
-		} else if (!ExtraCommentLine.equals(other.ExtraCommentLine))
-			return false;
-		if (FavoriteFlag != other.FavoriteFlag)
-			return false;
-		if (Float.floatToIntBits(FinalTime) != Float.floatToIntBits(other.FinalTime))
-			return false;
-		if (Float.floatToIntBits(FinishBeatenLengthsLeader) != Float.floatToIntBits(other.FinishBeatenLengthsLeader))
-			return false;
-		if (Float.floatToIntBits(FinishBeatenLengthsOnly) != Float.floatToIntBits(other.FinishBeatenLengthsOnly))
-			return false;
-		if (FinishPosition == null) {
-			if (other.FinishPosition != null)
-				return false;
-		} else if (!FinishPosition.equals(other.FinishPosition))
-			return false;
-		if (Float.floatToIntBits(FirstCallBeatenLengthsLeader) != Float
-				.floatToIntBits(other.FirstCallBeatenLengthsLeader))
-			return false;
-		if (Float.floatToIntBits(FirstCallBeatenLengthsOnly) != Float.floatToIntBits(other.FirstCallBeatenLengthsOnly))
-			return false;
-		if (FirstCallPosition == null) {
-			if (other.FirstCallPosition != null)
-				return false;
-		} else if (!FirstCallPosition.equals(other.FirstCallPosition))
-			return false;
-		if (Float.floatToIntBits(Fraction1) != Float.floatToIntBits(other.Fraction1))
-			return false;
-		if (Float.floatToIntBits(Fraction10F) != Float.floatToIntBits(other.Fraction10F))
-			return false;
-		if (Float.floatToIntBits(Fraction12F) != Float.floatToIntBits(other.Fraction12F))
-			return false;
-		if (Float.floatToIntBits(Fraction14F) != Float.floatToIntBits(other.Fraction14F))
-			return false;
-		if (Float.floatToIntBits(Fraction16F) != Float.floatToIntBits(other.Fraction16F))
-			return false;
-		if (Float.floatToIntBits(Fraction2) != Float.floatToIntBits(other.Fraction2))
-			return false;
-		if (Float.floatToIntBits(Fraction2F) != Float.floatToIntBits(other.Fraction2F))
-			return false;
-		if (Float.floatToIntBits(Fraction3) != Float.floatToIntBits(other.Fraction3))
-			return false;
-		if (Float.floatToIntBits(Fraction3F) != Float.floatToIntBits(other.Fraction3F))
-			return false;
-		if (Float.floatToIntBits(Fraction4F) != Float.floatToIntBits(other.Fraction4F))
-			return false;
-		if (Float.floatToIntBits(Fraction5F) != Float.floatToIntBits(other.Fraction5F))
-			return false;
-		if (Float.floatToIntBits(Fraction6F) != Float.floatToIntBits(other.Fraction6F))
-			return false;
-		if (Float.floatToIntBits(Fraction7F) != Float.floatToIntBits(other.Fraction7F))
-			return false;
-		if (Float.floatToIntBits(Fraction8F) != Float.floatToIntBits(other.Fraction8F))
-			return false;
-		if (FrontBandagesFlag != other.FrontBandagesFlag)
-			return false;
-		if (GateCallPosition == null) {
-			if (other.GateCallPosition != null)
-				return false;
-		} else if (!GateCallPosition.equals(other.GateCallPosition))
-			return false;
-		if (HighClaimingPriceOfRace != other.HighClaimingPriceOfRace)
-			return false;
-		if (Jockey == null) {
-			if (other.Jockey != null)
-				return false;
-		} else if (!Jockey.equals(other.Jockey))
-			return false;
-		if (Float.floatToIntBits(Last5AverageSpeed) != Float.floatToIntBits(other.Last5AverageSpeed))
-			return false;
-		if (LowClaimingPriceOfRace != other.LowClaimingPriceOfRace)
-			return false;
-		if (Medication != other.Medication)
-			return false;
-		if (MoneyPosition == null) {
-			if (other.MoneyPosition != null)
-				return false;
-		} else if (!MoneyPosition.equals(other.MoneyPosition))
-			return false;
-		if (NumberOfEntrants != other.NumberOfEntrants)
-			return false;
-		if (Float.floatToIntBits(Odds) != Float.floatToIntBits(other.Odds))
-			return false;
-		if (OffTheTurfFlag == null) {
-			if (other.OffTheTurfFlag != null)
-				return false;
-		} else if (!OffTheTurfFlag.equals(other.OffTheTurfFlag))
-			return false;
-		if (PaceFigure10F != other.PaceFigure10F)
-			return false;
-		if (PaceFigure2F != other.PaceFigure2F)
-			return false;
-		if (PaceFigure4F != other.PaceFigure4F)
-			return false;
-		if (PaceFigure6F != other.PaceFigure6F)
-			return false;
-		if (PaceFigure8F != other.PaceFigure8F)
-			return false;
-		if (PaceFigureLate != other.PaceFigureLate)
-			return false;
-		if (Float.floatToIntBits(PlaceMargin) != Float.floatToIntBits(other.PlaceMargin))
-			return false;
-		if (PlaceName == null) {
-			if (other.PlaceName != null)
-				return false;
-		} else if (!PlaceName.equals(other.PlaceName))
-			return false;
-		if (PlaceWeight != other.PlaceWeight)
-			return false;
-		if (PostPosition != other.PostPosition)
-			return false;
-		if (Purse != other.Purse)
-			return false;
-		if (RaceClassification == null) {
-			if (other.RaceClassification != null)
-				return false;
-		} else if (!RaceClassification.equals(other.RaceClassification))
-			return false;
 		if (RaceDate == null) {
 			if (other.RaceDate != null)
 				return false;
@@ -2128,122 +1845,15 @@ public class PastPerformance implements Serializable {
 			return false;
 		if (RaceNumber != other.RaceNumber)
 			return false;
-		if (Float.floatToIntBits(RaceRating) != Float.floatToIntBits(other.RaceRating))
-			return false;
-		if (Float.floatToIntBits(RaceShapeFirstCall) != Float.floatToIntBits(other.RaceShapeFirstCall))
-			return false;
-		if (Float.floatToIntBits(RaceShapeSecondCall) != Float.floatToIntBits(other.RaceShapeSecondCall))
-			return false;
-		if (Float.floatToIntBits(RaceStrength) != Float.floatToIntBits(other.RaceStrength))
-			return false;
-		if (RaceType != other.RaceType)
-			return false;
-		if (RestrictedQualifierFlag == null) {
-			if (other.RestrictedQualifierFlag != null)
-				return false;
-		} else if (!RestrictedQualifierFlag.equals(other.RestrictedQualifierFlag))
-			return false;
-		if (SealedTrackFlag == null) {
-			if (other.SealedTrackFlag != null)
-				return false;
-		} else if (!SealedTrackFlag.equals(other.SealedTrackFlag))
-			return false;
-		if (Float.floatToIntBits(SecondCallBeatenLengthsLeader) != Float
-				.floatToIntBits(other.SecondCallBeatenLengthsLeader))
-			return false;
-		if (Float.floatToIntBits(SecondCallBeatenLengthsOnly) != Float
-				.floatToIntBits(other.SecondCallBeatenLengthsOnly))
-			return false;
-		if (SecondCallPosition == null) {
-			if (other.SecondCallPosition != null)
-				return false;
-		} else if (!SecondCallPosition.equals(other.SecondCallPosition))
-			return false;
-		if (SexRestriction != other.SexRestriction)
-			return false;
-		if (Float.floatToIntBits(ShowMargin) != Float.floatToIntBits(other.ShowMargin))
-			return false;
-		if (ShowName == null) {
-			if (other.ShowName != null)
-				return false;
-		} else if (!ShowName.equals(other.ShowName))
-			return false;
-		if (ShowWeight != other.ShowWeight)
-			return false;
-		if (SpeedPar != other.SpeedPar)
-			return false;
-		if (SpeedRating != other.SpeedRating)
-			return false;
-		if (StartCallPosition == null) {
-			if (other.StartCallPosition != null)
-				return false;
-		} else if (!StartCallPosition.equals(other.StartCallPosition))
-			return false;
-		if (StatebredFlag == null) {
-			if (other.StatebredFlag != null)
-				return false;
-		} else if (!StatebredFlag.equals(other.StatebredFlag))
-			return false;
-		if (Float.floatToIntBits(StretchBeatenLengthsLeader) != Float.floatToIntBits(other.StretchBeatenLengthsLeader))
-			return false;
-		if (Float.floatToIntBits(StretchBeatenLengthsOnly) != Float.floatToIntBits(other.StretchBeatenLengthsOnly))
-			return false;
-		if (StretchPosition == null) {
-			if (other.StretchPosition != null)
-				return false;
-		} else if (!StretchPosition.equals(other.StretchPosition))
-			return false;
-		if (Surface != other.Surface)
-			return false;
 		if (TrackCode == null) {
 			if (other.TrackCode != null)
 				return false;
 		} else if (!TrackCode.equals(other.TrackCode))
 			return false;
-		if (TrackCondition == null) {
-			if (other.TrackCondition != null)
-				return false;
-		} else if (!TrackCondition.equals(other.TrackCondition))
-			return false;
-		if (TrackVariant != other.TrackVariant)
-			return false;
-		if (Trainer == null) {
-			if (other.Trainer != null)
-				return false;
-		} else if (!Trainer.equals(other.Trainer))
-			return false;
-		if (TripComment == null) {
-			if (other.TripComment != null)
-				return false;
-		} else if (!TripComment.equals(other.TripComment))
-			return false;
-		if (WagerTypes == null) {
-			if (other.WagerTypes != null)
-				return false;
-		} else if (!WagerTypes.equals(other.WagerTypes))
-			return false;
-		if (Weight != other.Weight)
-			return false;
-		if (Float.floatToIntBits(WinnersMargin) != Float.floatToIntBits(other.WinnersMargin))
-			return false;
-		if (WinnersName == null) {
-			if (other.WinnersName != null)
-				return false;
-		} else if (!WinnersName.equals(other.WinnersName))
-			return false;
-		if (WinnersWeight != other.WinnersWeight)
-			return false;
-		if (ignore == null) {
-			if (other.ignore != null)
-				return false;
-		} else if (!ignore.equals(other.ignore))
-			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
-			return false;
-		if (thisRaceNumber != other.thisRaceNumber)
 			return false;
 		return true;
 	}
@@ -2304,6 +1914,10 @@ public class PastPerformance implements Serializable {
 				.append(", ExtendedStartComment=").append(ExtendedStartComment).append(", SealedTrackFlag=")
 				.append(SealedTrackFlag).append(", AllWeatherSurfaceFlag=").append(AllWeatherSurfaceFlag).append("]");
 		return builder2.toString();
+	}
+	@Override
+	public int compareTo(PastPerformance o) {
+		return RaceDate.compareTo(o.getRaceDate());
 	}
 	public PastPerformance() {
 		super();

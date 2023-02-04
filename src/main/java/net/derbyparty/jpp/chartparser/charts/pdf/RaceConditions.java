@@ -32,17 +32,20 @@ public class RaceConditions {
     @JsonProperty("raceTypeNameBlackTypeBreed") // required for property order but unwrapped
     @JsonUnwrapped
     private RaceTypeNameBlackTypeBreed raceTypeNameBlackTypeBreed;
+    private final String raceClassification;
 
     public RaceConditions(String text,
-            ClaimingPriceRange claimingPriceRange) {
+            ClaimingPriceRange claimingPriceRange,
+            String raceClassification) {
         this.text = text;
         this.claimingPriceRange = claimingPriceRange;
+        this.raceClassification = raceClassification;
     }
 
     @JsonCreator
-    private RaceConditions(String text, ClaimingPriceRange claimingPriceRange,
+    private RaceConditions(String text, ClaimingPriceRange claimingPriceRange, String raceClassification,
             RaceTypeNameBlackTypeBreed raceTypeNameBlackTypeBreed) {
-        this(text, claimingPriceRange);
+        this(text, claimingPriceRange, raceClassification);
         this.raceTypeNameBlackTypeBreed = raceTypeNameBlackTypeBreed;
     }
 
@@ -71,8 +74,9 @@ public class RaceConditions {
         }
         String raceConditions = raceConditionsBuilder.toString();
         ClaimingPriceRange claimingPriceRange = ClaimingPriceRange.parse(raceConditions);
+        String raceClassification = parseRaceClassification(raceConditions);
 
-        return new RaceConditions(raceConditions, claimingPriceRange);
+        return new RaceConditions(raceConditions, claimingPriceRange, raceClassification);
     }
 
     public String getText() {
@@ -90,6 +94,23 @@ public class RaceConditions {
     public void setRaceTypeNameBlackTypeBreed(RaceTypeNameBlackTypeBreed
             raceTypeNameBlackTypeBreed) {
         this.raceTypeNameBlackTypeBreed = raceTypeNameBlackTypeBreed;
+    }
+    
+    public String getRaceClassification() {
+		return raceClassification;
+	}
+
+	public static String parseRaceClassification(String raceConditions) {
+        
+    	Pattern RACE_CLASSIFICATION_PATTERN =
+                Pattern.compile("(\\(([A-Z0-9 $]+)\\))");
+        
+        Matcher classMatcher = RACE_CLASSIFICATION_PATTERN.matcher(raceConditions);
+
+        if (classMatcher.find()) {
+        	return classMatcher.group(2);
+        } 
+    	return null;
     }
 
     /**
@@ -113,6 +134,7 @@ public class RaceConditions {
         static ClaimingPriceRange parse(String raceConditions) throws ChartParserException {
             Integer maxClaim = null, minClaim = null;
             Matcher matcher = CLAIMING_PRICE_PATTERN.matcher(raceConditions);
+
             if (matcher.find()) {
                 String maxClaimAmount = matcher.group(1);
                 if (maxClaimAmount != null) {
@@ -187,34 +209,56 @@ public class RaceConditions {
                     '}';
         }
     }
+    
+    @Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RaceConditions other = (RaceConditions) obj;
+		if (claimingPriceRange == null) {
+			if (other.claimingPriceRange != null)
+				return false;
+		} else if (!claimingPriceRange.equals(other.claimingPriceRange))
+			return false;
+		if (raceClassification == null) {
+			if (other.raceClassification != null)
+				return false;
+		} else if (!raceClassification.equals(other.raceClassification))
+			return false;
+		if (raceTypeNameBlackTypeBreed == null) {
+			if (other.raceTypeNameBlackTypeBreed != null)
+				return false;
+		} else if (!raceTypeNameBlackTypeBreed.equals(other.raceTypeNameBlackTypeBreed))
+			return false;
+		if (text == null) {
+			if (other.text != null)
+				return false;
+		} else if (!text.equals(other.text))
+			return false;
+		return true;
+	}
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RaceConditions that = (RaceConditions) o;
-
-        if (text != null ? !text.equals(that.text) : that
-                .text != null)
-            return false;
-        return claimingPriceRange != null ? claimingPriceRange.equals(that.claimingPriceRange) :
-                that
-                        .claimingPriceRange == null;
-    }
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((claimingPriceRange == null) ? 0 : claimingPriceRange.hashCode());
+		result = prime * result + ((raceClassification == null) ? 0 : raceClassification.hashCode());
+		result = prime * result + ((raceTypeNameBlackTypeBreed == null) ? 0 : raceTypeNameBlackTypeBreed.hashCode());
+		result = prime * result + ((text == null) ? 0 : text.hashCode());
+		return result;
+	}
 
     @Override
-    public int hashCode() {
-        int result = text != null ? text.hashCode() : 0;
-        result = 31 * result + (claimingPriceRange != null ? claimingPriceRange.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "RaceConditions{" +
-                "text='" + text + '\'' +
-                ", claimingPriceRange=" + claimingPriceRange +
-                '}';
-    }
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("RaceConditions [text=").append(text).append(", claimingPriceRange=").append(claimingPriceRange)
+				.append(", raceTypeNameBlackTypeBreed=").append(raceTypeNameBlackTypeBreed)
+				.append(", raceClassification=").append(raceClassification).append("]");
+		return builder.toString();
+	}
 }

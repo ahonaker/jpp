@@ -73,6 +73,18 @@ table#pps .flip-list-move {
 	font-weight: bolder;
 }
 
+.winnerNextOut {
+	color: green;
+	font-weight: bolder;
+	border: 1px solid green;
+	border-radius: 15px;
+	padding-left: 3px;
+}
+
+.placeNextOut { 
+	text-decoration: underline;
+}
+
 .sup { 
 	font-size: .50em;
 	vertical-align: super;
