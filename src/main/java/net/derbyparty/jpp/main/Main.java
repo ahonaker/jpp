@@ -18,15 +18,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
-
 import net.derbyparty.jpp.chart.ProcessChart;
 import net.derbyparty.jpp.factors.Angles;
 import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.factors.Ratings;
 import net.derbyparty.jpp.loader.Loader;
+import net.derbyparty.jpp.object.Angle;
 import net.derbyparty.jpp.object.Horse;
 import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.MultiRaceWager;
@@ -35,7 +32,6 @@ import net.derbyparty.jpp.object.PotentialKeyRace;
 import net.derbyparty.jpp.object.Race;
 import net.derbyparty.jpp.object.RaceDate;
 import net.derbyparty.jpp.object.RaceNote;
-import net.derbyparty.jpp.object.RaceTime;
 import net.derbyparty.jpp.object.Track;
 import net.derbyparty.jpp.pastperformanceparser.PastPerformanceParser;
 
@@ -53,7 +49,6 @@ public class Main {
 	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	final static String tracksFile = "/Users/ahonaker/Google Drive/pp/jpp/tracks.json";
 	final static String raceDatesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceDates.json";
-	final static String raceTimesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceTimes.csv";
 
 	public static void updateOptions(String dOption, String sOption, String cOption) throws Exception {
 		distanceOption = dOption;
@@ -425,9 +420,16 @@ public class Main {
 				race.setHandicappingNotes(Factors.GenerateHandicappingNotes(race));
 				
 				for (Horse horse : race.getUnscratchedHorses()) {
-					horse.setAngles(Angles.generateAngles(race, horse));
+					List<Angle> angles = horse.getAngles();
+					List<Angle> newAngles = new ArrayList<Angle>();
+					for (Angle angle : angles) {
+						if (!angle.getText().equals("Generated")) newAngles.add(angle);
+					}
+					for (Angle angle : Angles.generateAngles(race, horse)) {
+						newAngles.add(angle);
+					}
+					horse.setAngles(angles);
 				}
-
 			}
 			
 			setARatingFairValue();
@@ -1130,118 +1132,6 @@ public class Main {
 		} catch (Exception e) {
 			throw e;
 		}
-	}
-	
-	public static List<RaceTime> generateRaceTimes() throws Exception {
-		
-		try {
-    		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
-			List<RaceTime> raceTimes = new ArrayList<RaceTime>();
-			
-			Files.list(new File(saveDir).toPath())
-            .forEach(path -> {
-            	if (path.toString().contains(".json")) {
-            		Matcher matcher =  pattern.matcher(path.toString());
-            		if (matcher.find()) {  
-            			try {
-            				List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + matcher.group(1) + LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))).format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
-            				for (Race race : card) {
-            					for (Horse horse : race.getHorses()) {
-            						for (PastPerformance pp : horse.getPastPerformances()) {
-            							RaceTime raceTime = RaceTime.builder()
-            								.withTrack(pp.getTrackCode())
-            								.withRaceDate(pp.getRaceDate())
-            								.withRaceNumber(pp.getRaceNumber())
-            								.withRaceType(pp.getRaceType())
-            								.withRaceClassification(pp.getRaceClassification())
-            								.withDistance(pp.getDistance())
-            								.withSurface(pp.getSurface())
-            								.withAllWeatherFlag(pp.getAllWeatherSurfaceFlag())
-            								.withTrackCondition(pp.getTrackCondition())
-            								.withFraction1(pp.getFraction1())
-            								.withFraction2(pp.getFraction2())
-            								.withFraction3(pp.getFraction3())
-            								.withFinalTime(pp.getFinalTime())
-            								.withSpeedPar(pp.getSpeedPar())
-            								.withRaceShapeFirstCall(pp.getRaceShapeFirstCall())
-            								.withRaceShapeSecondCall(pp.getRaceShapeSecondCall())
-            								.build();
-            							if (!raceTimes.contains(raceTime)) raceTimes.add(raceTime);
-            						}
-            					}
-            				}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-            			
-            		}
-            	}
-            });
-			
-			Files.list(new File(saveDir).toPath())
-            .forEach(path -> {
-            	if (path.toString().contains(".json")) {
-            		Matcher matcher =  pattern.matcher(path.toString());
-            		if (matcher.find()) {  
-            			try {
-            				List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + matcher.group(1) + LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))).format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
-            				for (Race race : card) {
-            					for (Horse horse : race.getHorses()) {
-            						for (PastPerformance pp : horse.getPastPerformances()) {
-            							if (pp.getFinishBeatenLengthsOnly() == 0) {
-            								for (RaceTime raceTime : raceTimes) {
-            									if (raceTime.getTrack().equals(race.getTrack())
-            										&& raceTime.getRaceDate().equals(race.getDate())
-            										&& raceTime.getRaceNumber() == race.getRaceNumber()) {
-            										raceTime.setWinnerPar(pp.getBRISSpeedRating());
-            										raceTime.setPaceFigure2F(pp.getPaceFigure2F());
-            										raceTime.setPaceFigure4F(pp.getPaceFigure4F());
-            										raceTime.setPaceFigure6F(pp.getPaceFigure6F());
-            										raceTime.setPaceFigure8F(pp.getPaceFigure8F());
-            										raceTime.setPaceFigure10F(pp.getPaceFigure10F());
-            										raceTime.setPaceFigureLate(pp.getPaceFigureLate());
-            										break;
-            									}
-            								}
-            							}
-            						}
-            					}
-            				}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-            			
-            		}
-            	}
-            });
-			
-			return raceTimes;
-			//mapper.writeValue(Paths.get(raceTimesFile).toFile(), raceTimes);
-			
-		} catch (Exception e) {
-			throw e;
-		}	
-		
-	}
-	
-	public static void generateRaceTimesCSV() throws Exception {
-		
-		try {
-			JsonNode node = mapper.valueToTree(generateRaceTimes());
-			
-			Builder csvSchemaBuilder = CsvSchema.builder();
-			JsonNode firstObject = node.elements().next();
-			firstObject.fieldNames().forEachRemaining(fieldName -> {csvSchemaBuilder.addColumn(fieldName);} );
-			CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
-			
-			CsvMapper csvMapper = new CsvMapper();
-			csvMapper.writerFor(JsonNode.class)
-			  .with(csvSchema)
-			  .writeValue(new File(raceTimesFile), node);
-			
-		} catch (Exception e) {
-			throw e;
-		}	
 	}
 	
 	public static void retrieveCalculateAndSaveAll() throws Exception {

@@ -18,6 +18,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import net.derbyparty.jpp.chart.ProcessChart;
+import net.derbyparty.jpp.main.Analytics;
 import net.derbyparty.jpp.main.Main;
 import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.Track;
@@ -802,7 +803,7 @@ public class Remote {
 	  
 	  try {
 		    
-		    Main.generateRaceTimesCSV();;
+		    Analytics.generateRaceTimesCSV();;
 	  
 		} catch (Exception e) {
 			e.printStackTrace();

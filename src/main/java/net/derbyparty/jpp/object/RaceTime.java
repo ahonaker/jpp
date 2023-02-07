@@ -2,11 +2,7 @@ package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-
 import javax.annotation.Generated;
 
 public class RaceTime implements Serializable {

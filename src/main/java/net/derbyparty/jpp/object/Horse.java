@@ -195,7 +195,7 @@ public class Horse implements Serializable {
 	private String flag;
 	private String comment;
 	
-	private List<Angle> angles;
+	private List<Angle> angles = new ArrayList<Angle>();
 
 	@Generated("SparkTools")
 	private Horse(Builder builder) {

@@ -213,10 +213,15 @@ public class PastPerformanceParser {
 					while (angleLineMatcher.find()) {
 						List<Angle> angles = horse.getAngles();
 						if (angles == null) angles = new ArrayList<Angle>();
+						List<Angle> newAngles = new ArrayList<Angle>();
+						for (Angle angle : angles) {
+							if (!angle.getText().equals("Augmented")) newAngles.add(angle);
+						}						
 						angles.add(
 							Angle.builder()
 							.withType(angleLineMatcher.group(1).charAt(0) == '×' ? "-" : "+")
 							.withText(angleLineMatcher.group(2))
+							.withSource("Augmented")
 							.build() 
 						);
 						horse.setAngles(angles);

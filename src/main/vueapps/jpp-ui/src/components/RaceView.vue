@@ -527,7 +527,11 @@
                         </b-row>                                               
                         <b-row v-for="(angle,ndx) in row.item.angles" :key="ndx">
                             <b-col>
-                                <span :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">{{angle.text}}</span>
+                                <span :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">
+                                    <b-icon-file-pdf v-if="angle.source == 'Augmented'"></b-icon-file-pdf>
+                                    <b-icon-lightbulb v-if="angle.source == 'Generated'"></b-icon-lightbulb>
+                                    {{angle.text}}
+                                </span>
                             </b-col>
                         </b-row>
                     </b-col>
@@ -561,7 +565,7 @@
 </template>
 
 <script>
-import { BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill } from 'bootstrap-vue'
+import { BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill, BIconFilePdf, BIconLightbulb } from 'bootstrap-vue'
 import PastPerformanceView from '@/components/PastPerformanceView'
 import WorkoutView from '@/components/WorkoutView'
 import HorseExtraView from '@/components/HorseExtraView'
@@ -572,7 +576,7 @@ import _ from 'underscore'
 export default {
     name: 'RaceView',
     components: {
-		PastPerformanceView, WorkoutView, HorseExtraView, BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill
+		PastPerformanceView, WorkoutView, HorseExtraView, BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill, BIconFilePdf, BIconLightbulb 
     },
     props : ['race', 'hideML', 'charts'],
     data () {
