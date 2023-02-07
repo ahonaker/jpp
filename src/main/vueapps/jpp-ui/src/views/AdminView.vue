@@ -232,8 +232,7 @@ export default {
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);
 		},		
-		raceDatesClass(ymd) {	
-			
+		raceDatesClass(ymd) {
 			if (this.reviewedDates.indexOf(ymd) > -1) return 'table-success';
 			if (this.chartDates.indexOf(ymd) > -1) return 'table-danger';
 			if (this.raceDates.indexOf(ymd) > -1) return 'table-info';
@@ -256,11 +255,14 @@ export default {
 					});
 				}
 			} else {
+				console.log("removing");
 				for (i = 0; i < this.tracks.length; i++) {
 					if (this.tracks[i].code == this.track) {
+						console.log(this.tracks[i].raceDates.length);
 						this.tracks[i].raceDates = _.reject(this.tracks[i].raceDates, function(d){
 							return (d.raceDate[0] == day[0] && d.raceDate[1] == day[1] && d.raceDate[2] == day[2]);
 						})
+						console.log(this.tracks[i].raceDates.length);
 					}
 				}
 			}

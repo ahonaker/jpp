@@ -1,0 +1,1319 @@
+package net.derbyparty.jpp.factors;
+
+import java.lang.reflect.Method;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import net.derbyparty.jpp.object.AgeRestrictionRangeType;
+import net.derbyparty.jpp.object.AgeRestrictionType;
+import net.derbyparty.jpp.object.Angle;
+import net.derbyparty.jpp.object.Horse;
+import net.derbyparty.jpp.object.PastPerformance;
+import net.derbyparty.jpp.object.Race;
+import net.derbyparty.jpp.object.RaceType;
+import net.derbyparty.jpp.object.Stat;
+import net.derbyparty.jpp.object.Workout;
+
+public class Angles {
+
+	static List<Angle> angles = new ArrayList<Angle>();
+	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+	
+	final static String anglesFile = "/Users/ahonaker/Google Drive/pp/jpp/angles.json";
+	
+    public Angles() {
+
+    }
+    
+	public static Boolean isSharp (Workout workout) throws Exception {
+		try {
+			return (workout.getFurlongs() >= 4 && workout.getFurlongs() <= 4 &&  Math.abs(workout.getTimeOfWorkout())/workout.getFurlongs() < 12) 
+				|| (workout.getFurlongs() == 6 && Math.abs(workout.getTimeOfWorkout()) < 73)
+				|| (workout.getFurlongs() == 8 && Math.abs(workout.getTimeOfWorkout()) < 87);			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}	
+	}
+	
+	public static int SharpWorkouts(List<Workout> workouts, Race race) throws Exception {
+		return SharpWorkouts(workouts, race, 90);
+	}
+	
+	public static int SharpWorkouts(List<Workout> workouts, Race race, int days) throws Exception {
+		int count = 0;
+		try {
+			for (Workout workout : workouts) {
+				if (workout.getDateOfWorkout().plusDays(days).isAfter(race.getDate())) {
+					if (isSharp(workout)) count++;
+				}
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}	
+		return count;
+	}
+	
+	public static Boolean GoodRace(PastPerformance pp) {
+		return (pp.getFinishPosition().equals("1") || pp.getFinishPosition().equals("2") || pp.getFinishPosition().equals("3")
+				|| (pp.getFurlongs() < 8 && pp.getFinishBeatenLengthsOnly() <= 2) 
+				|| (pp.getFurlongs() >= 8 && pp.getFinishBeatenLengthsOnly() <= 3));
+	}
+	
+	public static Boolean OKRace(PastPerformance pp) {
+		return (pp.getFinishPosition().equals("1") || pp.getFinishPosition().equals("2") || pp.getFinishPosition().equals("3")
+				|| (pp.getFurlongs() < 8 && pp.getFinishBeatenLengthsOnly() <= 9) 
+				|| (pp.getFurlongs() >= 8 && pp.getFinishBeatenLengthsOnly() <= 8));
+	}
+	
+	public static Boolean isPaired(int Speed1, int Speed2) {
+		return (Speed1 > 60 && Speed2 > 60 && Math.abs(Speed2 - Speed1) < 3);
+	}
+	
+	public static Boolean fastTurfFinish(PastPerformance pp) {
+		
+		float finish = 0;
+		float target = 0;
+		
+		if (Math.abs(pp.getFurlongs()) == 8 
+			|| (Math.abs(pp.getDistance()) >= 1800 && Math.abs(pp.getDistance()) <= 1830)
+			|| Math.abs(pp.getFurlongs()) == 10
+			|| Math.abs(pp.getFurlongs()) == 12) {
+			finish = pp.getSplit3();
+			target = 23.5f;
+		} else if (Math.abs(pp.getFurlongs()) == 8.5) {
+			finish = pp.getSplit3();
+			target = 29.5f;
+		} else if (Math.abs(pp.getFurlongs()) == 9
+				|| Math.abs(pp.getFurlongs()) == 9.5
+				|| Math.abs(pp.getFurlongs()) == 11) {
+			finish = pp.getSplit2() + pp.getSplit3();
+			target = 35.5f;
+		}
+		if (pp.getRaceType().equals(RaceType.MAIDEN_SPECIAL_WEIGHT)) target += 0.4f;
+		return (finish < target);
+	}
+	
+	public static Boolean firstTimeAtDistanceType(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if ((race.getFurlongs() < 8 && pp.getFurlongs() < 8) || (race.getFurlongs() >= 8 && pp.getFurlongs() >= 8)){
+				return false;
+			}	
+		}
+		return true;
+	}
+	
+	public static Boolean lastYearStakesWinner(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if (pp.getRaceDate().getYear() == race.getDate().getYear() - 1 
+				&& (pp.getRaceType() == RaceType.NON_GRADED 
+					|| pp.getRaceType() == RaceType.GRADE_1 
+					|| pp.getRaceType() == RaceType.GRADE_2 
+					|| pp.getRaceType() == RaceType.GRADE_3)
+				&& pp.getFinishPosition().equals("1")) return true;	
+		}
+		return false;
+	}
+	
+	public static Boolean goodTrainer1stTimeStat(Race race, Horse horse) {
+		for (Stat stat : horse.getTrainer().getTrainerStats()) {
+			if (stat.getCategory().equals("1st time str") && stat.getWinPercent() >= 11) return true;
+		}
+		return false;
+	}
+	
+	public static Boolean goodDebutTurfStat(Race race, Horse horse) {
+		for (Stat stat : horse.getTrainer().getTrainerStats()) {
+			if (stat.getCategory().equals("Debut Turf") && stat.getWinPercent() >= 11) return true;
+		}
+		return false;
+	}
+	
+	public static Boolean hasBeenInForAClaim(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if (pp.getClaimingPrice() > 0) return true;
+		}
+		return false;
+	}
+	
+	public static int racesCloseToPar(Race race, Horse horse) {
+		int racesCloseToPar = 0;
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if (pp.getBRISSpeedRating() >= race.getParSpeed() - (pp.getFurlongs() < 8 ? 2 : 3)
+					 && pp.getRaceDate().plusDays(270).isAfter(race.getDate())) {
+				racesCloseToPar++;
+			}
+		}
+		return racesCloseToPar;
+	}
+	
+	public static Boolean hasAllowanceWin(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if ((pp.getRaceType() == RaceType.ALLOWANCE 
+					|| pp.getRaceType() == RaceType.ALLOWANCE_OPTIONAL_CLAIMING 
+					|| pp.getRaceType() == RaceType.STARTER_ALLOWANCE)
+				&& pp.getFinishPosition().equals("1")) return true;
+		}
+		return false;
+	}
+	
+	public static Boolean hasClaimingWinOrClose(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if (pp.getRaceType() == RaceType.CLAIMING 
+				&& (pp.getFinishPosition().equals("1") 
+					|| pp.getFinishBeatenLengthsOnly() < 3)) return true;
+		}	
+		return false;		
+	}
+	
+	public static Boolean impressiveMaidenWinner(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if (pp.getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+				&& pp.getBRISSpeedRating() > pp.getSpeedPar() + (pp.getFurlongs() < 8 ? 3 : 2)) return true;
+		}
+		return false;
+	}
+	
+	public static Boolean hasNotLostAllowance(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if ((pp.getRaceType() == RaceType.ALLOWANCE 
+					|| pp.getRaceType() == RaceType.ALLOWANCE_OPTIONAL_CLAIMING)
+				&& !pp.getFinishPosition().equals("1")) return false;
+		}
+		return true;
+	}
+	
+	public static Boolean racedNonAllowance(Race race, Horse horse) {
+		for (PastPerformance pp : horse.getPastPerformances()) {
+			if (pp.getRaceType() != RaceType.MAIDEN_SPECIAL_WEIGHT
+				|| pp.getRaceType() != RaceType.ALLOWANCE
+				|| pp.getRaceType() != RaceType.ALLOWANCE_OPTIONAL_CLAIMING) return true;
+		}
+		return false;
+	}
+	
+	
+	public static void initializeCatalog() throws Exception {
+		try {
+			angles = Arrays.asList(mapper.readValue(Paths.get(anglesFile).toFile(), Angle[].class));
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}	
+	}
+	
+	public static List<Angle> generateAngles(Race race, Horse horse) throws Exception {
+		
+		//TODO: Add days since last race on angles that need it, such as peaking form, bounces, etc.
+		
+		try {
+			initializeCatalog();
+			//System.out.println(angles.size() + " angles to evaluate for " + horse.getName());
+			Angles anglesObj = new Angles();
+			List<Angle> retAngles = new ArrayList<Angle>();
+			for (Angle angle : angles) {		
+				Method method = Angles.class.getDeclaredMethod(angle.getMethod(), Race.class, Horse.class);
+				//System.out.println(angle.getName() + ": " + (Boolean) method.invoke(anglesObj, race, horse));
+				if ((Boolean) method.invoke(anglesObj, race, horse)) {
+					retAngles.add(angle);
+				}
+			}
+			//System.out.println(horse.getName() + ": " + mapper.writeValueAsString(retAngles));
+			return retAngles;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}	
+	}
+	
+	
+	public static Boolean angle_0001(Race race, Horse horse) throws Exception {	
+		//Most Recent Year Best Speed is equal or better than Max Speed Rating in the Race.	
+		try {
+			return (horse.getMostRecentYearBestSpeed() >= race.getMaxSpeed());
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0002(Race race, Horse horse) throws Exception {	
+		//Horse has paired top speed figures; probable bounce.	
+		try {
+			return (horse.getAge() >= 4 
+				&& horse.getPastPerformances().size() > 8
+				&& isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getPastPerformances().get(1).getBRISSpeedRating())
+				&& isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getLifetimeBestSpeed()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0003(Race race, Horse horse) throws Exception {	
+		//Horse has paired below lifetime top; anticipate move forward.
+		try {
+			return (horse.getAge() >= 4 
+				&& horse.getPastPerformances().size() > 8
+				&& isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getPastPerformances().get(1).getBRISSpeedRating())
+				&& isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating() - 5, horse.getLifetimeBestSpeed()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0004(Race race, Horse horse) throws Exception {	
+		//3YO has paired figures - expect a forward move.
+		try {
+			return (horse.getAge() == 3
+				&& horse.getPastPerformances().size() > 2
+				&& isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getPastPerformances().get(1).getBRISSpeedRating()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0005(Race race, Horse horse) throws Exception {	
+		//3YO with paired figures followed by a decline in form.
+		try {
+			return (horse.getAge() == 3
+				&& horse.getPastPerformances().size() > 2
+				&& isPaired(horse.getPastPerformances().get(0).getBRISSpeedRating(), horse.getPastPerformances().get(1).getBRISSpeedRating())
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() < horse.getPastPerformances().get(1).getBRISSpeedRating() - 2);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0006(Race race, Horse horse) throws Exception {	
+		//Potential layoff bounce - lengthy absence followed by overexertion.
+		try {
+			return (horse.getAge() >= 4
+				&& horse.getPastPerformances().size() > 2
+				&& horse.getPastPerformances().get(0).getDaysSinceLastRace() > 150
+				&& horse.getDaysSinceLastRace() < 42
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() > horse.getLifetimeBestSpeed() - 3
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() > horse.getPastPerformances().get(0).getSpeedPar() + 5);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0007(Race race, Horse horse) throws Exception {	
+		//Horse exiting Turf route where it failed to run within a length of the leader at the first three calls.
+		try {
+			return (horse.getPastPerformances().size() > 0
+				&& horse.getPastPerformances().get(0).getTurfFlag() 
+				&& !horse.getPastPerformances().get(0).getOffTheTurfFlag()
+				&& race.getFurlongs() < 8 
+				&& horse.getPastPerformances().get(0).getFurlongs() >= 8 
+				&& horse.getPastPerformances().get(0).getFirstCallBeatenLengthsOnly() > 1 
+				&& horse.getPastPerformances().get(0).getSecondCallBeatenLengthsOnly() > 1
+				&& horse.getPastPerformances().get(0).getStretchBeatenLengthsOnly() > 1 
+				&& horse.getPastPerformances().get(0).getFinishPosition() != "1");			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0008(Race race, Horse horse) throws Exception {	
+		//Well bred maiden winner can move ahead in class and beat turf winners if final fraction less than :12 per furlong.
+		try {
+			return (race.getTurfFlag() 
+				&& !race.getOffTheTurfFlag()
+				&& horse.getPastPerformances().size() > 0
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+				&& horse.getPastPerformances().get(0).getFurlongs() >= 8
+				&& horse.getPastPerformances().get(0).getFinishPosition().equals("1") 
+				&& horse.getPedigreeRatingTurf().charAt(0) != '?'
+				&& !horse.getPedigreeRatingTurf().contains("?") 
+				&& Integer.parseInt(horse.getPedigreeRatingTurf()) > 105
+				&& fastTurfFinish(horse.getPastPerformances().get(0)));			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0009(Race race, Horse horse) throws Exception {	
+		//Horse possesses 30 percent or more of a race's early speed.
+		try {
+			return ((float) horse.getSpeedPoints() / race.getTotalSpeedPoints() >= 0.30);			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0010(Race race, Horse horse) throws Exception {	
+		//Exiting Key Race (An OK or better FF Race)
+		try {
+			return (horse.getPastPerformances().size() > 0
+				&& horse.getPastPerformances().get(0).getRaceShape().equals("FF") 
+				&& OKRace(horse.getPastPerformances().get(0)));			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0011(Race race, Horse horse) throws Exception {	
+		//Late Running sprinters may not be dependable in routes.
+		try {
+			return (horse.getPastPerformances().size() > 0 
+				&& race.getFurlongs() >= 8 
+				&& firstTimeAtDistanceType(race, horse)
+				&& (horse.getRunStyle().equals("P") 
+					|| horse.getRunStyle().equals("S") 
+					|| (horse.getE2Avg() > 0 
+						&& horse.getLatePaceAvg() > horse.getE2Avg())
+					)
+				);			
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0012(Race race, Horse horse) throws Exception {	
+		//Front runners with significantly higher pace figures than speed figures may not be dependable in routes.
+		try {
+			return (horse.getPastPerformances().size() > 0 
+				&& race.getFurlongs() >= 8 
+				&& firstTimeAtDistanceType(race, horse)
+				&& (horse.getRunStyle().equals("E") 
+					|| horse.getRunStyle().equals("E/P")) 
+				&& horse.getE2Avg() >=  horse.getSpeedRating() + 2);			
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}	
+	
+	public static Boolean angle_0013(Race race, Horse horse) throws Exception {	
+		//Horses stretching out win their fair share, even when matched against route horses that delivered good results last time.
+		try {
+			return (horse.getPastPerformances().size() > 1
+				&& race.getFurlongs() >= 8 
+				&& firstTimeAtDistanceType(race, horse)
+				&& !angle_0011(race, horse)
+				&& !angle_0012(race, horse));			
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0014(Race race, Horse horse) throws Exception {	
+		//Showing improving form.
+		try {
+			return (horse.getFormPoints() == 5);			
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0015(Race race, Horse horse) throws Exception {	
+		//Showing declining form.
+		try {
+			return (horse.getFormPoints() < 0);			
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	
+	public static Boolean angle_0016(Race race, Horse horse) throws Exception {	
+		//Less than two four furlong workouts for claiming horse away 60 to 90 days.
+		try {
+			int workouts = 0;
+			for (Workout workout : horse.getWorkouts()) {
+				if (workout.getDateOfWorkout().plusDays(22).isAfter(race.getDate()) && workout.getFurlongs() >= 4) workouts++;
+			}
+			
+			return (horse.getClaimingPrice() > 0
+				&& horse.getDaysSinceLastRace() >= 60 
+				&& horse.getDaysSinceLastRace() <= 90
+				&& workouts < 2);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0017(Race race, Horse horse) throws Exception {	
+		//No five furlong workouts in last 14 days for horse away 6 months.
+		try {
+			int workouts = 0;
+			for (Workout workout : horse.getWorkouts()) {
+				if (workout.getDateOfWorkout().plusDays(15).isAfter(race.getDate()) && workout.getFurlongs() >= 5) workouts++;
+			}
+			
+			return (horse.getDaysSinceLastRace() > 180 
+				&& workouts == 0 
+				&& horse.getBasicFitness() < 15);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0018(Race race, Horse horse) throws Exception {	
+		//Sharp Workout in last 90 days.
+		try {			
+			return (SharpWorkouts(horse.getWorkouts(),race) > 0);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0019(Race race, Horse horse) throws Exception {	
+		//2YO with regular workouts and at least two sharp workouts at four or five furlongs, one of which occurred out of the gate.
+		try {		
+			int sharpGateWorkout = 0;
+			int fourOrFiveFurlongSharpWorkouts = 0;
+			for (Workout workout : horse.getWorkouts()) {
+				if (isSharp(workout) && workout.getFurlongs() >= 4 && workout.getFurlongs() <= 5) {
+					fourOrFiveFurlongSharpWorkouts++;
+					if (workout.getDescription().length() >= 2 && workout.getDescription().charAt(1) == 'g') sharpGateWorkout++;
+				}
+			}
+			return (race.getAgeRestriction() == AgeRestrictionType.TWO_YEAR_OLDS 
+				&& horse.getBasicFitness() >= 15
+				&& sharpGateWorkout >=1 
+				&& fourOrFiveFurlongSharpWorkouts > 2);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0020(Race race, Horse horse) throws Exception {	
+		//Potential Performance Bounce - last speed figure well above average.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() > horse.getSpeedRating() + 5 
+				&& horse.getDaysSinceLastRace() <= 120);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0021(Race race, Horse horse) throws Exception {	
+		//Potential Bounce-Back Race.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(1).getBRISSpeedRating() > horse.getSpeedRating() + 5
+				&& horse.getPastPerformances().get(1).getDaysSinceLastRace() >= 120
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() < horse.getSpeedRating() - 5);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0022(Race race, Horse horse) throws Exception {	
+		//Peaking Form - much-improved race followed by improved workout followed by return to races within 2 to 3 weeks.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() - 5 > horse.getPastPerformances().get(1).getBRISSpeedRating()
+				&& horse.getWorkouts().get(0).getDateOfWorkout().isAfter(horse.getPastPerformances().get(0).getRaceDate())
+				&& horse.getWorkouts().get(0).getTimeOfWorkout() / horse.getWorkouts().get(0).getFurlongs() <
+					horse.getWorkouts().get(1).getTimeOfWorkout() / horse.getWorkouts().get(1).getFurlongs()
+				&& horse.getDaysSinceLastRace() <= 21
+				&& horse.getDaysSinceLastRace() >= 14);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0023(Race race, Horse horse) throws Exception {	
+		//3rd start off of layoff with much improved 2nd start (especially sprints and better horses).
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(1).getDaysSinceLastRace() > 90 
+				&& horse.getPastPerformances().get(0).getDaysSinceLastRace() < 45
+				&& horse.getDaysSinceLastRace() < 45 
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() > horse.getPastPerformances().get(1).getBRISSpeedRating() + 5);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0024(Race race, Horse horse) throws Exception {	
+		//4th start off of layoff with peaking form.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(2).getDaysSinceLastRace() > 90 
+				&& horse.getPastPerformances().get(1).getDaysSinceLastRace() < 45
+				&& horse.getPastPerformances().get(0).getDaysSinceLastRace() < 45
+				&& horse.getDaysSinceLastRace() < 45 
+				&& horse.getFormPoints() == 5);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0025(Race race, Horse horse) throws Exception {	
+		//Off-pace horse that ran close to the lead horse at every fraction call - potential top form.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& !horse.getRunStyle().equals("E")  
+				&& !horse.getRunStyle().equals("NA")
+				&& horse.getPastPerformances().get(0).getFirstCallBeatenLengthsOnly() <= 3
+				&& horse.getPastPerformances().get(0).getSecondCallBeatenLengthsOnly() <= 3 
+				&& horse.getPastPerformances().get(0).getStretchBeatenLengthsOnly() <= 3 
+				&& horse.getPastPerformances().get(0).getFinishBeatenLengthsOnly() <= 4.5 
+				&& horse.getPastPerformances().get(0).getRaceShapeSecondCall() >= 0);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0026(Race race, Horse horse) throws Exception {	
+		//Second off Claim with a much-improved last race.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(1).getClaimedCode().equals("c") 
+				&& !horse.getPastPerformances().get(0).getClaimedCode().equals("c")
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() > horse.getSpeedRating() + 5);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0027(Race race, Horse horse) throws Exception {	
+		//Second off Claim with a disappointing or dull last race.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(1).getClaimedCode().equals("c") 
+				&& !horse.getPastPerformances().get(0).getClaimedCode().equals("c")
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() < horse.getSpeedRating() - 5);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0028(Race race, Horse horse) throws Exception {	
+		//Unexpectedly dull performance followed by multiple level drop in class.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() < horse.getSpeedRating() - 5 
+				&& horse.getPurseShift() <= -10000
+				&& !horse.getPastPerformances().get(0).getFinishPosition().equals("1") 
+				&& !horse.getPastPerformances().get(0).getFinishPosition().equals("2")
+				&& !horse.getPastPerformances().get(0).getFinishPosition().equals("3"));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0029(Race race, Horse horse) throws Exception {	
+		//Peaking Form - close up at every call in last race and won by 3 or more lengths.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(0).getFirstCallBeatenLengthsOnly() < 2.75 
+				&& horse.getPastPerformances().get(0).getSecondCallBeatenLengthsOnly() < 2.75
+				&& horse.getPastPerformances().get(0).getStretchBeatenLengthsOnly() < 2.75 
+				&& horse.getPastPerformances().get(0).getFinishPosition().equals("1") 
+				&& horse.getPastPerformances().get(0).getWinnersMargin() >= 3);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0030(Race race, Horse horse) throws Exception {	
+		//Peaking Form - improved early speed and back within 21 days.
+		try {		
+			return (horse.getPastPerformances().size() >= 5
+				&& horse.getPastPerformances().get(0).getE2() > horse.getE2Avg() + 5 
+				&& horse.getDaysSinceLastRace() <= 21);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0031(Race race, Horse horse) throws Exception {	
+		//4UP Stakes winner last year showing decline in the first starts of season
+		try {			
+			return (horse.getAge() >= 4 
+				&& race.getDate().getMonthValue() <= 4
+				&& lastYearStakesWinner(race, horse)
+				&& horse.getMostRecentYearBestSpeed() < horse.getSecondMostRecentYearBestSpeed() - 5 
+				&& horse.getCurrentYearStarts() > 2) ;
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0032(Race race, Horse horse) throws Exception {	
+		//Three Year old Stakes winner last year not improved as Four Year Old
+		try {			
+			return (horse.getAge() == 4 
+				&& lastYearStakesWinner(race, horse)
+				&& !angle_0031(race, horse)
+				&& horse.getMostRecentYearBestSpeed() < horse.getSecondMostRecentYearBestSpeed() + 2 
+				&& horse.getCurrentYearStarts() > 2) ;
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0033(Race race, Horse horse) throws Exception {	
+		//Has not run a good Turf Sprint race within a half furlong of this distance.
+		try {		
+			Boolean goodTurfRaceWithinHalfFurlong = false;
+			for (PastPerformance pp : horse.getPastPerformances()) {
+				if (race.getFurlongs() < 8 
+					&& pp.getTurfFlag() 
+					&& !pp.getOffTheTurfFlag()
+					&& GoodRace(pp) 
+					&& Math.abs(pp.getFurlongs()) - race.getFurlongs() <= 0.5) goodTurfRaceWithinHalfFurlong = true;
+			}
+		
+			return (horse.getAge() >= 4 
+				&& horse.getPastPerformances().size() > 4
+				&& race.getTurfFlag()
+				&& race.getOffTheTurfFlag()
+				&& race.getFurlongs() < 8
+				&& !goodTurfRaceWithinHalfFurlong) ;
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0034(Race race, Horse horse) throws Exception {	
+		//4UP, experienced horses, lifetime top, expect a decline
+		try {		
+			return (horse.getAge() >= 4 
+				&& horse.getPastPerformances().size() > 4
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() == horse.getLifetimeBestSpeed());
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0035(Race race, Horse horse) throws Exception {	
+		//Jockey has win percent less than 11% on turf mounts - NO PLAY.
+		try {		
+			return (race.getTurfFlag() 
+				&& !race.getOffTheTurfFlag()
+				&& horse.getJockey().getStats().get(0).getCategory().equals("Turf") 
+				&& horse.getJockey().getStats().get(0).getStarts() > 0 
+				&& (float) horse.getJockey().getStats().get(0).getWins() / horse.getJockey().getStats().get(0).getStarts() < 0.11);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0036(Race race, Horse horse) throws Exception {	
+		//NO PLAY on horses aged seven and older.
+		try {		
+			return (horse.getAge() >= 7);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0037(Race race, Horse horse) throws Exception {	
+		//First Time Start with Trainer 1st time stat < 11%, less than 2 sharp workouts AND Sire 1st Time Win % < 11 - NO PLAY.
+		try {		
+			return (horse.getPastPerformances().size() == 0
+				&& (!goodTrainer1stTimeStat(race, horse) && !goodDebutTurfStat(race,horse))
+				&& SharpWorkouts(horse.getWorkouts(), race) < 2
+				&& (race.getTurfFlag() ? horse.getSireFirstTurfPercent() < 11 : horse.getSireFirstPercent() < 11));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0038(Race race, Horse horse) throws Exception {	
+		//First Time Start with Trainer 1st time stat < 11% AND less than 2 sharp workouts - NO PLAY.
+		try {		
+			return (!angle_0037(race,horse)
+				&& horse.getPastPerformances().size() == 0
+				&& (!goodTrainer1stTimeStat(race, horse) && !goodDebutTurfStat(race,horse))
+				&& SharpWorkouts(horse.getWorkouts(), race) < 2);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0039(Race race, Horse horse) throws Exception {	
+		//First Time Start with Trainer 1st time stat < 11% AND Sire 1st Time Win % < 11 - NO PLAY.
+		try {		
+			return (!angle_0037(race,horse)
+				&& horse.getPastPerformances().size() == 0
+				&& (!goodTrainer1stTimeStat(race, horse) && !goodDebutTurfStat(race,horse))
+				&& (race.getTurfFlag() ? horse.getSireFirstTurfPercent() < 11 : horse.getSireFirstPercent() < 11));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0040(Race race, Horse horse) throws Exception {	
+		//First Time Start with less than 2 sharp workouts AND Sire 1st Time Win % < 11 - NO PLAY.
+		try {		
+			return (!angle_0037(race,horse)
+				&& horse.getPastPerformances().size() == 0
+				&& SharpWorkouts(horse.getWorkouts(), race) < 2
+				&& (race.getTurfFlag() ? horse.getSireFirstTurfPercent() < 11 : horse.getSireFirstPercent() < 11));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0041(Race race, Horse horse) throws Exception {	
+		//First Time Start with Trainer 1st time stat < 11% - NO PLAY Favorites/Low Price.
+		try {		
+			return (!angle_0038(race,horse)
+				&& !angle_0039(race,horse)
+				&& !angle_0040(race,horse)
+				&& horse.getPastPerformances().size() == 0
+				&& SharpWorkouts(horse.getWorkouts(), race) < 2
+				&& (!goodTrainer1stTimeStat(race, horse) && !goodDebutTurfStat(race,horse)));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0042(Race race, Horse horse) throws Exception {	
+		//First Time Start with less than 2 sharp workouts - NO PLAY Favorites/Low Price.
+		try {		
+			return (!angle_0038(race,horse)
+				&& !angle_0039(race,horse)
+				&& !angle_0040(race,horse)
+				&& horse.getPastPerformances().size() == 0
+				&& SharpWorkouts(horse.getWorkouts(), race) < 2);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0043(Race race, Horse horse) throws Exception {	
+		//First Time Start with Sire 1st Time Win % < 11 - NO PLAY Favorites/Low Price.
+		try {		
+			return (!angle_0038(race,horse)
+				&& !angle_0039(race,horse)
+				&& !angle_0040(race,horse)
+				&& horse.getPastPerformances().size() == 0
+				&& (race.getTurfFlag() ? horse.getSireFirstTurfPercent() < 11 : horse.getSireFirstPercent() < 11));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	
+	public static Boolean angle_0044(Race race, Horse horse) throws Exception {	
+		//Last Race Speed equal to or better than that race's Par (Maiden).
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& (race.getRaceType().equals(RaceType.MAIDEN_CLAIMING)
+					|| race.getRaceType().equals(RaceType.MAIDEN_OPTIONAL_CLAIMING)
+					|| race.getRaceType().equals(RaceType.MAIDEN_SPECIAL_WEIGHT))
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() >= horse.getPastPerformances().get(0).getSpeedPar());
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0045(Race race, Horse horse) throws Exception {	
+		//Second Start projected to par with normal improvement.
+		try {		
+			return (horse.getPastPerformances().size() == 1 
+				&& horse.getPastPerformances().get(0).getBRISSpeedRating() + (horse.getPastPerformances().get(0).getFurlongs() < 8 ? .3 : .2) * 5 >= race.getParSpeed());
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0046(Race race, Horse horse) throws Exception {	
+		//Maiden to Maiden Claiming
+		try {		
+			return (horse.getClaimingPrice() > 0
+				&& horse.getPastPerformances().size() > 0
+				&& !hasBeenInForAClaim(race, horse)
+				&& (horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+					|| horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0047(Race race, Horse horse) throws Exception {	
+		//Maiden to Maiden Claiming Two Races Back
+		try {		
+			Boolean hasBeenInForClaim3orMoreBack = false;
+			for (int i=2; i < horse.getPastPerformances().size(); i++) {
+				hasBeenInForClaim3orMoreBack = true;
+			}
+			return (horse.getClaimingPrice() > 0
+				&& horse.getPastPerformances().size() > 1 
+				&& !hasBeenInForClaim3orMoreBack
+				&& horse.getPastPerformances().get(0).getClaimingPrice() > 0
+				&& (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+					|| (horse.getPastPerformances().get(1).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING
+				&& horse.getPastPerformances().get(1).getClaimingPrice() == 0)));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0048(Race race, Horse horse) throws Exception {	
+		//Maiden to Maiden Claiming Two Races Back
+		try {		
+			Boolean hasBeenInForClaim4orMoreBack = false;
+			for (int i=3; i < horse.getPastPerformances().size(); i++) {
+				hasBeenInForClaim4orMoreBack = true;
+			}
+			return (horse.getClaimingPrice() > 0
+				&& horse.getPastPerformances().size() > 2 
+				&& !hasBeenInForClaim4orMoreBack
+				&& horse.getPastPerformances().get(0).getClaimingPrice() > 0
+				&& horse.getPastPerformances().get(1).getClaimingPrice() > 0
+				&& (horse.getPastPerformances().get(2).getRaceType() == RaceType.MAIDEN_SPECIAL_WEIGHT 
+					|| (horse.getPastPerformances().get(2).getRaceType() == RaceType.MAIDEN_OPTIONAL_CLAIMING
+				&& horse.getPastPerformances().get(2).getClaimingPrice() == 0)));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0049(Race race, Horse horse) throws Exception {	
+		//MCl 50k+ to MCl 40k-.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType().equals(RaceType.MAIDEN_CLAIMING)
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING 
+				&& race.getPurse() <= 40000 
+				&& horse.getPastPerformances().get(0).getPurse() >= 50000);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0050(Race race, Horse horse) throws Exception {	
+		//Maiden Claiming drop greater than two levels.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType().equals(RaceType.MAIDEN_CLAIMING)
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING 
+				&& horse.getPastPerformances().get(0).getPurse() - race.getPurse() > 10000);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0051(Race race, Horse horse) throws Exception {	
+		//First Time Starter in Maiden Claiming Race - likely NO PLAY.
+		try {		
+			return (horse.getPastPerformances().size() == 0
+				&& race.getRaceType().equals(RaceType.MAIDEN_CLAIMING));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0052(Race race, Horse horse) throws Exception {	
+		//Has 2 or more races close to or better than this race's Par.
+		try {		
+			return (racesCloseToPar(race, horse) > 2
+				&& race.getRaceType().equals(RaceType.CLAIMING));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0053(Race race, Horse horse) throws Exception {	
+		//Good Race last out with justifiable class shift.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType() == RaceType.CLAIMING
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.CLAIMING 					
+				&& GoodRace(horse.getPastPerformances().get(0)) 
+				&& horse.getPurseShift() <= 10000 
+				&& horse.getClassShift() >= 0);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0054(Race race, Horse horse) throws Exception {	
+		//Good Race last out yet dropping in class.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType() == RaceType.CLAIMING
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.CLAIMING 
+				&& GoodRace(horse.getPastPerformances().get(0)) 
+				&& horse.getPurseShift() < 0
+				&& horse.getClassShift() < 0);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0055(Race race, Horse horse) throws Exception {	
+		//Rising multiple levels but has equaled or exceeded Par at this level.
+		//TODO: accommodate Off the Turf and onto AW
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType() == RaceType.CLAIMING	
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.CLAIMING 
+				&& horse.getClassShift() > 10000 
+				&& ((race.getTurfFlag() 
+						&& !race.getOffTheTurfFlag() 
+						&& horse.getTurfBestSpeed() >= race.getParSpeed())
+					|| ((!race.getTurfFlag() 
+						|| race.getOffTheTurfFlag())
+						&& horse.getDirtBestSpeed() >= race.getParSpeed())));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0056(Race race, Horse horse) throws Exception {	
+		//3 year old claimers may be played in the Fall if best on fundamentals.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType() == RaceType.CLAIMING
+				&& horse.getAge() == 3
+				&& race.getAgeRestriction() == AgeRestrictionType.THREE_YEAR_OLDS 
+				&& race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_AND_UP
+				&& ((race.getClassification().contains("n2l") 
+					|| race.getClassification().contains("n3l")) 
+				&& race.getDate().getMonthValue() > 7));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0057(Race race, Horse horse) throws Exception {	
+		//3 year old claimers should not prevail against older.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType() == RaceType.CLAIMING 
+				&& horse.getAge() == 3
+				&& race.getAgeRestriction() == AgeRestrictionType.THREE_YEAR_OLDS 
+				&& race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_AND_UP
+				&& ((race.getClassification().contains("n2l") 
+					|| race.getClassification().contains("n3l")) 
+				&& race.getDate().getMonthValue() <= 7));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0058(Race race, Horse horse) throws Exception {	
+		//Three year old drop-downs from allowance are best played January through June.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType() == RaceType.CLAIMING
+				&& (horse.getPastPerformances().get(0).getRaceType() == RaceType.ALLOWANCE
+					|| horse.getPastPerformances().get(0).getRaceType() == RaceType.ALLOWANCE_OPTIONAL_CLAIMING
+					|| horse.getPastPerformances().get(0).getRaceType() == RaceType.STARTER_ALLOWANCE) 
+				&& horse.getAge() == 3 && race.getDate().getMonthValue() <= 6);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0059(Race race, Horse horse) throws Exception {	
+		//Three year old drop-downs from allowance are best NOT played July through December.
+		//TODO: validate this angle from the books
+		try {		
+			return (horse.getPastPerformances().size() > 0
+					&& race.getRaceType() == RaceType.CLAIMING
+					&& (horse.getPastPerformances().get(0).getRaceType() == RaceType.ALLOWANCE
+						|| horse.getPastPerformances().get(0).getRaceType() == RaceType.ALLOWANCE_OPTIONAL_CLAIMING
+						|| horse.getPastPerformances().get(0).getRaceType() == RaceType.STARTER_ALLOWANCE) 
+					&& horse.getAge() == 3 && race.getDate().getMonthValue() >= 7 );
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0060(Race race, Horse horse) throws Exception {	
+		//Previous Allowance winner has won or finished close in a Claiming race.
+		try {		
+			return (race.getRaceType().equals(RaceType.CLAIMING)
+				&& hasAllowanceWin(race, horse)
+				&& hasClaimingWinOrClose(race, horse));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0061(Race race, Horse horse) throws Exception {	
+		//Maiden Claiming grads are never acceptable in higher priced open claiming races.
+		try {		
+			return (horse.getPastPerformances().size() > 0
+				&& race.getRaceType() == RaceType.CLAIMING
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING 
+				&& race.getPurse() > horse.getPastPerformances().get(0).getPurse());
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0062(Race race, Horse horse) throws Exception {	
+		//Three year old moving up from claiming - NO PLAY.
+		try {		
+			return ((race.getRaceType().equals(RaceType.ALLOWANCE)
+					|| race.getRaceType().equals(RaceType.ALLOWANCE_OPTIONAL_CLAIMING)
+					|| race.getRaceType().equals(RaceType.OPTIONAL_CLAIMING)
+					|| race.getRaceType().equals(RaceType.OPTIONAL_CLAIMING_STAKES))
+				&& horse.getPastPerformances().size() > 0
+				&& horse.getAge() == 3 
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.CLAIMING);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0063(Race race, Horse horse) throws Exception {	
+		//Non-claiming three year old has lost two races in a row, well-beaten in each.
+		try {		
+			return ((race.getRaceType().equals(RaceType.ALLOWANCE)
+					|| race.getRaceType().equals(RaceType.ALLOWANCE_OPTIONAL_CLAIMING)
+					|| race.getRaceType().equals(RaceType.OPTIONAL_CLAIMING)
+					|| race.getRaceType().equals(RaceType.OPTIONAL_CLAIMING_STAKES))
+				&& horse.getClaimingPrice() == 0
+				&& horse.getPastPerformances().size() > 0
+				&& horse.getAge() == 3 
+				&& horse.getPastPerformances().get(0).getFinishBeatenLengthsOnly() > 5
+				&& horse.getPastPerformances().get(1).getFinishBeatenLengthsOnly() > 5);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0064(Race race, Horse horse) throws Exception {	
+		//Maiden Claiming grads are never acceptable in allowance or stakes races.
+		try {		
+			return (!race.getRaceType().equals(RaceType.CLAIMING)
+				&& !race.getRaceType().equals(RaceType.OPTIONAL_CLAIMING)
+ 				&& horse.getPastPerformances().size() > 0
+				&& horse.getPastPerformances().get(0).getRaceType() == RaceType.MAIDEN_CLAIMING);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0065(Race race, Horse horse) throws Exception {	
+		//No horse can rise in class from NW1 or NW2 to Grade 1 - NO PLAY.
+		try {		
+			return (race.getRaceType().equals(RaceType.GRADE_1)
+				&& horse.getPastPerformances().size() > 0
+				&& (horse.getPastPerformances().get(0).getRaceClassification().contains("n1")
+						|| horse.getPastPerformances().get(0).getRaceClassification().contains("n2")));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0066(Race race, Horse horse) throws Exception {	
+		//4 years old and up and having as many as 15 races in a G1/G2 race
+		try {		
+			return (race.getRaceType().equals(RaceType.GRADE_1)
+				&& horse.getAge() >= 4 
+				&& horse.getLifetimeStarts() >= 15 && 
+				(horse.getPastPerformances().get(0).getRaceType() == RaceType.GRADE_3 
+					|| horse.getPastPerformances().get(0).getRaceType() == RaceType.NON_GRADED)
+				&& horse.getPastPerformances().get(0).getPurse() < 150000);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0067(Race race, Horse horse) throws Exception {	
+		//No horse can rise in class from NW1 to Grade 2 - NO PLAY.
+		try {		
+			return (race.getRaceType().equals(RaceType.GRADE_2)
+					&& horse.getPastPerformances().size() > 0
+					&& horse.getPastPerformances().get(0).getRaceClassification().contains("n1"));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0068(Race race, Horse horse) throws Exception {	
+		//One of the Likeliest winners (Grade 1 or 2 winner).
+		try {		
+			return (race.getRaceType().equals(RaceType.GRADE_3)
+				&& horse.getPastPerformances().size() > 0
+				&& (horse.getPastPerformances().get(0).getRaceType() == RaceType.GRADE_2 
+					|| horse.getPastPerformances().get(0).getRaceType() == RaceType.GRADE_1)
+				&& horse.getPastPerformances().get(0).getFinishPosition().equals("1"));
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0069(Race race, Horse horse) throws Exception {	
+		//Previous NW1 or NW2 winner with speed rating at or better than par and not a slow pace; can accept lower class and speed.
+		try {	
+			if (!race.getRaceType().equals(RaceType.GRADE_3)) return false;
+			for (PastPerformance pp : horse.getPastPerformances()) {
+				if ((pp.getRaceClassification().contains("n1") || pp.getRaceClassification().contains("n2")) 
+					&& pp.getFinishPosition().equals("1") && pp.getBRISSpeedRating() >= pp.getSpeedPar()
+					&& pp.getRaceShapeSecondCall() > 0) return true;
+			}
+			return false;
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0070(Race race, Horse horse) throws Exception {	
+		//Previous NW3 or NW4 winner; can accept lower class and speed.
+		try {	
+			if (!race.getRaceType().equals(RaceType.GRADE_3)) return false;
+			for (PastPerformance pp : horse.getPastPerformances()) {
+				if ((pp.getRaceClassification().contains("n3") || pp.getRaceClassification().contains("n4")) 
+						&& pp.getFinishPosition().equals("1")) return true;
+			}
+			return false;
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+	
+	public static Boolean angle_0071(Race race, Horse horse) throws Exception {	
+		//Impressive Maiden winner that has not lost an allowance; can accept lower class and speed.
+		try {	
+			return (race.getRaceType().equals(RaceType.GRADE_3)
+				&& impressiveMaidenWinner(race, horse)
+				&& hasNotLostAllowance(race, horse)
+				&& !racedNonAllowance(race, horse));		
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}		
+	}
+}

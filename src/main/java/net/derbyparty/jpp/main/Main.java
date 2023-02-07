@@ -23,6 +23,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
 
 import net.derbyparty.jpp.chart.ProcessChart;
+import net.derbyparty.jpp.factors.Angles;
 import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.factors.Ratings;
 import net.derbyparty.jpp.loader.Loader;
@@ -424,7 +425,7 @@ public class Main {
 				race.setHandicappingNotes(Factors.GenerateHandicappingNotes(race));
 				
 				for (Horse horse : race.getUnscratchedHorses()) {
-					horse.setAngles(Factors.GenerateAngles(race, horse));	
+					horse.setAngles(Angles.generateAngles(race, horse));
 				}
 
 			}
@@ -1241,5 +1242,31 @@ public class Main {
 		} catch (Exception e) {
 			throw e;
 		}	
+	}
+	
+	public static void retrieveCalculateAndSaveAll() throws Exception {
+		try {
+
+	        Files.list(new File(saveDir).toPath())
+            .forEach(path -> {
+            	if (path.toString().contains(".json")) {
+            		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
+            		Matcher matcher =  pattern.matcher(path.toString());
+            		if (matcher.find()) {            			
+            			try {
+            				LocalDate date = LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)));
+            				retrieve(matcher.group(1), date);
+            				calculate();
+            				save();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+            		}
+            	}
+		 	});
+		
+		} catch (Exception e) {
+			throw e;
+		}
 	}
 }

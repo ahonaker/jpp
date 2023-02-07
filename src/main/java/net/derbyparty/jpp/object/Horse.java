@@ -7,10 +7,12 @@ import java.util.List;
 import javax.annotation.Generated;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Horse implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -152,7 +154,6 @@ public class Horse implements Serializable {
 	private Boolean scratchedFlag;
 	private Boolean _showDetails;
 	
-	private List<String> Angles;
 	private String selection;
 	private float bettingLine;
 	
@@ -193,6 +194,8 @@ public class Horse implements Serializable {
 	
 	private String flag;
 	private String comment;
+	
+	private List<Angle> angles;
 
 	@Generated("SparkTools")
 	private Horse(Builder builder) {
@@ -324,7 +327,6 @@ public class Horse implements Serializable {
 		this.ARating = builder.ARating;
 		this.scratchedFlag = builder.scratchedFlag;
 		this._showDetails = builder._showDetails;
-		this.Angles = builder.Angles;
 		this.selection = builder.selection;
 		this.bettingLine = builder.bettingLine;
 		this.note = builder.note;
@@ -360,6 +362,7 @@ public class Horse implements Serializable {
 		this.BrisAvgLast3Class = builder.BrisAvgLast3Class;
 		this.flag = builder.flag;
 		this.comment = builder.comment;
+		this.angles = builder.angles;
 	}
 
 	public float getE1Avg() {
@@ -434,11 +437,9 @@ public class Horse implements Serializable {
 	public float getAverageCompetitiveLevel() {
 		return AverageCompetitiveLevel;
 	}
-
 	public void setAverageCompetitiveLevel(float averageCompetitiveLevel) {
 		AverageCompetitiveLevel = averageCompetitiveLevel;
 	}
-
 	public float getLastRaceStrength() {
 		return LastRaceStrength;
 	}
@@ -520,359 +521,234 @@ public class Horse implements Serializable {
 	public Boolean get_showDetails() {
 		return _showDetails;
 	}
-
 	public void set_showDetails(Boolean _showDetails) {
 		this._showDetails = _showDetails;
 	}
-
-	public List<String> getAngles() {
-		return Angles;
-	}
-
-	public void setAngles(List<String> angles) {
-		Angles = angles;
-	}
-
 	public String getSelection() {
 		return selection;
 	}
-
 	public float getBettingLine() {
 		return bettingLine;
 	}
-
 	public void setBettingLine(float bettingLine) {
 		this.bettingLine = bettingLine;
 	}
-
 	public void setSelection(String selection) {
 		this.selection = selection;
 	}
-
 	public float getAvgAdjustedSpeedRating() {
 		return AvgAdjustedSpeedRating;
 	}
-
 	public void setAvgAdjustedSpeedRating(float avgAdjustedSpeedRating) {
 		AvgAdjustedSpeedRating = avgAdjustedSpeedRating;
 	}
-
 	public String getNote() {
 		return note;
 	}
-
 	public void setNote(String note) {
 		this.note = note;
 	}
-
 	public float getARatingFairValue() {
 		return ARatingFairValue;
 	}
-
 	public void setARatingFairValue(float aRatingFairValue) {
 		ARatingFairValue = aRatingFairValue;
 	}
-
 	public Boolean getPick() {
 		return pick;
 	}
-
-
 	public void setPick(Boolean pick) {
 		this.pick = pick;
 	}
-
-
 	public int getFinishPosition() {
 		return finishPosition;
 	}
-
-
 	public void setFinishPosition(int finishPosition) {
 		this.finishPosition = finishPosition;
 	}
-
-
 	public float getWinPayout() {
 		return winPayout;
 	}
-
-
 	public void setWinPayout(float winPayout) {
 		this.winPayout = winPayout;
 	}
-
-
 	public float getPlacePayout() {
 		return placePayout;
 	}
-
-
 	public void setPlacePayout(float placePayout) {
 		this.placePayout = placePayout;
 	}
-
-
 	public float getShowPayout() {
 		return showPayout;
 	}
-
-
 	public void setShowPayout(float showPayout) {
 		this.showPayout = showPayout;
 	}
-
-
 	public float getPrimePower() {
 		return PrimePower;
 	}
-
-
 	public void setPrimePower(float primePower) {
 		PrimePower = primePower;
 	}
-
-
 	public float getSireAWD() {
 		return SireAWD;
 	}
-
-
 	public void setSireAWD(float sireAWD) {
 		SireAWD = sireAWD;
 	}
-
-
 	public int getSireMudPercent() {
 		return SireMudPercent;
 	}
-
-
 	public void setSireMudPercent(int sireMudPercent) {
 		SireMudPercent = sireMudPercent;
 	}
-
-
 	public int getSireMudStarts() {
 		return SireMudStarts;
 	}
-
-
 	public void setSireMudStarts(int sireMudStarts) {
 		SireMudStarts = sireMudStarts;
 	}
-
-
 	public int getSireFirstPercent() {
 		return SireFirstPercent;
 	}
-
-
 	public void setSireFirstPercent(int sireFirstPercent) {
 		SireFirstPercent = sireFirstPercent;
 	}
-
-
 	public float getSireSPI() {
 		return SireSPI;
 	}
-
-
 	public void setSireSPI(float sireSPI) {
 		SireSPI = sireSPI;
 	}
-
-
 	public float getDamSireAWD() {
 		return DamSireAWD;
 	}
-
-
 	public void setDamSireAWD(float damSireAWD) {
 		DamSireAWD = damSireAWD;
 	}
-
-
 	public int getDamSireMudPercent() {
 		return DamSireMudPercent;
 	}
-
-
 	public void setDamSireMudPercent(int damSireMudPercent) {
 		DamSireMudPercent = damSireMudPercent;
 	}
-
-
 	public int getDamSireMudStarts() {
 		return DamSireMudStarts;
 	}
-
-
 	public void setDamSireMudStarts(int damSireMudStarts) {
 		DamSireMudStarts = damSireMudStarts;
 	}
-
-
 	public int getDamSireFirstPercent() {
 		return DamSireFirstPercent;
 	}
-
-
 	public void setDamSireFirstPercent(int damSireFirstPercent) {
 		DamSireFirstPercent = damSireFirstPercent;
 	}
-
-
 	public float getDamSireSPI() {
 		return DamSireSPI;
 	}
-
-
 	public void setDamSireSPI(float damSireSPI) {
 		DamSireSPI = damSireSPI;
 	}
-
-
 	public String getDamDescription() {
 		return DamDescription;
 	}
-
-
 	public void setDamDescription(String damDescription) {
 		DamDescription = damDescription;
 	}
-
-
 	public int getDamTwoYearOldPercent() {
 		return DamTwoYearOldPercent;
 	}
-
-
 	public void setDamTwoYearOldPercent(int damTwoYearOldPercent) {
 		DamTwoYearOldPercent = damTwoYearOldPercent;
 	}
-
-
 	public int getDamStarters() {
 		return DamStarters;
 	}
-
-
 	public void setDamStarters(int damStarters) {
 		DamStarters = damStarters;
 	}
-
-
 	public int getDamWinners() {
 		return DamWinners;
 	}
-
-
 	public void setDamWinners(int damWinners) {
 		DamWinners = damWinners;
 	}
-
-
 	public int getDamStakesWinners() {
 		return DamStakesWinners;
 	}
-
-
 	public void setDamStakesWinners(int damStakesWinners) {
 		DamStakesWinners = damStakesWinners;
 	}
-
-
 	public float getDamDPI() {
 		return DamDPI;
 	}
-
-
 	public void setDamDPI(float damDPI) {
 		DamDPI = damDPI;
 	}
-
-
 	public int getSireTurfPercent() {
 		return SireTurfPercent;
 	}
-
 	public void setSireTurfPercent(int sireTurfPercent) {
 		SireTurfPercent = sireTurfPercent;
 	}
-
 	public int getSireFirstTurfPercent() {
 		return SireFirstTurfPercent;
 	}
-
 	public void setSireFirstTurfPercent(int sireFirstTurfPercent) {
 		SireFirstTurfPercent = sireFirstTurfPercent;
 	}
-
 	public int getDamSireTurfPercent() {
 		return DamSireTurfPercent;
 	}
-
 	public void setDamSireTurfPercent(int damSireTurfPercent) {
 		DamSireTurfPercent = damSireTurfPercent;
 	}
-
 	public int getDamSireFirstTurfPercent() {
 		return DamSireFirstTurfPercent;
 	}
-
 	public void setDamSireFirstTurfPercent(int damSireFirstTurfPercent) {
 		DamSireFirstTurfPercent = damSireFirstTurfPercent;
 	}
-
 	public int getDamTurfWinners() {
 		return DamTurfWinners;
 	}
-
 	public void setDamTurfWinners(int damTurfWinners) {
 		DamTurfWinners = damTurfWinners;
 	}
-
 	public float getBrisCurrentClass() {
 		return BrisCurrentClass;
 	}
-
-
 	public void setBrisCurrentClass(float brisCurrentClass) {
 		BrisCurrentClass = brisCurrentClass;
 	}
-
-
 	public float getBrisAvgLast3Class() {
 		return BrisAvgLast3Class;
 	}
-
-
 	public void setBrisAvgLast3Class(float brisAvgLast3Class) {
 		BrisAvgLast3Class = brisAvgLast3Class;
 	}
-
 	public String getFlag() {
 		return flag;
 	}
-
 	public void setFlag(String flag) {
 		this.flag = flag;
 	}
-
 	public String getComment() {
 		return comment;
 	}
-
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
-
+	public List<Angle> getAngles() {
+		return angles;
+	}
+	public void setAngles(List<Angle> angles) {
+		this.angles = angles;
+	}
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
-
-
 	public int getRaceNumber() {
 		return RaceNumber;
 	}
@@ -906,11 +782,9 @@ public class Horse implements Serializable {
 	public int getPostPosition() {
 		return PostPosition;
 	}
-
 	public void setPostPosition(int postPosition) {
 		PostPosition = postPosition;
 	}
-
 	public String getEntry() {
 		return Entry;
 	}
@@ -935,7 +809,6 @@ public class Horse implements Serializable {
 	public void setYearOfBirth(int yearOfBirth) {
 		YearOfBirth = yearOfBirth;
 	}
-	
 	public int getAge() {
 		return LocalDate.now().getYear() - (YearOfBirth + 2000);
 	}
@@ -1501,7 +1374,6 @@ public class Horse implements Serializable {
 		result = prime * result + AllWeatherShows;
 		result = prime * result + AllWeatherStarts;
 		result = prime * result + AllWeatherWins;
-		result = prime * result + ((Angles == null) ? 0 : Angles.hashCode());
 		result = prime * result + ApprenticeWeightAllowed;
 		result = prime * result + ((AuctionLocationDate == null) ? 0 : AuctionLocationDate.hashCode());
 		result = prime * result + Float.floatToIntBits(AuctionPrice);
@@ -1642,6 +1514,7 @@ public class Horse implements Serializable {
 		result = prime * result + YearOfBirth;
 		result = prime * result + ((_showDetails == null) ? 0 : _showDetails.hashCode());
 		result = prime * result + age;
+		result = prime * result + ((angles == null) ? 0 : angles.hashCode());
 		result = prime * result + Float.floatToIntBits(bettingLine);
 		result = prime * result + Float.floatToIntBits(combinedPaceAvg);
 		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
@@ -1686,11 +1559,6 @@ public class Horse implements Serializable {
 		if (AllWeatherStarts != other.AllWeatherStarts)
 			return false;
 		if (AllWeatherWins != other.AllWeatherWins)
-			return false;
-		if (Angles == null) {
-			if (other.Angles != null)
-				return false;
-		} else if (!Angles.equals(other.Angles))
 			return false;
 		if (ApprenticeWeightAllowed != other.ApprenticeWeightAllowed)
 			return false;
@@ -2060,6 +1928,11 @@ public class Horse implements Serializable {
 			return false;
 		if (age != other.age)
 			return false;
+		if (angles == null) {
+			if (other.angles != null)
+				return false;
+		} else if (!angles.equals(other.angles))
+			return false;
 		if (Float.floatToIntBits(bettingLine) != Float.floatToIntBits(other.bettingLine))
 			return false;
 		if (Float.floatToIntBits(combinedPaceAvg) != Float.floatToIntBits(other.combinedPaceAvg))
@@ -2109,13 +1982,14 @@ public class Horse implements Serializable {
 		StringBuilder builder2 = new StringBuilder();
 		builder2.append("Horse [RaceNumber=").append(RaceNumber).append(", Owner=").append(Owner)
 				.append(", OwnerSilks=").append(OwnerSilks).append(", MTOFlag=").append(MTOFlag)
-				.append(", ProgramNumber=").append(ProgramNumber).append(", MLOdds=").append(MLOdds).append(", Name=")
-				.append(Name).append(", YearOfBirth=").append(YearOfBirth).append(", FoalingMonth=")
-				.append(FoalingMonth).append(", Sex=").append(Sex).append(", Color=").append(Color).append(", Weight=")
-				.append(Weight).append(", ApprenticeWeightAllowed=").append(ApprenticeWeightAllowed).append(", Sire=")
-				.append(Sire).append(", SiresSire=").append(SiresSire).append(", Dam=").append(Dam)
-				.append(", DamsSire=").append(DamsSire).append(", Breeder=").append(Breeder).append(", SireStudFee=")
-				.append(SireStudFee).append(", AuctionPrice=").append(AuctionPrice).append(", AuctionLocationDate=")
+				.append(", ProgramNumber=").append(ProgramNumber).append(", PostPosition=").append(PostPosition)
+				.append(", Entry=").append(Entry).append(", MLOdds=").append(MLOdds).append(", Name=").append(Name)
+				.append(", YearOfBirth=").append(YearOfBirth).append(", FoalingMonth=").append(FoalingMonth)
+				.append(", Sex=").append(Sex).append(", Color=").append(Color).append(", Weight=").append(Weight)
+				.append(", ApprenticeWeightAllowed=").append(ApprenticeWeightAllowed).append(", Sire=").append(Sire)
+				.append(", SiresSire=").append(SiresSire).append(", Dam=").append(Dam).append(", DamsSire=")
+				.append(DamsSire).append(", Breeder=").append(Breeder).append(", SireStudFee=").append(SireStudFee)
+				.append(", AuctionPrice=").append(AuctionPrice).append(", AuctionLocationDate=")
 				.append(AuctionLocationDate).append(", PedigreeRatingDirt=").append(PedigreeRatingDirt)
 				.append(", PedigreeRatingMud=").append(PedigreeRatingMud).append(", PedigreeRatingTurf=")
 				.append(PedigreeRatingTurf).append(", PedigreeRatingDist=").append(PedigreeRatingDist)
@@ -2134,43 +2008,65 @@ public class Horse implements Serializable {
 				.append(", DirtStarts=").append(DirtStarts).append(", DirtWins=").append(DirtWins)
 				.append(", DirtPlaces=").append(DirtPlaces).append(", DirtShows=").append(DirtShows)
 				.append(", DirtEarnings=").append(DirtEarnings).append(", DirtBestSpeed=").append(DirtBestSpeed)
-				.append(", TurfStarts=").append(TurfStarts).append(", TurfWins=").append(TurfWins)
-				.append(", TurfPlaces=").append(TurfPlaces).append(", TurfShows=").append(TurfShows)
-				.append(", TurfEarnings=").append(TurfEarnings).append(", TurfBestSpeed=").append(TurfBestSpeed)
-				.append(", WetStarts=").append(WetStarts).append(", WetWins=").append(WetWins).append(", WetPlaces=")
-				.append(WetPlaces).append(", WetShows=").append(WetShows).append(", WetEarnings=").append(WetEarnings)
-				.append(", WetBestSpeed=").append(WetBestSpeed).append(", AllWeatherStarts=").append(AllWeatherStarts)
-				.append(", AllWeatherWins=").append(AllWeatherWins).append(", AllWeatherPlaces=")
-				.append(AllWeatherPlaces).append(", AllWeatherShows=").append(AllWeatherShows)
-				.append(", AllWeatherBestSpeed=").append(AllWeatherBestSpeed).append(", AllWeatherEarnings=")
-				.append(AllWeatherEarnings).append(", CurrentYear=").append(CurrentYear).append(", CurrentYearStarts=")
-				.append(CurrentYearStarts).append(", CurrentYearWins=").append(CurrentYearWins)
-				.append(", CurrentYearPlaces=").append(CurrentYearPlaces).append(", CurrentYearShows=")
-				.append(CurrentYearShows).append(", CurrentYearEarnings=").append(CurrentYearEarnings)
-				.append(", PreviousYear=").append(PreviousYear).append(", PreviousYearStarts=")
-				.append(PreviousYearStarts).append(", PreviousYearWins=").append(PreviousYearWins)
-				.append(", PreviousYearPlaces=").append(PreviousYearPlaces).append(", PreviousYearShows=")
-				.append(PreviousYearShows).append(", PreviousYearEarnings=").append(PreviousYearEarnings)
-				.append(", MostRecentYearBestSpeed=").append(MostRecentYearBestSpeed)
-				.append(", SecondMostRecentYearBestSpeed=").append(SecondMostRecentYearBestSpeed).append(", RunStyle=")
-				.append(RunStyle).append(", SpeedPoints=").append(SpeedPoints).append(", LowClaimingPrice=")
-				.append(ClaimingPrice).append(", DaysSinceLastRace=").append(DaysSinceLastRace)
-				.append(", PrimePowerRating=").append(PrimePowerRating).append(", AverageClassRatingLastThree=")
-				.append(AverageClassRatingLastThree).append(", StatebredFlag=").append(StatebredFlag)
-				.append(", Trainer=").append(Trainer).append(", Jockey=").append(Jockey).append(", Workouts=")
-				.append(Workouts).append(", PastPerformances=").append(PastPerformances).append(", E1Avg=")
-				.append(E1Avg).append(", E2Avg=").append(E2Avg).append(", MaxE2=").append(MaxE2)
+				.append(", CurrentTrack=").append(CurrentTrack).append(", TurfStarts=").append(TurfStarts)
+				.append(", TurfWins=").append(TurfWins).append(", TurfPlaces=").append(TurfPlaces)
+				.append(", TurfShows=").append(TurfShows).append(", TurfEarnings=").append(TurfEarnings)
+				.append(", TurfBestSpeed=").append(TurfBestSpeed).append(", WetStarts=").append(WetStarts)
+				.append(", WetWins=").append(WetWins).append(", WetPlaces=").append(WetPlaces).append(", WetShows=")
+				.append(WetShows).append(", WetEarnings=").append(WetEarnings).append(", WetBestSpeed=")
+				.append(WetBestSpeed).append(", AllWeatherStarts=").append(AllWeatherStarts).append(", AllWeatherWins=")
+				.append(AllWeatherWins).append(", AllWeatherPlaces=").append(AllWeatherPlaces)
+				.append(", AllWeatherShows=").append(AllWeatherShows).append(", AllWeatherBestSpeed=")
+				.append(AllWeatherBestSpeed).append(", AllWeatherEarnings=").append(AllWeatherEarnings)
+				.append(", CurrentYear=").append(CurrentYear).append(", CurrentYearStarts=").append(CurrentYearStarts)
+				.append(", CurrentYearWins=").append(CurrentYearWins).append(", CurrentYearPlaces=")
+				.append(CurrentYearPlaces).append(", CurrentYearShows=").append(CurrentYearShows)
+				.append(", CurrentYearEarnings=").append(CurrentYearEarnings).append(", PreviousYear=")
+				.append(PreviousYear).append(", PreviousYearStarts=").append(PreviousYearStarts)
+				.append(", PreviousYearWins=").append(PreviousYearWins).append(", PreviousYearPlaces=")
+				.append(PreviousYearPlaces).append(", PreviousYearShows=").append(PreviousYearShows)
+				.append(", PreviousYearEarnings=").append(PreviousYearEarnings).append(", MostRecentYearBestSpeed=")
+				.append(MostRecentYearBestSpeed).append(", SecondMostRecentYearBestSpeed=")
+				.append(SecondMostRecentYearBestSpeed).append(", RunStyle=").append(RunStyle).append(", SpeedPoints=")
+				.append(SpeedPoints).append(", ClaimingPrice=").append(ClaimingPrice).append(", DaysSinceLastRace=")
+				.append(DaysSinceLastRace).append(", PrimePowerRating=").append(PrimePowerRating)
+				.append(", AverageClassRatingLastThree=").append(AverageClassRatingLastThree).append(", StatebredFlag=")
+				.append(StatebredFlag).append(", Trainer=").append(Trainer).append(", Jockey=").append(Jockey)
+				.append(", Workouts=").append(Workouts).append(", PastPerformances=").append(PastPerformances)
+				.append(", E1Avg=").append(E1Avg).append(", E2Avg=").append(E2Avg).append(", MaxE2=").append(MaxE2)
 				.append(", LatePaceAvg=").append(LatePaceAvg).append(", EarlyPosition=").append(EarlyPosition)
 				.append(", LatePosition=").append(LatePosition).append(", ClosingRatio=").append(ClosingRatio)
 				.append(", LatePaceBestLast3=").append(LatePaceBestLast3).append(", PaceAdjustedLate=")
 				.append(PaceAdjustedLate).append(", LatePaceLast=").append(LatePaceLast).append(", ClassRating=")
-				.append(ClassRating).append(", LastRaceStrength=").append(LastRaceStrength).append(", ClassShift=")
-				.append(ClassShift).append(", PurseShift=").append(PurseShift).append(", SpeedRating=")
-				.append(SpeedRating).append(", BasicFitness=").append(BasicFitness).append(", FormPoints=")
-				.append(FormPoints).append(", FurlongDays=").append(FurlongDays).append(", TurnTime=").append(TurnTime)
-				.append(", ARatingClass=").append(ARatingClass).append(", ARatingForm=").append(ARatingForm)
-				.append(", ARatingConnections=").append(ARatingConnections).append(", ARating=").append(ARating)
-				.append("]");
+				.append(ClassRating).append(", AverageCompetitiveLevel=").append(AverageCompetitiveLevel)
+				.append(", LastRaceStrength=").append(LastRaceStrength).append(", ClassShift=").append(ClassShift)
+				.append(", PurseShift=").append(PurseShift).append(", SpeedRating=").append(SpeedRating)
+				.append(", BasicFitness=").append(BasicFitness).append(", FormPoints=").append(FormPoints)
+				.append(", FurlongDays=").append(FurlongDays).append(", TurnTime=").append(TurnTime)
+				.append(", AvgAdjustedSpeedRating=").append(AvgAdjustedSpeedRating).append(", combinedPaceAvg=")
+				.append(combinedPaceAvg).append(", age=").append(age).append(", ARatingClass=").append(ARatingClass)
+				.append(", ARatingForm=").append(ARatingForm).append(", ARatingConnections=").append(ARatingConnections)
+				.append(", ARating=").append(ARating).append(", scratchedFlag=").append(scratchedFlag)
+				.append(", _showDetails=").append(_showDetails).append(", selection=").append(selection)
+				.append(", bettingLine=").append(bettingLine).append(", note=").append(note).append(", pick=")
+				.append(pick).append(", finishPosition=").append(finishPosition).append(", winPayout=")
+				.append(winPayout).append(", placePayout=").append(placePayout).append(", showPayout=")
+				.append(showPayout).append(", ARatingFairValue=").append(ARatingFairValue).append(", PrimePower=")
+				.append(PrimePower).append(", SireAWD=").append(SireAWD).append(", SireMudPercent=")
+				.append(SireMudPercent).append(", SireMudStarts=").append(SireMudStarts).append(", SireFirstPercent=")
+				.append(SireFirstPercent).append(", SireTurfPercent=").append(SireTurfPercent)
+				.append(", SireFirstTurfPercent=").append(SireFirstTurfPercent).append(", SireSPI=").append(SireSPI)
+				.append(", DamSireAWD=").append(DamSireAWD).append(", DamSireMudPercent=").append(DamSireMudPercent)
+				.append(", DamSireMudStarts=").append(DamSireMudStarts).append(", DamSireFirstPercent=")
+				.append(DamSireFirstPercent).append(", DamSireTurfPercent=").append(DamSireTurfPercent)
+				.append(", DamSireFirstTurfPercent=").append(DamSireFirstTurfPercent).append(", DamSireSPI=")
+				.append(DamSireSPI).append(", DamDescription=").append(DamDescription).append(", DamTwoYearOldPercent=")
+				.append(DamTwoYearOldPercent).append(", DamTurfWinners=").append(DamTurfWinners)
+				.append(", DamStarters=").append(DamStarters).append(", DamWinners=").append(DamWinners)
+				.append(", DamStakesWinners=").append(DamStakesWinners).append(", DamDPI=").append(DamDPI)
+				.append(", BrisCurrentClass=").append(BrisCurrentClass).append(", BrisAvgLast3Class=")
+				.append(BrisAvgLast3Class).append(", flag=").append(flag).append(", comment=").append(comment)
+				.append(", angles=").append(angles).append("]");
 		return builder2.toString();
 	}
 	public Horse() {
@@ -2311,7 +2207,6 @@ public class Horse implements Serializable {
 		private float ARating;
 		private Boolean scratchedFlag;
 		private Boolean _showDetails;
-		private List<String> Angles = Collections.emptyList();
 		private String selection;
 		private float bettingLine;
 		private String note;
@@ -2347,6 +2242,7 @@ public class Horse implements Serializable {
 		private float BrisAvgLast3Class;
 		private String flag;
 		private String comment;
+		private List<Angle> angles = Collections.emptyList();
 
 		private Builder() {
 		}
@@ -2991,11 +2887,6 @@ public class Horse implements Serializable {
 			return this;
 		}
 
-		public Builder withAngles(List<String> Angles) {
-			this.Angles = Angles;
-			return this;
-		}
-
 		public Builder withSelection(String selection) {
 			this.selection = selection;
 			return this;
@@ -3168,6 +3059,11 @@ public class Horse implements Serializable {
 
 		public Builder withComment(String comment) {
 			this.comment = comment;
+			return this;
+		}
+
+		public Builder withAngles(List<Angle> angles) {
+			this.angles = angles;
 			return this;
 		}
 

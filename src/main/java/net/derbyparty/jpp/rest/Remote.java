@@ -813,4 +813,21 @@ public class Remote {
 	  
 	}
 	
+	@Path("retrieveCalculateAndSaveAll")
+	@GET
+	public Response retrieveCalculateAndSaveAll() throws Exception {
+	  
+	  try {
+		    
+		    Main.retrieveCalculateAndSaveAll();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
 }

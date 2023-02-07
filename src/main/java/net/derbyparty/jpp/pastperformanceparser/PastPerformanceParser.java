@@ -11,6 +11,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import net.derbyparty.jpp.object.Angle;
 import net.derbyparty.jpp.object.Horse;
 import net.derbyparty.jpp.object.Race;
 import net.derbyparty.jpp.object.Stat;
@@ -210,8 +211,14 @@ public class PastPerformanceParser {
 				Matcher angleLineMatcher = ANGLE_LINE.matcher(lines[i]);
 				if (horse != null) {
 					while (angleLineMatcher.find()) {
-						List<String> angles = new ArrayList<String>(horse.getAngles());
-						angles.add((angleLineMatcher.group(1).charAt(0) == '×' ? "-" : "+") + angleLineMatcher.group(2));
+						List<Angle> angles = horse.getAngles();
+						if (angles == null) angles = new ArrayList<Angle>();
+						angles.add(
+							Angle.builder()
+							.withType(angleLineMatcher.group(1).charAt(0) == '×' ? "-" : "+")
+							.withText(angleLineMatcher.group(2))
+							.build() 
+						);
 						horse.setAngles(angles);
 					}
 				}

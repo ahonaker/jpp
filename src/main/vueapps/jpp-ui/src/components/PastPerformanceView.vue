@@ -457,7 +457,7 @@ export default {
         },
         highlightFinalFraction(value,key,item) {
 			if (!this.race) return;
-            if (this.race.turfFlag && this.race.furlongs >= 8) {
+            if (this.race.turfFlag && !this.offTheTurfFlag && this.race.furlongs >= 8) {
                 var final;
                 var target;
 

@@ -527,7 +527,7 @@
                         </b-row>                                               
                         <b-row v-for="(angle,ndx) in row.item.angles" :key="ndx">
                             <b-col>
-                                <span :class="'font-weight-bold ' + (angle.charAt(0) == '+' ? 'text-success' : (angle.charAt(0) == '-' ? 'text-danger' : 'text-warning'))">{{angle.substring(1)}}</span>
+                                <span :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">{{angle.text}}</span>
                             </b-col>
                         </b-row>
                     </b-col>
