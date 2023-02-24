@@ -367,8 +367,8 @@
                             <b-col cols="2">
                                 {{row.item.jockey.currentYearStarts}}
                             </b-col>
-                            <b-col :class="row.item.jockey.currentYearStarts >= 20 && row.item.trainer.currentYearWins/row.item.jockey.currentYearStarts*100 >= 20 ? 'greenHighlight' : ''">
-                                {{row.item.jockey.currentYearStarts == 0 ? 0 : (row.item.jockey.currentYearWins/row.item.jockey.currentYearStarts*100).toFixed(0)}}%
+                            <b-col :class="row.item.jockey.currentYearStarts >= 20 && row.item.jockey.currentYearWins/row.item.jockey.currentYearStarts*100 >= 20 ? 'greenHighlight' : ''">
+                                {{row.item.jockey.currentYearStarts == 0 ? 0 : ((row.item.jockey.currentYearWins/row.item.jockey.currentYearStarts)*100).toFixed(0)}}%
                             </b-col>
                             <b-col>
                                 {{row.item.jockey.currentYearStarts == 0 ? 0 : ((row.item.jockey.currentYearWins + row.item.jockey.currentYearPlaces + row.item.jockey.currentYearShows)/row.item.jockey.currentYearStarts*100).toFixed(0)}}%
@@ -527,10 +527,11 @@
                         </b-row>                                               
                         <b-row v-for="(angle,ndx) in row.item.angles" :key="ndx">
                             <b-col>
-                                <span :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">
+                                <span v-if="angle.source != 'Summary'" :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">
                                     <b-icon-file-pdf v-if="angle.source == 'Augmented'"></b-icon-file-pdf>
                                     <b-icon-lightbulb v-if="angle.source == 'Generated'"></b-icon-lightbulb>
-                                    {{angle.text}}
+                                    {{angle.text}} 
+                                    <span v-if="angle.source=='Generated'">({{angle.total}} {{angle.winPercent}}% {{angle.itmPercent}}% ${{angle.roi}})</span>
                                 </span>
                             </b-col>
                         </b-row>
@@ -590,7 +591,7 @@ export default {
                 {key: "pickButton", label:""},
                 {key: "selection", label: "ABC", title: "ABC Selection"},
                 {key: "bettingLine", label: "FV", title: "Betting Fair Value Line"},  
-                {key: "aratingFairValue", label: "AFV", title: "A Rating Fair Value Line", formatter: this.format1Place},           
+                {key: "aratingFairValue", label: "AFV", title: "A Rating Fair Value Line", formatter: this.format1Place, sortable:true},           
 				{key: "mlodds", "label": "ML", title: "Morning Line Odds", sortable:true, tdClass: this.formatOdds, rank: true, reverse: true},
 				{key: "name", tdClass: this.highlightName},
 				{key: "daysSinceLastRace", label:"l/r", title: "Days Since Last Race", tdClass: this.highlightDaysSince},

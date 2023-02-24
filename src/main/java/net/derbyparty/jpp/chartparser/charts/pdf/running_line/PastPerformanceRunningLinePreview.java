@@ -84,6 +84,7 @@ public class PastPerformanceRunningLinePreview {
                 break;
             }
         }
+        
         return ppRunningLinePreview;
     }
 
@@ -95,7 +96,7 @@ public class PastPerformanceRunningLinePreview {
             if (previous == null) {
                 line.add(d);
             } else {
-                if (d.getxDirAdj() < previous.getxDirAdj()) {
+                if (d.getxDirAdj() < previous.getxDirAdj() && d.getUnicode() != '(' && d.getUnicode() != '|') {
                     lines.add(line);
                     line = new ArrayList<>();
                 }

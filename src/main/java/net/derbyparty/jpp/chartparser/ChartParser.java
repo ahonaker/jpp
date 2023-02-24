@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -177,6 +178,8 @@ public class ChartParser {
                         RaceTypeNameBlackTypeBreed.parse(lines);
                 raceResultBuilder.raceTypeAndRaceNameAndBlackTypeAndBreed(
                         raceTypeNameBlackTypeBreed);
+                
+                if (raceTypeNameBlackTypeBreed.getRaceType() == null) System.out.println(track.get().getCode() + " " + trackRaceDateRaceNumber.getRaceDate().format(DateTimeFormatter.ofPattern("MMddYYYY")) + " " + trackRaceDateRaceNumber.getRaceNumber());
 
                 // Race Conditions
                 RaceConditions raceConditions =

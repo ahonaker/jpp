@@ -129,8 +129,12 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>${bouncycastle.version}</version>
-        </dependency>	
-	    	    						                                 
+        </dependency>   	
+		<dependency>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-math3</artifactId>
+		    <version>3.6.1</version>
+		</dependency>            						                                 
   </dependencies>
 
 

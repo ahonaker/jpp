@@ -196,6 +196,17 @@ public class Main {
 						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + name + ".json").toFile(), HorseToWatch.class);
 						horse.setComment(horseToWatch.getComment());
 						horse.setFlag(horseToWatch.getFlag());
+						for (PastPerformance pp : horse.getPastPerformances()) {
+				    		for (int j = 0; j < horseToWatch.getRaceNotes().size(); j++) {
+				    			if (horseToWatch.getRaceNotes().get(j).getTrack().equals(pp.getTrackCode())
+				    				&& horseToWatch.getRaceNotes().get(j).getRaceDate().equals(pp.getRaceDate())
+				    				&& horseToWatch.getRaceNotes().get(j).getRaceNumber() == pp.getRaceNumber()) {
+				    					pp.setComment(horseToWatch.getRaceNotes().get(j).getComment());
+				    					pp.setFlag(horseToWatch.getRaceNotes().get(j).getFlag());
+				    					pp.setFootnote(horseToWatch.getRaceNotes().get(j).getFootnote());
+				    			}
+				    		}
+						}
 					}
 				}
 			}
@@ -330,8 +341,16 @@ public class Main {
 				if (distanceOption.equals("similar") && (race.getFurlongs() < 8 && pp.getFurlongs() >= 8)) include = false;
 				if (distanceOption.equals("similar") && (race.getFurlongs() >= 8 && pp.getFurlongs() < 8)) include = false;
 				
-				if (surfaceOption.equals("same") && race.getTurfFlag() != pp.getTurfFlag()) include = false;
+				if (surfaceOption.equals("same")) {
+						if (race.getTurfFlag() && pp.getTurfFlag() && race.getOffTheTurfFlag()) include = false;
+						if (race.getTurfFlag() && !pp.getTurfFlag() && !race.getOffTheTurfFlag()) include = false;
+						if (!race.getTurfFlag() && pp.getTurfFlag()) include = false;
+						if (!race.getTurfFlag() && !race.getAllWeatherSurfaceFlag().equals("A") && pp.getAllWeatherSurfaceFlag().equals("A")) include = false;
+						if (race.getAllWeatherSurfaceFlag().equals("A") && !pp.getAllWeatherSurfaceFlag().equals("A")) include = false;
+						
+				}
 				if (surfaceOption.equals("off") && !pp.getOffTheTurfFlag()) include = false;
+
 				
 				if (conditionOption.equals("good") && !pp.getTrackCondition().equals("ft") && !pp.getTrackCondition().equals("fm")) {
 					include = false;
@@ -420,15 +439,16 @@ public class Main {
 				race.setHandicappingNotes(Factors.GenerateHandicappingNotes(race));
 				
 				for (Horse horse : race.getUnscratchedHorses()) {
+					
 					List<Angle> angles = horse.getAngles();
 					List<Angle> newAngles = new ArrayList<Angle>();
 					for (Angle angle : angles) {
-						if (!angle.getText().equals("Generated")) newAngles.add(angle);
+						if (angle.getSource().equals("Augmented")) newAngles.add(angle);
 					}
 					for (Angle angle : Angles.generateAngles(race, horse)) {
 						newAngles.add(angle);
 					}
-					horse.setAngles(angles);
+					horse.setAngles(newAngles);
 				}
 			}
 			
@@ -550,6 +570,20 @@ public class Main {
 			for (Race race : races) {
 				if (race.getRaceNumber() == raceNumber) {
 					race.setOffTheTurfFlag(!race.getOffTheTurfFlag());
+				}
+			}
+			
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public static void toggleOntoAllWeather(int raceNumber) throws Exception {
+		
+		try {
+			for (Race race : races) {
+				if (race.getRaceNumber() == raceNumber) {
+					race.setOntoAllWeatherFlag(!race.getOntoAllWeatherFlag());
 				}
 			}
 			
@@ -809,8 +843,7 @@ public class Main {
 	public static void saveNotes(JsonNode data) throws Exception {
 		
 		try {
-			Boolean firstTime = true;
-			for (JsonNode race : data) {
+			for (JsonNode race :data) {
 				LocalDate raceDate = LocalDate.of(race.get("raceDate").get(0).asInt(), race.get("raceDate").get(1).asInt(), race.get("raceDate").get(2).asInt());
 				for (JsonNode starter : race.get("starters")) {
 					File horseFile = new File(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json");
@@ -851,10 +884,6 @@ public class Main {
 							horseToWatch.setRaceNotes(raceNotes);
 						}
 						horseToWatch.save();
-						if (firstTime) {
-							markChartReviewed(race.get("track").asText(), raceDate);
-							firstTime = false;
-						}
 					} else {
 						List<RaceNote> raceNotes = new ArrayList<RaceNote>();
 						raceNotes.add(RaceNote.builder()
@@ -881,10 +910,6 @@ public class Main {
 							.withRaceNotes(raceNotes)
 							.build();
 						horseToWatch.save();
-						if (firstTime) {
-							markChartReviewed(race.get("track").asText(), raceDate);
-							firstTime = false;
-						}
 					}
 				}
 			}
@@ -1056,14 +1081,14 @@ public class Main {
 		}
 	}
 	
-	public static void markChartReviewed(String trackToMark, LocalDate date) throws Exception {
+	public static void toggleChartReviewed(String trackToMark, LocalDate date) throws Exception {
 		
 		try {
 			List<Track> raceDates = new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
 			for (Track track : raceDates) {
 				if (track.getCode().equals(trackToMark))
 					for (RaceDate raceDate: track.getRaceDates()) {
-						if (raceDate.getRaceDate().equals(date)) raceDate.setReviewedFlag(true);
+						if (raceDate.getRaceDate().equals(date)) raceDate.setReviewedFlag(!raceDate.getReviewedFlag());
 					}
 			}
 			mapper.writeValue(Paths.get(raceDatesFile).toFile(), raceDates);

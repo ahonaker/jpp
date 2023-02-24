@@ -78,7 +78,7 @@
             <span v-if="row.item.surface == 'INNER_DIRT'"><b-badge variant="secondary"><b-icon-circle-fill></b-icon-circle-fill></b-badge></span>
             <span v-if="row.item.surface == 'TURF'"><b-badge pill variant="secondary">&nbsp;T&nbsp;</b-badge></span>
             <span v-if="row.item.surface == 'INNER_TURF'"><b-badge variant="secondary">&nbsp;T&nbsp;</b-badge></span>
-            <span v-if="row.item.allWeatherSurfaceFlag == 'A'"><b-badge pill variant="secondary">&nbsp;A&nbsp;</b-badge></span>
+            <span v-if="row.item.allWeatherSurfaceFlag == 'A' || row.item.ontoAllWeatherFlag"><b-badge pill variant="secondary">&nbsp;A&nbsp;</b-badge></span>
             <span v-if="row.item.offTheTurfFlag"><b-badge pill variant="secondary">&nbsp;X&nbsp;</b-badge></span>
         </template>
         <template #cell(trainerAndClaimFlag)="row">
@@ -503,8 +503,11 @@ export default {
 				if ((item.surface.indexOf("TURF") == -1 || item.offTheTurfFlag)
 					&& ((this.race.trackCondition == "ft" && item.trackCondition == "ft") || (this.race.trackCondition != "ft" && ["gd","hy","my","sl","sy","wf"].indexOf(item.trackCondition) > -1))
 					&& ((Math.abs(this.race.furlongs) < 8 && Math.abs(item.furlongs) < 8) || (Math.abs(this.race.furlongs) >= 8 && Math.abs(item.furlongs) >= 8))
-                    && this.race.allWeatherSurfaceFlag == item.allWeatherSurfaceFlag) 
+                    && ((this.race.allWeatherSurfaceFlag != "A" && item.allWeatherSurfaceFlag != "A" && !this.race.ontoAllWeatherFlag)
+                        || (this.race.allWeatherSurfaceFlag == "A" && item.allWeatherSurfaceFlag == "A") 
+                        || (this.race.ontoAllWeatherFlag && item.allWeatherSurfaceFlag == "A")))
 					return "blueHighlight";
+                
 			}
 		},
 		alsoInRace(nameToMatch, row) {

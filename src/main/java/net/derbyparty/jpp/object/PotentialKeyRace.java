@@ -8,6 +8,40 @@ import java.util.Collections;
 
 public class PotentialKeyRace implements Serializable {
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((raceDate == null) ? 0 : raceDate.hashCode());
+		result = prime * result + raceNumber;
+		result = prime * result + ((track == null) ? 0 : track.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PotentialKeyRace other = (PotentialKeyRace) obj;
+		if (raceDate == null) {
+			if (other.raceDate != null)
+				return false;
+		} else if (!raceDate.equals(other.raceDate))
+			return false;
+		if (raceNumber != other.raceNumber)
+			return false;
+		if (track == null) {
+			if (other.track != null)
+				return false;
+		} else if (!track.equals(other.track))
+			return false;
+		return true;
+	}
+
 	private static final long serialVersionUID = 1L;
 	
 	private LocalDate raceDate;

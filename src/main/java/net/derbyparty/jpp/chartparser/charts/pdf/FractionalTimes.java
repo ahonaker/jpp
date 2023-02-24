@@ -14,7 +14,7 @@ import static java.util.Arrays.asList;
 public class FractionalTimes {
 
     private static final Pattern FRAC_TIMES_PATTERN =
-            Pattern.compile("(Fractional Times: (.+)\\|)?Final Time: (\\d?\\d?:?\\d\\d.\\d\\d)");
+            Pattern.compile("(Fractional Times: (.+)[\\|\\s])?Final Time: (\\d?\\d?:?\\d\\d.\\d\\d)");
 
     public static ArrayList<String> parse(List<List<ChartCharacter>> runningLines) {
         String fractionalTimesCandidate = null;
@@ -25,6 +25,7 @@ public class FractionalTimes {
                 if (text.startsWith("Fractional Times:") || text.startsWith("Final Time:")) {
                     runningLines.remove(i);
                     fractionalTimesCandidate = text.replaceAll(System.lineSeparator(), "");
+                    //System.out.println(fractionalTimesCandidate);
                     Matcher fractionalTimes = FRAC_TIMES_PATTERN.matcher(fractionalTimesCandidate);
                     if (fractionalTimes.find()) {
                         if (fractionalTimes.group(1) != null) {
@@ -33,7 +34,7 @@ public class FractionalTimes {
                             fractions = new ArrayList<>(times);
                         }
                         String finalTime = fractionalTimes.group(3);
-
+                        //System.out.println("Final Time: " + finalTime);
                         fractions.add(finalTime);
                         return fractions;
                     }

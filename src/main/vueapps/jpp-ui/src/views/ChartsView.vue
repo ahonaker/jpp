@@ -27,7 +27,9 @@
                 </b-form>						
             </b-col>
             <b-col class="text-right">
-                <b-button v-if="this.chart" variant="primary" @click="saveNotes()">Save Notes</b-button>
+                <b-button v-if="this.chart" variant="primary" class="mr-2"  @click="saveNotes()">Save Notes</b-button>
+				<b-button v-if="this.chart && chartReviewed" variant="success" @click="toggleChartReviewed">UnReview</b-button>
+				<b-button v-if="this.chart && !chartReviewed" variant="danger" @click="toggleChartReviewed">Review</b-button>
             </b-col>
         </b-row>
         <b-tabs v-model="chartTabIndex" class="mt-2">
@@ -58,6 +60,7 @@ export default {
 			chart: null,
 			charts: [],
 			chartDate: null,
+			chartReviewed: false,
 			chartTabIndex: 0,
 			tracks: [],
 			track: null,
@@ -109,8 +112,7 @@ export default {
 					return d[0] + "-" 
 						+ str_pad_left(d[1],0,2)  + "-"
 						+ str_pad_left(d[2],0,2); 
-                });
-            
+                }); 
 		},
 		starterFields() {
 			var starterFields = [];
@@ -177,6 +179,11 @@ export default {
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.chart = response.data;
+				var chartDate = [this.chartDate.getFullYear(), this.chartDate.getMonth()+1, this.chartDate.getDate()];
+				var track = _.findWhere(this.charts, {code: this.track});
+				this.chartReviewed = _.find(track.raceDates, function(d){				
+					return (d.raceDate[0] == chartDate[0] && d.raceDate[1] == chartDate[1] && d.raceDate[2] == chartDate[2]);
+				}).reviewedFlag;
 				this.status = "";
 			} catch (err) {
 				console.log(err.response);
@@ -236,7 +243,22 @@ export default {
                 console.log(err);
                 
             }
-		},						
+		},		
+		async toggleChartReviewed() {
+			try {
+				this.status = "Updating";
+				await axios({
+					url: 'toggleChartReviewed/' + this.track + "/" + this.chartDate.getFullYear() + "/" + (this.chartDate.getMonth() + 1)+ "/" + this.chartDate.getDate(),
+					method: 'GET',
+					baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});
+				this.chartReviewed = !this.chartReviewed;
+				this.status = "";
+			} catch (err) {
+				console.log(err.response);
+							
+			}
+		},			
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);
 		},

@@ -453,6 +453,7 @@
 						<b-nav-form>
 							<b-form-select v-model="race.trackCondition" :options="trackConditions" @change="updateCondition(race)"></b-form-select>		
 							<b-form-checkbox switch class="m-2" v-if="race.surface.indexOf('TURF') > -1" v-model="race.offTheTurfFlag" @change="toggleOffTheTurf(race)">Off</b-form-checkbox>
+							<b-form-checkbox switch class="m-2" v-if="race.offTheTurfFlag" v-model="race.ontoAllWeatherFlag" @change="toggleOntoAllWeather(race)">Onto AW</b-form-checkbox>
 							<b-form-select class="m-2" v-model="options.distance" :options="distanceOptions" @change="calculate"></b-form-select>
 							<b-form-select class="m-2" v-model="options.surface" :options="surfaceOptions" @change="calculate"></b-form-select>
 							<b-form-select class="m-2" v-model="options.condition" :options="conditionOptions" @change="calculate"></b-form-select>	
@@ -1015,6 +1016,22 @@ export default {
                 
             }		
 		},
+		async toggleOntoAllWeather(race) {
+            try {
+				await this.save(true);
+				this.status = "Updating";
+                const response = await axios({
+                    url: 'toggleOntoAllWeather/' + race.raceNumber,
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+                });
+				this.races = response.data;
+				this.status = "";
+            } catch (err) {
+                console.log(err.response);
+                
+            }		
+		},		
 		toggleAll(race, b) {
 			_.each(race.horses, async function(horse){		
 				try {

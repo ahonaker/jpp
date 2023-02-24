@@ -7,7 +7,7 @@
         @row-clicked="toggleIgnored"
     >
         <template #head()="data">
-            {{ data.label }}>
+            {{ data.label }}
         </template>  
         <template #cell(raceDateString)="row">
             {{row.item.raceDateString}}<sup>{{row.item.raceNumber}}</sup>
@@ -88,22 +88,26 @@
             <span v-if="row.item.raceStrength != 0">{{format2Places(row.item.raceStrength)}}</span>
         </template>        
         <template #cell(e1)="row">
-            <span v-if="row.item.e1 != 0">{{row.item.e1}}</span>
+            <span v-if="row.item.e1 != 0">
+                <span :class="highlightPace(row.value, row.key, row.item)">{{row.item.e1}}</span>
+                <span :class="highlightRaceShape(row.value, row.key, row.item)"><br><span v-if="row.item.raceShapeFirstCall > 0">+</span>{{row.item.raceShapeFirstCall}}</span>
+            </span>
         </template>        
         <template #cell(e2)="row">
-            <span v-if="row.item.e2 != 0">{{row.item.e2}}/</span>
+            <span v-if="row.item.e2 != 0">
+                <span :class="highlightPace(row.value, row.key, row.item)">{{row.item.e2}}/</span>
+                <span :class="highlightRaceShape(row.value, row.key, row.item)"><br><span v-if="row.item.raceShapeFirstCall > 0">+</span>{{row.item.raceShapeFirstCall}}</span>
+            </span>
         </template>
         <template #cell(paceFigureLate)="row">
             <span v-if="row.item.paceFigureLate != 0">{{row.item.paceFigureLate}}</span>
-        </template>        
-        <template #cell(raceShapeFirstCall)="row">
-            <span v-if="row.item.e1 != 0"><span v-if="row.item.raceShapeFirstCall > 0">+</span>{{row.item.raceShapeFirstCall}}</span>
-        </template>
-        <template #cell(raceShapeSecondCall)="row">
-            <span v-if="row.item.e2 != 0"><span v-if="row.item.raceShapeSecondCall > 0">+</span>{{row.item.raceShapeSecondCall}}</span>
-        </template>		
+        </template>	
          <template #cell(brisspeedRating)="row">
-            <span v-if="row.item.brisspeedRating != 0">{{row.item.brisspeedRating}}</span><span v-if="row.item.speedPar != 0" :class="{'text-success font-weight-bold': race && row.item.speedPar >= race.parSpeed}"> / {{row.item.speedPar}}</span>
+            <span :class="highlightSpeedInRange(row.value, row.key, row.item)">
+                <span v-if="row.item.brisspeedRating != 0">{{row.item.brisspeedRating}}</span>
+                <span v-if="row.item.speedPar != 0" :class="{'text-success font-weight-bold': race && row.item.speedPar >= race.parSpeed}"> / {{row.item.speedPar}}
+            </span>
+            <span :class="highlightRaceShape2(row.value, row.key, row.item)"><br>{{row.item.raceShape}}</span></span>
         </template>						
         <template #cell(speedRating)="row">
             <span v-if="row.item.speedRating != 0">
@@ -125,7 +129,10 @@
            <span v-if="row.item.stretchPosition != 0" :class="{'font-weight-bold': row.item.stretchPosition == 1}"> {{row.item.stretchPosition}}<sup>{{row.item.stretchBeatenLengthsLeader.toFixed(2)}}</sup></span>
         </template>	
         <template #cell(finishPosition)="row">
-            <span v-if="row.item.extraCommentLine.substring(0,1) == '(' || row.item.extraCommentLine == 'Dead heat'" class="text-danger">*</span>{{row.item.finishPosition}}<sup>{{row.item.finishBeatenLengthsLeader.toFixed(2)}}</sup>
+            <span :class="highlightFinish(row.value, row.key, row.item)">
+                <span v-if="row.item.extraCommentLine.substring(0,1) == '(' || row.item.extraCommentLine == 'Dead heat'" class="text-danger">*</span>{{row.item.finishPosition}}<sup>{{row.item.finishBeatenLengthsLeader.toFixed(2)}}</sup>
+            </span>
+            <br><span :class="highlightBeatenFavorite(row.value, row.key, row.item)"><span v-if="row.item.favoriteFlag > 0"><sup>*</sup></span>{{format2Places(row.item.odds)}}</span>
         </template>	
         <template #cell(jockey)="row">	
             {{shortenName(row.item.jockey)}}<sup>{{row.item.weight}}</sup>
@@ -133,9 +140,6 @@
         <template #cell(medication)="row">	
             {{row.item.equipment}}<span v-if="row.item.medication == 'LASIX'">L</span>
         </template>																		
-        <template #cell(odds)="row">	
-            <span v-if="row.item.favoriteFlag > 0"><sup>*</sup></span>{{format2Places(row.item.odds)}}
-        </template>	
         <template #cell(finishers)="row">	
             <span :class="alsoInRace(row.item.winnersName, row.item)">{{row.item.winnersName}}</span><sup>{{row.item.winnersMargin.toFixed(2)}}</sup>
             <span :class="alsoInRace(row.item.placeName, row.item)">{{row.item.placeName}}</span><sup>{{row.item.placeMargin.toFixed(2)}}</sup>
@@ -178,23 +182,23 @@ export default {
 				{key: "raceClassification", label: "RACETYPE", title: "Race Classification"},
 				{key: "purse", tdClass: this.highlightPurseShift},
                 {key: "trainerAndClaimFlag", label: "Trnr"},
-				{key: "e1", tdClass: this.highlightPace, title: "1st Call Pace Rating (Start to 2F in sprints, 4F in routes)"},
-				{key: "e2", label: "E2/", title: "2nd Call Pace Rating (Start to 4F in sprints, 6F in most routes)", tdClass: this.highlightPace},
+				{key: "e1", title: "1st Call Pace Rating (Start to 2F in sprints, 4F in routes)"},
+				{key: "e2", label: "E2/", title: "2nd Call Pace Rating (Start to 4F in sprints, 6F in most routes)"},
 				{key: "paceFigureLate", label: "LP", title: "Late Pace Rating (2nd Call to Finish)", tdClass: this.highlightPace},
-				{key: "raceShapeFirstCall", title: "1st Call Race Shape (leader's pace compared to average)", label: "1c", tdClass: this.highlightRaceShape},
-				{key: "raceShapeSecondCall", title: "2nd Call Race Shape (leader's pace compared to average)", label: "2c", tdClass: this.highlightRaceShape},
-				{key: "brisspeedRating", label: "SPD", title: "BRIS Speed Rating and Race Par", class: "strong", tdClass: this.highlightSpeedInRange},
-                {key: "raceShape", label: "Shp", title: "Race Shape (1st Call Pace and Final Speed - e.g., FF is Fast/Fast, AS is Average/Slow)", tdClass: this.highlightRaceShape2},
+				//{key: "raceShapeFirstCall", title: "1st Call Race Shape (leader's pace compared to average)", label: "1c", tdClass: this.highlightRaceShape},
+				//{key: "raceShapeSecondCall", title: "2nd Call Race Shape (leader's pace compared to average)", label: "2c", tdClass: this.highlightRaceShape},
+				{key: "brisspeedRating", label: "SPD", title: "BRIS Speed Rating and Race Par", class: "strong"},
+                //{key: "raceShape", label: "Shp", title: "Race Shape (1st Call Pace and Final Speed - e.g., FF is Fast/Fast, AS is Average/Slow)", tdClass: this.highlightRaceShape2},
                 {key: "speedRating", title: "DRF Speed Rating and Track Variant", label: "SR-TV"},
                 {key: "postPosition", title: "Post Position", label: "PP"},
 				{key: "startCallPosition", title: "Start Call Position", label: "ST"},
 				{key: "firstCallPosition", title: "First Call Position", label: "1C"},
 				{key: "secondCallPosition", title: "Second Call Position", label: "2C"},
 				{key: "stretchPosition", title: "Stretch Call Position", label: "STR"},
-				{key: "finishPosition", title: "Finish Position", label: "FIN", tdClass: this.highlightFinish},
+				{key: "finishPosition", title: "Finish Position", label: "FIN"},
 				{key: "jockey", label: "JOCKEY"},
 				{key: "medication", label: ""},
-				{key: "odds", label: "ODDS", tdClass: this.highlightBeatenFavorite},
+				//{key: "odds", label: "ODDS", tdClass: this.highlightBeatenFavorite},
 				{key: "finishers", label: "Top Finishers"},
 				{key: "tripComment", label: "Comment"},
 				{key: "numberOfEntrants", label: ""}

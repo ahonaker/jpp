@@ -3,7 +3,7 @@ package net.derbyparty.jpp.object;
 import java.io.Serializable;
 import javax.annotation.Generated;
 
-public class Angle implements Serializable {
+public class Angle implements Serializable, Comparable<Angle> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -13,6 +13,12 @@ public class Angle implements Serializable {
 	private String type;
 	private String text;
 	private String description;
+	
+	private int total;
+	private int winners;
+	private float winPercent;
+	private float itmPercent;
+	private float roi;
 
 	@Generated("SparkTools")
 	private Angle(Builder builder) {
@@ -22,6 +28,11 @@ public class Angle implements Serializable {
 		this.type = builder.type;
 		this.text = builder.text;
 		this.description = builder.description;
+		this.total = builder.total;
+		this.winners = builder.winners;
+		this.winPercent = builder.winPercent;
+		this.itmPercent = builder.itmPercent;
+		this.roi = builder.roi;
 	}
 
 	public String getSource() {
@@ -60,16 +71,60 @@ public class Angle implements Serializable {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	public int getTotal() {
+		return total;
+	}
+	public void setTotal(int total) {
+		this.total = total;
+	}
+	public int getWinners() {
+		return winners;
+	}
+	public void setWinners(int winners) {
+		this.winners = winners;
+	}
+	public float getWinPercent() {
+		return winPercent;
+	}
+	public void setWinPercent(float winPercent) {
+		this.winPercent = winPercent;
+	}
+	public float getItmPercent() {
+		return itmPercent;
+	}
+	public void setItmPercent(float itmPercent) {
+		this.itmPercent = itmPercent;
+	}
+	public float getRoi() {
+		return roi;
+	}
+	public void setRoi(float roi) {
+		this.roi = roi;
+	}
+	@Override
+	public int compareTo(Angle o) {
+		if (this.source.compareTo(o.source) != 0) {
+			return this.source.compareTo(o.source);
+		} else {
+			return Float.compare(this.winPercent, o.winPercent);
+		}
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + Float.floatToIntBits(itmPercent);
 		result = prime * result + ((method == null) ? 0 : method.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + Float.floatToIntBits(roi);
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((text == null) ? 0 : text.hashCode());
+		result = prime * result + total;
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + Float.floatToIntBits(winPercent);
+		result = prime * result + winners;
 		return result;
 	}
 	@Override
@@ -86,6 +141,8 @@ public class Angle implements Serializable {
 				return false;
 		} else if (!description.equals(other.description))
 			return false;
+		if (Float.floatToIntBits(itmPercent) != Float.floatToIntBits(other.itmPercent))
+			return false;
 		if (method == null) {
 			if (other.method != null)
 				return false;
@@ -95,6 +152,8 @@ public class Angle implements Serializable {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
+			return false;
+		if (Float.floatToIntBits(roi) != Float.floatToIntBits(other.roi))
 			return false;
 		if (source == null) {
 			if (other.source != null)
@@ -106,10 +165,16 @@ public class Angle implements Serializable {
 				return false;
 		} else if (!text.equals(other.text))
 			return false;
+		if (total != other.total)
+			return false;
 		if (type == null) {
 			if (other.type != null)
 				return false;
 		} else if (!type.equals(other.type))
+			return false;
+		if (Float.floatToIntBits(winPercent) != Float.floatToIntBits(other.winPercent))
+			return false;
+		if (winners != other.winners)
 			return false;
 		return true;
 	}
@@ -119,7 +184,9 @@ public class Angle implements Serializable {
 		StringBuilder builder2 = new StringBuilder();
 		builder2.append("Angle [source=").append(source).append(", name=").append(name).append(", method=")
 				.append(method).append(", type=").append(type).append(", text=").append(text).append(", description=")
-				.append(description).append("]");
+				.append(description).append(", total=").append(total).append(", winners=").append(winners)
+				.append(", winPercent=").append(winPercent).append(", itmPercent=").append(itmPercent).append(", roi=")
+				.append(roi).append("]");
 		return builder2.toString();
 	}
 	
@@ -149,6 +216,11 @@ public class Angle implements Serializable {
 		private String type;
 		private String text;
 		private String description;
+		private int total;
+		private int winners;
+		private float winPercent;
+		private float itmPercent;
+		private float roi;
 
 		private Builder() {
 		}
@@ -180,6 +252,31 @@ public class Angle implements Serializable {
 
 		public Builder withDescription(String description) {
 			this.description = description;
+			return this;
+		}
+
+		public Builder withTotal(int total) {
+			this.total = total;
+			return this;
+		}
+
+		public Builder withWinners(int winners) {
+			this.winners = winners;
+			return this;
+		}
+
+		public Builder withWinPercent(float winPercent) {
+			this.winPercent = winPercent;
+			return this;
+		}
+
+		public Builder withItmPercent(float itmPercent) {
+			this.itmPercent = itmPercent;
+			return this;
+		}
+
+		public Builder withRoi(float roi) {
+			this.roi = roi;
 			return this;
 		}
 

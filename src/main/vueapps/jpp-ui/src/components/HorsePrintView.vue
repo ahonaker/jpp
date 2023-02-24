@@ -380,7 +380,12 @@
                 </b-row>                                               
                 <b-row v-for="(angle,ndx) in horse.angles" :key="ndx">
                     <b-col>
-                        <span :class="'font-weight-bold ' + (angle.charAt(0) == '+' ? 'text-success' : (angle.charAt(0) == '-' ? 'text-danger' : 'text-warning'))">{{angle.substring(1)}}</span>
+                        <span v-if="angle.source != 'Summary'" :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">
+                            <b-icon-file-pdf v-if="angle.source == 'Augmented'"></b-icon-file-pdf>
+                            <b-icon-lightbulb v-if="angle.source == 'Generated'"></b-icon-lightbulb>
+                            {{angle.text}} 
+                            <span v-if="angle.source=='Generated'">({{angle.total}} {{angle.winPercent}}% {{angle.itmPercent}}% ${{angle.roi}})</span>
+                        </span>
                     </b-col>
                 </b-row>
             </b-col>
@@ -416,7 +421,7 @@
 </template>
 
 <script>
-import { BIconStarFill } from 'bootstrap-vue'
+import { BIconStarFill, BIconFilePdf, BIconLightbulb } from 'bootstrap-vue'
 import PastPerformancePrintView from '@/components/PastPerformancePrintView'
 import WorkoutView from '@/components/WorkoutView'
 import HorseExtraView from '@/components/HorseExtraView'
@@ -426,7 +431,7 @@ import _ from 'underscore'
 export default {
     name: 'HorsePrintView',
     components: {
-		PastPerformancePrintView, WorkoutView, HorseExtraView, BIconStarFill
+		PastPerformancePrintView, WorkoutView, HorseExtraView, BIconStarFill, BIconFilePdf, BIconLightbulb
     },
     props : ['race', 'horse', 'hideML', 'charts'],
     data () {

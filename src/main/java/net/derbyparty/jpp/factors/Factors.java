@@ -424,7 +424,7 @@ public class Factors {
 		
 		try {
 			if (pp.getBRISSpeedRating() == 0) return 0;
-			return (float) (pp.getBRISSpeedRating() + (pp.getFurlongs() < 8 ? 0.3 : 0.2) * pp.getFinishBeatenLengthsOnly());
+			return (float) (pp.getBRISSpeedRating() + (pp.getFurlongs() < 8 ? 1.5 : 1) * pp.getFinishBeatenLengthsOnly());
 			
 			
 		} catch (Exception e) {

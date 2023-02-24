@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.derbyparty.jpp.chartparser.ChartParser;
@@ -29,7 +30,7 @@ public class ProcessChart {
 	final static String keyRacesFile = "/Users/ahonaker/Google Drive/pp/jpp/keyRaces.json";
 	final static String raceDatesFile =  "/Users/ahonaker/Google Drive/pp/jpp/raceDates.json";
 	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
-
+	
 	public static List<PotentialKeyRace> getKeyRacesList() throws Exception {
 		
 		try {
@@ -63,7 +64,7 @@ public class ProcessChart {
 	public static List<RaceResult> process(File chart) throws Exception {
 		
 		try {
-			List<PotentialKeyRace> keyRaces = new ArrayList<PotentialKeyRace>(getKeyRacesList());
+			List<PotentialKeyRace> keyRaces = new ArrayList<PotentialKeyRace>(Arrays.asList(mapper.readValue(Paths.get(keyRacesFile).toFile(), PotentialKeyRace[].class)));
 			List<Track> raceDates = new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
 			
 			List<RaceResult> results = chartParser.parse(chart);
@@ -94,19 +95,20 @@ public class ProcessChart {
 					if (horseToWatchFile.exists()) {
 						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
 						Boolean noteFound = false;
-						for (RaceNote existingRaceNote : horseToWatch.getRaceNotes()) {
+						Iterator<RaceNote> it = horseToWatch.getRaceNotes().iterator();
+						while (it.hasNext()) {
+							RaceNote existingRaceNote = it.next();
 							if (existingRaceNote.getRaceDate().equals(result.getRaceDate())
 								&& existingRaceNote.getTrack().equals(result.getTrack().getCode())
 								&& existingRaceNote.getRaceNumber() == result.getRaceNumber()) {
 									noteFound = true;
 									existingRaceNote.setFootnote(starter.getFootnote());
-									horseToWatch.save();
 							}
 						}
 						if (!noteFound) {
 							horseToWatch.getRaceNotes().add(raceNote);
-							horseToWatch.save();
 						}
+						horseToWatch.save();
 					} else {
 						List<RaceNote> raceNotes = new ArrayList<RaceNote>();
 						raceNotes.add(raceNote);
@@ -117,43 +119,46 @@ public class ProcessChart {
 						horseToWatch.save();
 					}
 					
-					if (starter.getFinishPosition() != null && (starter.getFinishPosition() == 1 || starter.getFinishPosition() == 2 ||
+					if (starter.getLastRaced() != null && starter.getLastRaced().getLastRacePerformance() != null && starter.getLastRaced().getLastRacePerformance().getRaceNumber() != null
+						&& starter.getFinishPosition() != null  && (starter.getFinishPosition() == 1 || starter.getFinishPosition() == 2 ||
 						(starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").isPresent() 
 								&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
 								&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() < 2))) {
 						
-						Boolean raceFound = false;
-						for (PotentialKeyRace keyRace : keyRaces) {
+						PotentialKeyRace keyRace = PotentialKeyRace.builder()
+								.withTrack(starter.getLastRaced().getLastRacePerformance().getTrack().getCode())
+								.withRaceDate(starter.getLastRaced().getRaceDate())
+								.withRaceNumber(starter.getLastRaced().getLastRacePerformance().getRaceNumber())
+								.build();
+						
+						if (keyRaces.contains(keyRace)) {		
 							if (starter.getLastRaced() != null &&  starter.getLastRaced().getLastRacePerformance() != null
 								&& starter.getLastRaced().getLastRacePerformance().getTrack().getCode().equals(keyRace.getTrack())
 								&& starter.getLastRaced().getRaceDate().equals(keyRace.getRaceDate())
 								&& starter.getLastRaced().getLastRacePerformance().getRaceNumber() == keyRace.getRaceNumber()) {
-								
-								raceFound = true;
+
 								Boolean horseFound = false;
 								for (PotentialKeyRaceHorse keyRaceHorse : keyRace.getHorses()) {
 									if (starter.getHorse().getName().equals(keyRaceHorse.getName())) horseFound = true;
 								}	
 								if (!horseFound) {
-									keyRace.getHorses().add(PotentialKeyRaceHorse.builder()
-										.withName(starter.getHorse().getName())
-										.withPosition(starter.getFinishPosition())
-										.withBeatenLengths(
-												starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
-												? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
-												: 0)										
-										.withTrack(result.getTrack().getCode())
-										.withRaceDate(result.getRaceDate())
-										.withRaceNumber(result.getRaceNumber())
-										.build()			
-									);
-										
-									
+									List<PotentialKeyRaceHorse> keyRaceHorses = new ArrayList<PotentialKeyRaceHorse>(keyRace.getHorses());
+									PotentialKeyRaceHorse keyRaceHorse = PotentialKeyRaceHorse.builder()
+											.withName(starter.getHorse().getName())
+											.withPosition(starter.getFinishPosition())
+											.withBeatenLengths(
+													starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
+													? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
+													: 0)										
+											.withTrack(result.getTrack().getCode())
+											.withRaceDate(result.getRaceDate())
+											.withRaceNumber(result.getRaceNumber())
+											.build();
+									keyRaceHorses.add(keyRaceHorse);
+									keyRace.setHorses(keyRaceHorses);
 								}
 							}
-						}	
-						if (!raceFound && starter.getLastRaced() != null && starter.getLastRaced().getLastRacePerformance() != null
-								&& starter.getLastRaced().getLastRacePerformance().getRaceNumber() != null) {
+						} else {
 							List<PotentialKeyRaceHorse> newKeyRaceHorses = new ArrayList<PotentialKeyRaceHorse>();
 							newKeyRaceHorses.add(PotentialKeyRaceHorse.builder()
 								.withName(starter.getHorse().getName())
@@ -166,14 +171,9 @@ public class ProcessChart {
 								.withRaceDate(result.getRaceDate())
 								.withRaceNumber(result.getRaceNumber())
 								.build()			
-							);						
-							PotentialKeyRace newKeyRace = PotentialKeyRace.builder()
-								.withTrack(starter.getLastRaced().getLastRacePerformance().getTrack().getCode())
-								.withRaceDate(starter.getLastRaced().getRaceDate())
-								.withRaceNumber(starter.getLastRaced().getLastRacePerformance().getRaceNumber())
-								.withHorses(newKeyRaceHorses)
-								.build();				
-							keyRaces.add(newKeyRace);
+							);	
+							keyRace.setHorses(newKeyRaceHorses);				
+							keyRaces.add(keyRace);
 						}
 					}
 				
@@ -325,13 +325,83 @@ public class ProcessChart {
 		}
 	}
 	
-	public static String getChart(String track, LocalDate date) throws Exception {
+	public static List<RaceResult> getChart(String track, LocalDate date) throws Exception {
 		
 		String targetDir = "/Users/ahonaker/Google Drive/pp/jpp/parsedcharts/";
 		
 		try {
 			File file = new File(targetDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + "USA.pdf");
-			return mapper.writeValueAsString(addKeyRacesToChart(addHorsesToWatchToChart(chartParser.parse(file))));
+			return addKeyRacesToChart(addHorsesToWatchToChart(chartParser.parse(file)));
+			
+		} catch (Exception e) {
+			throw e;
+		
+		}
+		
+	}
+	
+	public static String getChartString(String track, LocalDate date) throws Exception {
+		
+		try {
+			return mapper.writeValueAsString(getChart(track, date));
+			
+		} catch (Exception e) {
+			throw e;
+		
+		}
+		
+	}
+	
+	public static void generateKeyRaces() throws Exception {
+		
+		try {
+			List<PotentialKeyRace> keyRaces = new ArrayList<PotentialKeyRace>();
+			List<Track> tracks = getChartsArray();
+			for (Track track : tracks) {
+				for (RaceDate raceDate : track.getRaceDates()) {
+					if (raceDate.getHasChartFlag()) {
+						for (RaceResult raceResult : getChart(track.getCode(), raceDate.getRaceDate())) {
+							for (Starter starter : raceResult.getStarters()) {
+								if (starter.getLastRaced() != null && starter.getLastRaced().getLastRacePerformance() != null && starter.getLastRaced().getLastRacePerformance().getRaceNumber() != null
+									&& starter.getFinishPosition() != null 
+									&& (starter.getFinishPosition() == 1 || starter.getFinishPosition() == 2 || starter.getOfficialPosition() == 1
+									|| starter.getOfficialPosition() == 2 
+									|| (starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").isPresent() 
+											&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
+											&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() < 2)
+									)) {
+									PotentialKeyRace keyRace = PotentialKeyRace.builder()
+										.withTrack(starter.getLastRaced().getLastRacePerformance().getTrack().getCode())
+										.withRaceDate(starter.getLastRaced().getRaceDate())
+										.withRaceNumber(starter.getLastRaced().getLastRacePerformance().getRaceNumber())
+										.build();
+									PotentialKeyRaceHorse keyRaceHorse = PotentialKeyRaceHorse.builder()
+										.withName(starter.getHorse().getName().replaceAll("\\s\\(.+\\)", ""))
+										.withPosition(starter.getFinishPosition())
+										.withBeatenLengths(starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
+											? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
+											: 0)
+										.withTrack(track.getCode())
+										.withRaceDate(raceDate.getRaceDate())
+										.withRaceNumber(raceResult.getRaceNumber())
+										.build();
+									if (keyRaces.contains(keyRace)) {
+										int ndx =  keyRaces.indexOf(keyRace);
+										PotentialKeyRace existingKeyRace = keyRaces.get(ndx);
+										existingKeyRace.getHorses().add(keyRaceHorse);
+									} else {
+										List<PotentialKeyRaceHorse> keyRaceHorses = new ArrayList<PotentialKeyRaceHorse>();
+										keyRaceHorses.add(keyRaceHorse);
+										keyRace.setHorses(keyRaceHorses);
+										keyRaces.add(keyRace);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			mapper.writeValue(Paths.get(keyRacesFile).toFile(), keyRaces);
 			
 		} catch (Exception e) {
 			throw e;

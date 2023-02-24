@@ -28,8 +28,8 @@ public class DistanceSurfaceTrackRecord {
 
     static final Pattern DIST_SURF_RECORD_PATTERN =
             Pattern.compile("^((About )?(One|Two|Three|Four|Five|Six|Seven|Eight|Nine)[\\w\\s]+) " +
-                    "On The ([A-Za-z\\s]+)(\\s?- Originally Scheduled For the " +
-                    "([A-Za-z0-9\\-\\s]+))?(\\|Current Track Record: \\((.+) - ([\\d:\\.]+) - (.+)\\))?");
+                    "On The ([A-Za-z\\s]+)(\\s?- Originally Scheduled For " +
+                    "([A-Za-z0-9\\-\\/\\s]+))?(\\|Current Track Record: \\((.+) - ([\\d:\\.]+) - (.+)\\))?");
 
     private static final List<String> NUMERATORS = Arrays.asList("zero", "one", "two", "three",
             "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen",
@@ -128,7 +128,7 @@ public class DistanceSurfaceTrackRecord {
             // detect off-turf races
             String scheduledSurfaceFlag = matcher.group(5);
             if (scheduledSurfaceFlag != null) {
-                scheduledSurface = matcher.group(6);
+                scheduledSurface = matcher.group(6).trim();
             }
 
             TrackRecord trackRecord = null;

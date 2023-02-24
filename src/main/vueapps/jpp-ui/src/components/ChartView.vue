@@ -12,7 +12,7 @@
         <strong>{{race.track.name}} {{formatDate(race.raceDate)}} Race {{race.raceNumber}} <b-icon-key v-if="race.keyRace != null" variant="success" font-scale="1.5" rotate="90"></b-icon-key></strong><br>
         {{race.conditions.type}}<br>
         {{race.conditions.text}}<br>
-        {{race.distance.text}} on the {{race.surface}}<br>
+        {{race.distance.text}} on the {{race.surface}}<span v-if="race.offTurf"> (Originally scheduled for {{race.scheduledSurface}})</span><br>
         <strong>Purse:</strong> {{race.purse.text}}<br>
         <span v-for="(enhancement, eindex) in race.purse.enhancements" :key="eindex"><strong>{{enhancement.type}}:</strong> {{enhancement.text}} </span><br>
         <strong>Available Money:</strong> {{race.purse.availableMoney}}<br>

@@ -70,6 +70,7 @@ public class Race implements Serializable {
 	private String trackCondition;
 	private Boolean OffTheTurfFlag;
 	private Boolean TurfFlag;
+	private Boolean OntoAllWeatherFlag;
 	
 	private List<String> HandicappingNotes;
 	private List<String> Changes;
@@ -195,6 +196,15 @@ public class Race implements Serializable {
 		OffTheTurfFlag = offTheTurfFlag;
 	}
 
+
+	public Boolean getOntoAllWeatherFlag() {
+		if (OntoAllWeatherFlag == null) return false;
+		return OntoAllWeatherFlag;
+	}
+
+	public void setOntoAllWeatherFlag(Boolean ontoAllWeatherFlag) {
+		OntoAllWeatherFlag = ontoAllWeatherFlag;
+	}
 
 	public List<String> getAdvantagedHorses() {
 		return advantagedHorses;

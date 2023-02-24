@@ -195,7 +195,7 @@ public class Horse implements Serializable {
 	private String flag;
 	private String comment;
 	
-	private List<Angle> angles = new ArrayList<Angle>();
+	private List<Angle> angles;
 
 	@Generated("SparkTools")
 	private Horse(Builder builder) {
@@ -744,6 +744,7 @@ public class Horse implements Serializable {
 		return angles;
 	}
 	public void setAngles(List<Angle> angles) {
+		if (angles != null) Collections.sort(angles, Collections.reverseOrder());
 		this.angles = angles;
 	}
 	public static long getSerialversionuid() {

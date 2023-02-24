@@ -323,7 +323,7 @@ public class Remote {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
  		} 
 		
-		return calculate();
+		return getAll();
 
 	}	
 	
@@ -359,10 +359,22 @@ public class Remote {
 			e.printStackTrace();
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
  		} 
-		
-		
+	}
+	
+	@Path("toggleOntoAllWeather/{raceNumber}")	
+	@GET
 
-	}	
+	public Response toggleOntoAllWeather(@PathParam("raceNumber") int raceNumber) throws Exception {
+		
+		try {
+			Main.toggleOntoAllWeather(raceNumber);
+			return calculate();
+			
+ 		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+ 		} 
+	}
 	
 	@Path("setTrackCondition/{raceNumber}/{condition}")	
 	@GET
@@ -491,12 +503,31 @@ public class Remote {
 	  
 	  try {
 		    
-		    return Response.ok().entity(ProcessChart.getChart(track, LocalDate.of(year, month, day))).build();
+		    return Response.ok().entity(ProcessChart.getChartString(track, LocalDate.of(year, month, day))).build();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
 		} 
+	  
+	}	
+	
+	@Path("toggleChartReviewed/{track}/{year}/{month}/{day}")
+	@GET
+	public Response toggleChartReviewed(@PathParam("track") String track ,
+			@PathParam("year") int year,
+			@PathParam("month") int month,
+			@PathParam("day") int day) throws Exception {
+	  
+	  try {
+		    
+		    Main.toggleChartReviewed(track, LocalDate.of(year, month, day));
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  return Response.noContent().build();
 	  
 	}	
 
@@ -506,7 +537,24 @@ public class Remote {
 	  
 	  try {
 		    
-		    ProcessChart.parseDirectory();;
+		    ProcessChart.parseDirectory();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("generateKeyRaces")
+	@GET
+	public Response generateKeyRaces() throws Exception {
+	  
+	  try {
+		    
+		    ProcessChart.generateKeyRaces();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -786,7 +834,7 @@ public class Remote {
 	  
 	  try {
 		    
-		    Main.updateAllHorsesToWatchWithPPs();;
+		    Main.updateAllHorsesToWatchWithPPs();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -804,6 +852,91 @@ public class Remote {
 	  try {
 		    
 		    Analytics.generateRaceTimesCSV();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("generateAngleStats")
+	@GET
+	public Response generateAngleStats() throws Exception {
+	  
+	  try {
+		    
+		    Analytics.generateAngleStatsCSV();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("generateStats")
+	@GET
+	public Response generateStats() throws Exception {
+	  
+	  try {
+		    
+		    Analytics.generateStatsCSV();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("generateComboStats/{n}")
+	@GET
+	public Response generateComboStats(@PathParam("n") int n) throws Exception {
+	  
+	  try {
+		    
+		    Analytics.generateComboStatsCSV(n);
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("generateRaceStats")
+	@GET
+	public Response generateRaceStats() throws Exception {
+	  
+	  try {
+		    
+		    Analytics.generateRaceStatsCSV();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("updateAngleStatsFile")
+	@GET
+	public Response updateAngleStatsFile() throws Exception {
+	  
+	  try {
+		    
+		    Analytics.updateAngleStatsFile();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();

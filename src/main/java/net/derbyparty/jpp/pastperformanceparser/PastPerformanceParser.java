@@ -209,7 +209,7 @@ public class PastPerformanceParser {
 				}
 				
 				Matcher angleLineMatcher = ANGLE_LINE.matcher(lines[i]);
-				if (horse != null) {
+				if (horse != null && !horse.getScratchedFlag()) {
 					while (angleLineMatcher.find()) {
 						List<Angle> angles = horse.getAngles();
 						if (angles == null) angles = new ArrayList<Angle>();
