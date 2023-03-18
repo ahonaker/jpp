@@ -146,6 +146,8 @@ public class Main {
 			ObjectNode r = mapper.createObjectNode();
 			r.put("raceNumber", race.getRaceNumber());
 			r.put("postTimes", race.getPostTimes());
+			r.put("track", race.getTrack());
+			r.put("date", race.getDate().format(DateTimeFormatter.ofPattern("YYYYMMdd")));
 			ArrayNode hs = mapper.createArrayNode();
 			for (Horse horse : race.getUnscratchedHorses()) {
 				ObjectNode h = mapper.createObjectNode();
@@ -706,18 +708,19 @@ public class Main {
 						List<String> cHorses = new ArrayList<String>();
 						
 						for (Horse horse : races.get(i).getUnscratchedHorses()) {
+							String s = horse.getProgramNumber().isEmpty() ? String.valueOf(horse.getPostPosition()) : horse.getProgramNumber();
 							if (horse.getSelection() != null) {
 								if (horse.getSelection().equals("A")) {
-									if (!aHorses.contains(horse.getProgramNumber())) aHorses.add(horse.getProgramNumber());
-									if (!abHorses.contains(horse.getProgramNumber())) abHorses.add(horse.getProgramNumber());
+									if (!aHorses.contains(s)) aHorses.add(s);
+									if (!abHorses.contains(s)) abHorses.add(s);
 									
 								}
 								if (horse.getSelection().equals("B")) {
-									if (!abHorses.contains(horse.getProgramNumber())) abHorses.add(horse.getProgramNumber());
-									if (!bHorses.contains(horse.getProgramNumber())) bHorses.add(horse.getProgramNumber());
+									if (!abHorses.contains(s)) abHorses.add(s);
+									if (!bHorses.contains(s)) bHorses.add(s);
 								}
 								if (horse.getSelection().equals("C")) {
-									if (!cHorses.contains(horse.getProgramNumber())) cHorses.add(horse.getProgramNumber());
+									if (!cHorses.contains(s)) cHorses.add(s);
 								}
 							}
 						}
@@ -782,9 +785,9 @@ public class Main {
 								for(int k = 0; k < wager.getNumRaces(); k++) {
 									if (i != j) {
 										if (i==k || j==k) {
-											b2combo.add(bPicks.get(j));
+											b2combo.add(bPicks.get(k));
 										} else {
-											b2combo.add(aPicks.get(j));
+											b2combo.add(aPicks.get(k));
 										}	
 									}
 								}

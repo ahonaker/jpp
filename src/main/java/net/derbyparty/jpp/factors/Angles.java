@@ -978,13 +978,15 @@ public class Angles {
 	}
 	
 	public static Boolean angle_0048(Race race, Horse horse) throws Exception {	
-		//Maiden to Maiden Claiming Two Races Back
+		//Maiden to Maiden Claiming Three Races Back
 		try {		
 			Boolean hasBeenInForClaim4orMoreBack = false;
 			for (int i=3; i < horse.getPastPerformances().size(); i++) {
 				hasBeenInForClaim4orMoreBack = true;
 			}
-			return (horse.getClaimingPrice() > 0
+			return ((race.getRaceType().equals(RaceType.MAIDEN_CLAIMING)
+					|| race.getRaceType().equals(RaceType.MAIDEN_OPTIONAL_CLAIMING))
+				&& horse.getClaimingPrice() > 0
 				&& horse.getPastPerformances().size() > 2 
 				&& !hasBeenInForClaim4orMoreBack
 				&& horse.getPastPerformances().get(0).getClaimingPrice() > 0

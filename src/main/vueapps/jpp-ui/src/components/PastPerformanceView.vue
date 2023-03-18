@@ -229,7 +229,7 @@ export default {
 				{key: "raceShapeSecondCall", title: "2nd Call Race Shape (leader's pace compared to average)", label: "2c", tdClass: this.highlightRaceShape},
 				{key: "brisspeedRating", label: "SPD", title: "BRIS Speed Rating and Race Par", class: "strong", tdClass: this.highlightSpeedInRange},
                 {key: "raceShape", label: "Shp", title: "Race Shape (1st Call Pace and Final Speed - e.g., FF is Fast/Fast, AS is Average/Slow)", tdClass: this.highlightRaceShape2},
-                {key: "speedRating", title: "DRF Speed Rating and Track Variant", label: "SR-TV"},
+//                {key: "speedRating", title: "DRF Speed Rating and Track Variant", label: "SR-TV"},
                 {key: "postPosition", title: "Post Position", label: "PP"},
 				{key: "startCallPosition", title: "Start Call Position", label: "ST"},
 				{key: "firstCallPosition", title: "First Call Position", label: "1C"},

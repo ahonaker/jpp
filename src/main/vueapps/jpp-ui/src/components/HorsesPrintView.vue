@@ -32,7 +32,7 @@
             {{row.value}} / {{format2Places(row.item.furlongDays)}}
         </template>
         <template #cell(classRating)="row">
-            {{row.value}} / {{row.item.brisCurrentClass}} // {{row.item.brisAvgLast3Class}}
+            {{row.value}} / {{row.item.brisCurrentClass}} / {{row.item.brisAvgLast3Class}}
         </template>    
         <template #cell(aratingForm)="row">
             {{row.value}} / {{row.item.basicFitness}}
@@ -66,7 +66,7 @@ export default {
 				{key: "name", tdClass: this.highlightName},
 				{key: "daysSinceLastRace", label:"l/r", title: "Days Since Last Race", tdClass: this.highlightDaysSince},
 				{key: "style", label: "Style", title: "Run Style and Speed Points", tdClass: this.highlightPaceAdvantage, rank: false },
-				{key: "classRating", label:"Class", title: "Weighted Average Speed Par", formatter: this.format2Places, tdClass: this.highlightMax, rank: true},
+				{key: "classRating", label:"Class/BrisAvg/BrisLast3", title: "Weighted Average Speed Par", formatter: this.format2Places, tdClass: this.highlightMax, rank: true},
 				{key: "averageCompetitiveLevel", title: "Average Competitive Level (Weighted Average Speed Par where finish in the money or within 3 lengths)", label:"ACL", formatter: this.format2Places, tdClass: this.highlightMax, rank: true},
 				{key: "speedRating", label:"Speed", title: "Weighted Average BRIS Speed Figure", formatter: this.format2Places, tdClass: this.highlightMax, rank: true},
                 {key: "primePower", label:"PP", title: "Prime Power", formatter: this.format2Places, tdClass: this.highlightMax, rank: true},

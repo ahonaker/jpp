@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import net.derbyparty.jpp.chartparser.exceptions.ChartParserException;
+import net.derbyparty.jpp.object.AgeRestrictionRangeType;
+import net.derbyparty.jpp.object.AgeRestrictionType;
+import net.derbyparty.jpp.object.SexRestrictionType;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -33,19 +36,31 @@ public class RaceConditions {
     @JsonUnwrapped
     private RaceTypeNameBlackTypeBreed raceTypeNameBlackTypeBreed;
     private final String raceClassification;
+    private final SexRestrictionType sexRestrictionType;
+    private final AgeRestrictionType ageRestrictionType;
+    private final AgeRestrictionRangeType ageRestrictionRangeType;
 
     public RaceConditions(String text,
             ClaimingPriceRange claimingPriceRange,
-            String raceClassification) {
+            String raceClassification,
+            SexRestrictionType sexRestrictionType,
+            AgeRestrictionType ageRestrictionType,
+            AgeRestrictionRangeType ageRestrictionRangeType) {
         this.text = text;
         this.claimingPriceRange = claimingPriceRange;
         this.raceClassification = raceClassification;
+        this.sexRestrictionType = sexRestrictionType;
+        this.ageRestrictionType = ageRestrictionType;
+        this.ageRestrictionRangeType = ageRestrictionRangeType;
     }
 
     @JsonCreator
     private RaceConditions(String text, ClaimingPriceRange claimingPriceRange, String raceClassification,
+    		SexRestrictionType sexRestrictionType,
+            AgeRestrictionType ageRestrictionType,
+            AgeRestrictionRangeType ageRestrictionRangeType,
             RaceTypeNameBlackTypeBreed raceTypeNameBlackTypeBreed) {
-        this(text, claimingPriceRange, raceClassification);
+        this(text, claimingPriceRange, raceClassification, sexRestrictionType, ageRestrictionType, ageRestrictionRangeType);
         this.raceTypeNameBlackTypeBreed = raceTypeNameBlackTypeBreed;
     }
 
@@ -75,8 +90,11 @@ public class RaceConditions {
         String raceConditions = raceConditionsBuilder.toString();
         ClaimingPriceRange claimingPriceRange = ClaimingPriceRange.parse(raceConditions);
         String raceClassification = parseRaceClassification(raceConditions);
+        SexRestrictionType sexRestrictionType = parseSexRestrictionType(raceConditions);
+        AgeRestrictionType ageRestrictionType = parseAgeRestrictionType(raceConditions);
+        AgeRestrictionRangeType ageRestrictionRangeType = parseAgeRestrictionRangeType(raceConditions);
 
-        return new RaceConditions(raceConditions, claimingPriceRange, raceClassification);
+        return new RaceConditions(raceConditions, claimingPriceRange, raceClassification, sexRestrictionType, ageRestrictionType, ageRestrictionRangeType);
     }
 
     public String getText() {
@@ -112,7 +130,49 @@ public class RaceConditions {
         } 
     	return null;
     }
+	
 
+	public SexRestrictionType getSexRestrictionType() {
+		return sexRestrictionType;
+	}
+
+	public AgeRestrictionType getAgeRestrictionType() {
+		return ageRestrictionType;
+	}
+
+	public AgeRestrictionRangeType getAgeRestrictionRangeType() {
+		return ageRestrictionRangeType;
+	}
+
+	public static SexRestrictionType parseSexRestrictionType(String raceConditions) {
+        
+		if (raceConditions.contains("FILLIES AND MARES")) return SexRestrictionType.FILLIES_AND_MARES;
+		if (raceConditions.contains("FILLIES")) return SexRestrictionType.FILLIES;
+		if (raceConditions.contains("COLTS AND GELDINGS")) return SexRestrictionType.COLTS_AND_GELDINGS;
+    	return SexRestrictionType.NO_SEX_RESTRICTIONS;
+    }
+	
+	public static AgeRestrictionType parseAgeRestrictionType(String raceConditions) {
+		
+        
+		if (raceConditions.contains("TWO YEAR OLDS") || raceConditions.contains("TWO YEARS OLD")) return AgeRestrictionType.TWO_YEAR_OLDS;
+		if (raceConditions.contains("THREE YEAR OLDS") || raceConditions.contains("THREE YEARS OLD")) return AgeRestrictionType.THREE_YEAR_OLDS;
+		if (raceConditions.contains("FOUR YEAR OLDS") || raceConditions.contains("FOUR YEARS OLD")) return AgeRestrictionType.FOUR_YEAR_OLDS;
+		if (raceConditions.contains("FIVE YEAR OLDS") || raceConditions.contains("FIVE YEARS OLD")) return AgeRestrictionType.FIVE_YEAR_OLDS;
+		if (raceConditions.contains("THREE AND FOUR YEAR OLDS")) return AgeRestrictionType.THREE_AND_FOUR_YEAR_OLDS;
+		if (raceConditions.contains("FOUR AND FIVE YEAR OLDS")) return AgeRestrictionType.FOUR_AND_FIVE_YEAR_OLDS;
+		if (raceConditions.contains("FOUR AND FIVE YEAR OLDS")) return AgeRestrictionType.FOUR_AND_FIVE_YEAR_OLDS;
+		if (raceConditions.contains("THREE FOUR AND FIVE YEAR OLDS")) return AgeRestrictionType.THREE_FOUR_AND_FIVE_YEAR_OLDS;
+    	return AgeRestrictionType.ALL_AGES;
+    }
+	
+	public static AgeRestrictionRangeType parseAgeRestrictionRangeType(String raceConditions) {
+	
+        
+		if (raceConditions.contains("AND UPWARD")) return AgeRestrictionRangeType.THAT_AGE_AND_UP;
+    	return AgeRestrictionRangeType.THAT_AGE_ONLY;
+    }
+	
     /**
      * Stores the range of the claiming prices that apply to a claiming race. Some claiming races
      * allow setting the claim within a particular range, others give weight allowances for lower

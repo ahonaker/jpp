@@ -177,7 +177,7 @@
                         <strong>
                             {{row.item.color}}. {{row.item.sex}}. {{row.item.age}} ({{row.item.foalingMonth}})  {{row.item.auctionLocationDate}}  <span :class="row.item.auctionPrice > 100000 && row.item.lifetimeWins == 0 ? 'greenHighlight' : ''">{{formatCurrency(row.item.auctionPrice)}}</span><br>
                             <b-row>
-                                <b-col cols="2">
+                                <b-col class="pr-0" cols="2">
                                     Sire :
                                 </b-col>
                                 <b-col>
@@ -185,7 +185,7 @@
                                 </b-col>
                             </b-row>
                             <b-row>
-                                <b-col cols="2">
+                                <b-col class="pr-0" cols="2">
                                     Dam  :  
                                 </b-col>
                                 <b-col>
@@ -193,7 +193,7 @@
                                 </b-col>
                             </b-row>
                             <b-row>
-                                <b-col cols="2">
+                                <b-col class="pr-0" cols="2">
                                     Brdr :  
                                 </b-col>
                                 <b-col>
@@ -201,7 +201,7 @@
                                 </b-col>
                             </b-row>
                             <b-row>
-                                <b-col cols="2">
+                                <b-col class="pr-0" cols="2">
                                     Trnr :  
                                 </b-col>
                                 <b-col>
@@ -438,7 +438,7 @@
                             </b-col>											
                         </b-row>											
                         <b-row v-for="stat in row.item.trainer.trainerStats" :key="stat.category">
-                            <b-col cols="4">
+                            <b-col class="pr-0" cols="4">
                                 {{stat.category}}
                             </b-col>
                             <b-col cols="2">
@@ -457,71 +457,71 @@
                     </b-col>
                     <b-col cols="4" offset="1">
                         <b-row v-if="row.item.sireAWD">
-                            <b-col cols="3">
-                                Sire Stats: AWD {{row.item.sireAWD}} 
+                            <b-col class="pr-0" cols="3">
+                                Sire Stats: AWD {{format1Place(row.item.sireAWD)}} 
                             </b-col>
-                            <b-col>
+                            <b-col class="px-0 text-center">
                                 {{row.item.sireMudPercent}}%Mud
                             </b-col>
-                            <b-col>
+                            <b-col class="px-0 text-center">
                                 {{row.item.sireMudStarts}}MudSts
                             </b-col>
-                            <b-col v-if="row.item.sireTurfPercent > 0">
+                            <b-col class="px-0 text-center" v-if="row.item.sireTurfPercent > 0">
                                 {{row.item.sireTurfPercent}}%Turf
                             </b-col>
-                            <b-col v-if="row.item.sireFirstTurfPercent > 0">
+                            <b-col class="px-0 text-center" v-if="row.item.sireFirstTurfPercent > 0">
                                 {{row.item.sireFirstTurfPercent}}%1stT
                             </b-col>
-                            <b-col v-if="row.item.sireFirstPercent > 0">
+                            <b-col class="px-0 text-center" v-if="row.item.sireFirstPercent > 0">
                                 {{row.item.sireFirstPercent}}%1st
                             </b-col>
-                            <b-col>
+                            <b-col class="pl-0 text-right">
                                 {{format2Places(row.item.sireSPI)}}spi
                             </b-col>
                         </b-row>
                         <b-row v-if="row.item.damSireAWD" :class="row.item.damDescription ? '' : 'mb-1'">
-                            <b-col cols="3">
-                                Dam's Sire: AWD {{row.item.damSireAWD}} 
+                            <b-col class="pr-0" cols="3">
+                                Dam's Sire: AWD {{format1Place(row.item.damSireAWD)}} 
                             </b-col>
-                            <b-col>
+                            <b-col class="px-0 text-center">
                                 {{row.item.damSireMudPercent}}%Mud
                             </b-col>
-                            <b-col>
+                            <b-col class="px-0 text-center">
                                 {{row.item.damSireMudStarts}}MudSts
                             </b-col>
-                             <b-col v-if="row.item.damSireTurfPercent > 0">
+                             <b-col class="px-0 text-center" v-if="row.item.damSireTurfPercent > 0">
                                 {{row.item.damSireTurfPercent}}%Turf
                             </b-col>
-                            <b-col v-if="row.item.damSireFirstTurfPercent > 0">
+                            <b-col class="px-0 text-center" v-if="row.item.damSireFirstTurfPercent > 0">
                                 {{row.item.damSireFirstTurfPercent}}%1stT
                             </b-col>                           
-                            <b-col v-if="row.item.damSireFirstPercent > 0">
+                            <b-col class="px-0 text-center" v-if="row.item.damSireFirstPercent > 0">
                                 {{row.item.damSireFirstPercent}}%1st
                             </b-col>
-                            <b-col>
+                            <b-col class="pl-0 text-right">
                                 {{format2Places(row.item.damSireSPI)}}spi
                             </b-col>
                         </b-row>
                         <b-row v-if="row.item.damDescription" class="mb-1">
-                            <b-col cols="3">
+                            <b-col class="pr-0" cols="4">
                                 Dam's Stats: {{row.item.damDescription}} 
                             </b-col>
-                            <b-col v-if="row.item.damTurfWinners">
+                            <b-col class="px-0 text-center" v-if="row.item.damTurfWinners">
                                 {{row.item.damTurfWinners}}trfW
                             </b-col>                            
-                            <b-col v-if="row.item.damTwoYearOldPercent">
+                            <b-col class="px-0 text-center" v-if="row.item.damTwoYearOldPercent">
                                 {{row.item.damTwoYearOldPercent}}%2yo
                             </b-col>
-                            <b-col>
+                            <b-col class="px-0 text-center">
                                 {{row.item.damStarters}}str
                             </b-col>
-                            <b-col>
+                            <b-col class="px-0 text-center">
                                 {{row.item.damWinners}}w
                             </b-col>
-                             <b-col>
+                             <b-col class="px-0 text-center">
                                 {{row.item.damStakesWinners}}sw
                             </b-col>                           
-                            <b-col>
+                            <b-col class="pl-0 text-right">
                                 {{format2Places(row.item.damDPI)}}dpi
                             </b-col>
                         </b-row>                                               

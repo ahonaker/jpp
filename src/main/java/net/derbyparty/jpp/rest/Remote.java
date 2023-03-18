@@ -862,6 +862,23 @@ public class Remote {
 	  
 	}
 	
+	@Path("generateRawTimes")
+	@GET
+	public Response generateRawTimes() throws Exception {
+	  
+	  try {
+		    
+		    Analytics.generateRawTimesCSV();;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
 	@Path("generateAngleStats")
 	@GET
 	public Response generateAngleStats() throws Exception {

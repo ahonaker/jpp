@@ -52,7 +52,7 @@ public class PastPerformanceParser {
     		Pattern.compile("^\\+*JKYw\\/\\s*(Trn\\s*L60)\\s*([0-9]+)\\s*([0-9]+)\\%\\s*([0-9]+)%\\s*([\\-\\+0-9.]+)");	
     
     final static Pattern ANGLE_LINE = 
-    		Pattern.compile("([ñ|×]\\s)([a-zA-Z0-9\\%\\s\\':\\(\\)\\-\\/\\+\\.]+)");
+    		Pattern.compile("([ñ|×]\\s)([a-zA-Z0-9\\>\\=\\%\\s\\':\\(\\)\\-\\/\\+\\.]+)");
     
     final static Pattern RANK_LIST = 
     		Pattern.compile("^(([\\d\\.NA]+)\\s+([a-zA-Z\\'\\s]+))");
@@ -209,22 +209,22 @@ public class PastPerformanceParser {
 				}
 				
 				Matcher angleLineMatcher = ANGLE_LINE.matcher(lines[i]);
-				if (horse != null && !horse.getScratchedFlag()) {
+				if (horse != null) {
+					List<Angle> angles = horse.getAngles();
+					if (angles == null) angles = new ArrayList<Angle>();
+					List<Angle> newAngles = new ArrayList<Angle>();
+					for (Angle angle : angles) {
+						if (!angle.getSource().equals("Augmented")) newAngles.add(angle);
+					}		
 					while (angleLineMatcher.find()) {
-						List<Angle> angles = horse.getAngles();
-						if (angles == null) angles = new ArrayList<Angle>();
-						List<Angle> newAngles = new ArrayList<Angle>();
-						for (Angle angle : angles) {
-							if (!angle.getText().equals("Augmented")) newAngles.add(angle);
-						}						
-						angles.add(
+						newAngles.add(
 							Angle.builder()
 							.withType(angleLineMatcher.group(1).charAt(0) == '×' ? "-" : "+")
 							.withText(angleLineMatcher.group(2))
 							.withSource("Augmented")
 							.build() 
 						);
-						horse.setAngles(angles);
+						horse.setAngles(newAngles);
 					}
 				}
 				

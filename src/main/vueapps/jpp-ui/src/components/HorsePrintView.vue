@@ -35,7 +35,7 @@
                 <strong>
                     {{horse.color}}. {{horse.sex}}. {{horse.age}} ({{horse.foalingMonth}})  {{horse.auctionLocationDate}}  <span :class="horse.auctionPrice > 100000 && horse.lifetimeWins == 0 ? 'greenHighlight' : ''">{{formatCurrency(horse.auctionPrice)}}</span><br>
                     <b-row>
-                        <b-col cols="2">
+                        <b-col class="pr-0" cols="2">
                             Sire :
                         </b-col>
                         <b-col>
@@ -43,7 +43,7 @@
                         </b-col>
                     </b-row>
                     <b-row>
-                        <b-col cols="2">
+                        <b-col class="pr-0" cols="2">
                             Dam  :  
                         </b-col>
                         <b-col>
@@ -51,7 +51,7 @@
                         </b-col>
                     </b-row>
                     <b-row>
-                        <b-col cols="2">
+                        <b-col class="pr-0" cols="2">
                             Brdr :  
                         </b-col>
                         <b-col>
@@ -59,7 +59,7 @@
                         </b-col>
                     </b-row>
                     <b-row>
-                        <b-col cols="2">
+                        <b-col class="pr-0" cols="2">
                             Trnr :  
                         </b-col>
                         <b-col>
@@ -291,7 +291,7 @@
                     </b-col>											
                 </b-row>											
                 <b-row v-for="stat in horse.trainer.trainerStats" :key="stat.category">
-                    <b-col cols="4">
+                    <b-col class="pr-0" cols="4">
                         {{stat.category}}
                     </b-col>
                     <b-col cols="2">
@@ -310,71 +310,71 @@
             </b-col>
             <b-col cols="4" offset="1">
                 <b-row v-if="horse.sireAWD">
-                    <b-col cols="3">
-                        Sire Stats: AWD {{horse.sireAWD}} 
+                    <b-col cols="3" class="pr-0">
+                        Sire Stats: AWD {{format1Place(horse.sireAWD)}} 
                     </b-col>
-                    <b-col>
+                    <b-col class="px-0 text-center">
                         {{horse.sireMudPercent}}%Mud
                     </b-col>
-                    <b-col>
+                    <b-col class="px-0 text-center">
                         {{horse.sireMudStarts}}MudSts
                     </b-col>
-                    <b-col v-if="horse.sireTurfPercent > 0">
+                    <b-col class="px-0 text-center" v-if="horse.sireTurfPercent > 0">
                         {{horse.sireTurfPercent}}%Turf
                     </b-col>
-                    <b-col v-if="horse.sireFirstTurfPercent > 0">
+                    <b-col class="px-0 text-center" v-if="horse.sireFirstTurfPercent > 0">
                         {{horse.sireFirstTurfPercent}}%1stT
                     </b-col>
-                    <b-col v-if="horse.sireFirstPercent > 0">
+                    <b-col class="px-0 text-center" v-if="horse.sireFirstPercent > 0">
                         {{horse.sireFirstPercent}}%1st
                     </b-col>
-                    <b-col>
+                    <b-col class="pl-0 text-right">
                         {{format2Places(horse.sireSPI)}}spi
                     </b-col>
                 </b-row>
                 <b-row v-if="horse.damSireAWD" :class="horse.damDescription ? '' : 'mb-1'">
-                    <b-col cols="3">
-                        Dam's Sire: AWD {{horse.damSireAWD}} 
+                    <b-col class="pr-0" cols="3">
+                        Dam's Sire: AWD {{format1Place(horse.damSireAWD)}} 
                     </b-col>
-                    <b-col>
+                    <b-col class="px-0 text-center">
                         {{horse.damSireMudPercent}}%Mud
                     </b-col>
-                    <b-col>
+                    <b-col class="px-0 text-center">
                         {{horse.damSireMudStarts}}MudSts
                     </b-col>
-                        <b-col v-if="horse.damSireTurfPercent > 0">
+                    <b-col class="px-0 text-center" v-if="horse.damSireTurfPercent > 0">
                         {{horse.damSireTurfPercent}}%Turf
                     </b-col>
-                    <b-col v-if="horse.damSireFirstTurfPercent > 0">
+                    <b-col class="px-0 text-center" v-if="horse.damSireFirstTurfPercent > 0">
                         {{horse.damSireFirstTurfPercent}}%1stT
                     </b-col>                           
-                    <b-col v-if="horse.damSireFirstPercent > 0">
+                    <b-col class="px-0 text-center" v-if="horse.damSireFirstPercent > 0">
                         {{horse.damSireFirstPercent}}%1st
                     </b-col>
-                    <b-col>
+                    <b-col class="pl-0 text-right">
                         {{format2Places(horse.damSireSPI)}}spi
                     </b-col>
                 </b-row>
                 <b-row v-if="horse.damDescription" class="mb-1">
-                    <b-col cols="3">
+                    <b-col class="pr-0" cols="4">
                         Dam's Stats: {{horse.damDescription}} 
                     </b-col>
-                    <b-col v-if="horse.damTurfWinners">
+                    <b-col class="px-0 text-center" v-if="horse.damTurfWinners">
                         {{horse.damTurfWinners}}trfW
                     </b-col>                            
-                    <b-col v-if="horse.damTwoYearOldPercent">
+                    <b-col class="px-0 text-center" v-if="horse.damTwoYearOldPercent">
                         {{horse.damTwoYearOldPercent}}%2yo
                     </b-col>
-                    <b-col>
+                    <b-col class="px-0 text-center">
                         {{horse.damStarters}}str
                     </b-col>
-                    <b-col>
+                    <b-col class="px-0 text-center">
                         {{horse.damWinners}}w
                     </b-col>
-                        <b-col>
+                    <b-col class="px-0 text-center">
                         {{horse.damStakesWinners}}sw
                     </b-col>                           
-                    <b-col>
+                    <b-col class="pl-0 text-right">
                         {{format2Places(horse.damDPI)}}dpi
                     </b-col>
                 </b-row>                                               
@@ -390,16 +390,16 @@
                 </b-row>
             </b-col>
         </b-row>     
-        <b-row v-if="!horse.scratchedFlag" class="mb-2">
+        <b-row v-if="!horse.scratchedFlag" class="mb-2 mx-2">
             <span v-if="horse.flag == 'Star'"><b-icon-star-fill variant="success"></b-icon-star-fill> {{horse.comment}}<br></span>        
-            {{horse.note}}
+            Note: {{horse.note}}
         </b-row>
         <horse-extra-view v-if="horse.pastPerformances.length > 3 && !horse.scratchedFlag" :horse="horse"></horse-extra-view>   
         <b-row v-if="horse.pastPerformances.length > 0" class="horse">
             <b-col cols="8" class="text-center">
                 <span v-if="horse.pastPerformances[0].flag || horse.pastPerformances[0].comment || horse.pastPerformances[0].footnote">
                     <strong>Last race:</strong> {{horse.pastPerformances[0].flag}} <span v-if="horse.pastPerformances[0].flag">/</span> {{horse.pastPerformances[0].comment}}&nbsp;
-                    <span v-if="horse.pastPerformances[0].comment">-</span>{{horse.pastPerformances[0].footnote}}<br>
+                    <span v-if="horse.pastPerformances[0].flag">- </span>{{horse.pastPerformances[0].footnote}}<br>
                 </span>
 			</b-col>
 			<b-col class="text-center">
@@ -453,6 +453,16 @@ export default {
 			});
 			return formatter.format(amount);
 		},
+		format1Place(amount) {
+			const formatter = new Intl.NumberFormat('en-US', {
+
+
+				// These options are needed to round to whole numbers if that's what you want.
+				minimumFractionDigits: 1, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+				maximumFractionDigits: 1, // (causes 2500.99 to be printed as $2,501)
+			});
+			return formatter.format(amount);
+		},        
 		formatCurrency(amount) {
 			const formatter = new Intl.NumberFormat('en-US', {
 				style: 'currency',

@@ -27,12 +27,15 @@ import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
 import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall;
 import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition.TotalLengthsBehind;
 import net.derbyparty.jpp.factors.Angles;
+import net.derbyparty.jpp.object.AgeRestrictionRangeType;
+import net.derbyparty.jpp.object.AgeRestrictionType;
 import net.derbyparty.jpp.object.Angle;
 import net.derbyparty.jpp.object.Horse;
 import net.derbyparty.jpp.object.PastPerformance;
 import net.derbyparty.jpp.object.Race;
 import net.derbyparty.jpp.object.RaceDate;
 import net.derbyparty.jpp.object.RaceTime;
+import net.derbyparty.jpp.object.SexRestrictionType;
 import net.derbyparty.jpp.object.SurfaceType;
 import net.derbyparty.jpp.object.Track;
 
@@ -42,12 +45,80 @@ public class Analytics {
 	final static String saveDir = "/Users/ahonaker/Google Drive/pp/jpp/saveDir/";
 	final static String anglesFile = "/Users/ahonaker/Google Drive/pp/jpp/angles.json";
 	final static String raceTimesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceTimes.csv";
+	final static String rawTimesFile = "/Users/ahonaker/Google Drive/pp/jpp/rawTimes.csv";
 	final static String statsFile = "/Users/ahonaker/Google Drive/pp/jpp/stats.csv";
 	final static String raceStatsFile = "/Users/ahonaker/Google Drive/pp/jpp/raceStats.csv";
 	final static String angleStatsFile = "/Users/ahonaker/Google Drive/pp/jpp/angleStats.csv";
 	final static String combo2StatsFile = "/Users/ahonaker/Google Drive/pp/jpp/combo2Stats.csv";
 	final static String combo3StatsFile = "/Users/ahonaker/Google Drive/pp/jpp/combo3Stats.csv";
 	final static String anglesUpateFile = "/Users/ahonaker/Google Drive/pp/jpp/anglesUpdate.csv";
+	
+	public static ArrayNode generateRawTimes() throws Exception {
+		
+		try {
+			ArrayNode times = mapper.createArrayNode();
+			List<Track> tracks = ProcessChart.getChartsArray();
+			for (Track track : tracks) {
+				for (RaceDate raceDate : track.getRaceDates()) {
+					if (raceDate.getHasChartFlag()) {
+						List<RaceResult> raceResults = ProcessChart.getChart(track.getCode(), raceDate.getRaceDate());
+						for (RaceResult raceResult : raceResults) {
+							System.out.println(raceResult.getTrack().getCode() + raceResult.getRaceDate().toString() + " " +raceResult.getRaceNumber());
+							if (raceResult.getFractionals().size() > 0) {
+								float furlongs = (float) raceResult.getDistanceSurfaceTrackRecord().getRaceDistance().getValue() / 3f / 220f;
+								ObjectNode race = mapper.createObjectNode();
+								race.put("track", raceResult.getTrack().getCode());
+								race.put("date", raceResult.getRaceDate().format(DateTimeFormatter.ofPattern("MM/dd/YYYY")));
+								race.put("raceNumber", raceResult.getRaceNumber());
+								race.put("raceType", raceResult.getRaceConditions().getRaceTypeNameBlackTypeBreed().getRaceType().toString());
+								race.put("raceClassification", raceResult.getRaceConditions().getRaceClassification());
+								race.put("furlongs", furlongs);
+								race.put("distance", raceResult.getDistanceSurfaceTrackRecord().getRaceDistance().getValue() / 3);
+								race.put("surface", raceResult.getDistanceSurfaceTrackRecord().getSurface());
+								race.put("condition", raceResult.getDistanceSurfaceTrackRecord().getTrackCondition());
+								race.put("finalTime", (Double.valueOf(raceResult.getFractionals().get(raceResult.getFractionals().size()-1).getMillis()))/1000);
+								race.put("claimingRangeMin", raceResult.getRaceConditions().getClaimingPriceRange() == null ? null : raceResult.getRaceConditions().getClaimingPriceRange().getMin());
+								race.put("claimingRangeMax", raceResult.getRaceConditions().getClaimingPriceRange() == null ? null : raceResult.getRaceConditions().getClaimingPriceRange().getMax());
+								race.put("purse", raceResult.getPurse().getValue());
+								race.put("filliesAndMares", raceResult.getRaceConditions().getSexRestrictionType().equals(SexRestrictionType.FILLIES) || raceResult.getRaceConditions().getSexRestrictionType().equals(SexRestrictionType.FILLIES_AND_MARES) ? "F" : "");
+								race.put("age", 
+										(raceResult.getRaceConditions().getAgeRestrictionType().equals(AgeRestrictionType.TWO_YEAR_OLDS) && raceResult.getRaceConditions().getAgeRestrictionRangeType().equals(AgeRestrictionRangeType.THAT_AGE_ONLY) )
+										? "2" :
+											(raceResult.getRaceConditions().getAgeRestrictionType().equals(AgeRestrictionType.THREE_YEAR_OLDS) && raceResult.getRaceConditions().getAgeRestrictionRangeType().equals(AgeRestrictionRangeType.THAT_AGE_ONLY))
+											? "3" : "");
+								times.add(race);
+							}
+						}
+					}
+				}
+			}
+			System.out.println("Done generating raw times.");
+			return times;
+			
+		} catch (Exception e) {
+			throw e;
+		}	
+	}
+	
+	public static void generateRawTimesCSV() throws Exception {
+		
+		try {
+			JsonNode node = mapper.valueToTree(generateRawTimes());
+			
+			Builder csvSchemaBuilder = CsvSchema.builder();
+			JsonNode firstObject = node.elements().next();
+			firstObject.fieldNames().forEachRemaining(fieldName -> {csvSchemaBuilder.addColumn(fieldName);} );
+			CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
+			
+			CsvMapper csvMapper = new CsvMapper();
+			csvMapper.writerFor(JsonNode.class)
+			  .with(csvSchema)
+			  .writeValue(new File(rawTimesFile), node);
+			
+		} catch (Exception e) {
+			throw e;
+		}	
+	}
 	
 	public static List<RaceTime> generateRaceTimes() throws Exception {
 		
