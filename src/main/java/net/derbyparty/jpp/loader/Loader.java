@@ -302,15 +302,19 @@ public class Loader {
 			    					break;
 			    				case "CD":
 			    					if (values[240].contains("PICK ")) {
-			    						multiRaceWagers.add(
-			    							MultiRaceWager.builder()
-			    								.withName(values[240].substring(values[240].indexOf("PICK "), values[240].indexOf("Pick ") + 5))
-			    								.withIndex(0)
-			    								.withMin((float) 0.50)
-			    								.withFirstRace(Integer.parseInt(values[240].replace("RACES ", "").split("\\(")[1].substring(0,1)))
-			    								.withNumRaces(Integer.parseInt(values[240].substring(values[240].indexOf("PICK ") + 5,values[240].indexOf("PICK ") + 6)))
-			    							.build()
-			    						);
+			    						try {
+				    						multiRaceWagers.add(
+				    							MultiRaceWager.builder()
+				    								.withName(values[240].substring(values[240].indexOf("PICK "), values[240].indexOf("PICK ") + 5))
+				    								.withIndex(0)
+				    								.withMin((float) 0.50)
+				    								.withFirstRace(Integer.parseInt(values[240].replace("RACES ", "").split("\\(")[1].substring(0,1)))
+				    								.withNumRaces(Integer.parseInt(values[240].substring(values[240].indexOf("PICK ") + 5,values[240].indexOf("PICK ") + 6)))
+				    							.build()
+				    							);
+			    						} catch (NumberFormatException e) {
+			    							System.out.println("Unrecognized Multi Race Wager");
+			    						}
 			    					} else if (values[240].equals("$.20 DERBY CITY-6"))	{
 			    						multiRaceWagers.add(
 				    							MultiRaceWager.builder()
@@ -322,7 +326,50 @@ public class Loader {
 				    							.build()
 				    						);
 			    					}
-			    					break;
+			    					break;	
+			    				case "BEL":
+			    					index = 0;
+			    					multiStrings = values[240].split(";");
+			    					for (String multi : multiStrings) {
+			    						if (multi.contains("PICK ") && multi.split("\\(").length == 3
+			    								&& Integer.parseInt(multi.split("\\(")[0].substring(multi.split("\\(")[0].length()-2).trim()) > 3) {
+			    							try {
+			    								multiRaceWagers.add(
+			    									MultiRaceWager.builder()
+			    										.withName(multi.split("\\(")[0].trim())
+			    										.withIndex(index)
+			    										.withMin(Float.parseFloat(multi.split("\\(")[1].replace("$", "").replace(")", "")))
+			    										.withFirstRace(Integer.parseInt(multi.split("\\(")[2].substring(0, 1)))
+			    										.withNumRaces(Integer.parseInt(multi.split("\\(")[0].substring(multi.split("\\(")[0].length()-2).trim()))
+			    									.build()
+			    								);
+			    								index++;
+				    						} catch (NumberFormatException e) {
+				    							System.out.println("Unrecognized Multi Race Wager");
+				    						}
+			    						}
+			    					}
+			    					multiStrings = values[241].split(";");
+			    					for (String multi : multiStrings) {
+			    						if (multi.contains("PICK ") && multi.split("\\(").length == 3
+			    								&& Integer.parseInt(multi.split("\\(")[0].substring(multi.split("\\(")[0].length()-2).trim()) > 3) {
+			    							try {
+			    								multiRaceWagers.add(
+			    									MultiRaceWager.builder()
+				    									.withName(multi.split("\\(")[0].trim())
+			    										.withIndex(index)
+			    										.withMin(Float.parseFloat(multi.split("\\(")[1].replace("$", "").replace(")", "")))
+			    										.withFirstRace(Integer.parseInt(multi.split("\\(")[2].substring(0, 1)))
+			    										.withNumRaces(Integer.parseInt(multi.split("\\(")[0].substring(multi.split("\\(")[0].length()-2).trim()))
+			    									.build()
+			    								);
+			    								index++;
+				    						} catch (NumberFormatException e) {
+				    							System.out.println("Unrecognized Multi Race Wager");
+				    						}
+			    						}
+			    					}
+			    					break;				    					
 			    				case "DMR" :
 			    				case "GP":
 			    					multiStrings = values[values[0].trim().equals("GP") ? 240 : 241].split("\\/");
@@ -359,6 +406,30 @@ public class Loader {
 			    			}
 				    	
 			    		}
+			    		
+		    			if (values[0].trim().equals("KEE")) {
+	    					if (values[239].contains("PICK 4")) {
+	    						multiRaceWagers.add(
+	    							MultiRaceWager.builder()
+	    								.withName("PICK 4")
+	    								.withIndex(0)
+	    								.withMin((float) 0.50)
+	    								.withFirstRace(raceNum)
+	    								.withNumRaces(4)
+	    							.build()
+	    						);
+	    					} else if (values[239].contains("PICK 5")) {
+	    						multiRaceWagers.add(
+		    							MultiRaceWager.builder()
+		    								.withName("PICK 5")
+		    								.withIndex(0)
+		    								.withMin((float) 0.50)
+		    								.withFirstRace(raceNum)
+		    								.withNumRaces(5)
+		    							.build()
+		    						);
+	    					}
+		    			}
 			    		
 				    	race = Race.builder()
 				    			.withTrack(values[0].trim())

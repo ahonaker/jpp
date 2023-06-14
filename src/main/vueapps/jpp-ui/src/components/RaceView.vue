@@ -945,7 +945,7 @@ export default {
 				return h.scratchedFlag;
 			}), key);
 
-			if (value == _.max(values)) {
+			if (value == _.max(values) && value != 0) {
 				return "greenHighlight";
 			}
 		},

@@ -124,11 +124,13 @@ export default {
 				fields.push({key: "horsename", title: "Horse Name and Jockey", label: "Horse Name (Jockey)"});
 				fields.push({key: "medicationEquipment.text", title: "Medication and Equipment", label: "M/E"});
 				fields.push({key: "postPosition", title: "Post Position", label: "PP"});
-				for (var j = 0; j < this.chart[i].starters[0].pointsOfCall.length; j++) {
-					fields.push({
-						key: "pointsOfCall" + j,
-						label: this.chart[i].starters[0].pointsOfCall[j].text
-					});
+				if (this.chart[i].starters) {
+					for (var j = 0; j < this.chart[i].starters[0].pointsOfCall.length; j++) {
+						fields.push({
+							key: "pointsOfCall" + j,
+							label: this.chart[i].starters[0].pointsOfCall[j].text
+						});
+					}
 				}
 				fields.push({key: "odds", title: "Odds", label: "Odds"});
 				fields.push({key: "comments", title: "Comments", label: "Comments"});

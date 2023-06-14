@@ -25,10 +25,10 @@ export default {
     },
     methods : {
 		fastWorkout(workout) {
-            if (workout.furlongs >= 4 && workout.furlongs <= 5 && Math.abs(workout.timeOfWorkout) / workout.furlongs < 12) return "greenHighlight";
-            if (workout.furlongs == 6 && Math.abs(workout.timeOfWorkout) / workout.furlongs < 63) return "greenHighlight";
-            if (workout.furlongs == 7 && Math.abs(workout.timeOfWorkout) / workout.furlongs < 77) return "greenHighlight";
-			if (workout.furlongs > 3 && Math.floor(Math.abs(workout.timeOfWorkout)) ==  12 * workout.furlongs) return "lightGreenHighlightBorder";
+      if (workout.furlongs >= 4 && workout.furlongs <= 5 && Math.abs(workout.timeOfWorkout) / workout.furlongs < 12) return "greenHighlight";
+      if (workout.furlongs == 6 && Math.abs(workout.timeOfWorkout) < 73) return "greenHighlight";
+      if (workout.furlongs == 7 && Math.abs(workout.timeOfWorkout) < 87) return "greenHighlight";
+			if (workout.furlongs > 3 && Math.floor(Math.abs(workout.timeOfWorkout)) <=  12 * workout.furlongs) return "lightGreenHighlightBorder";
 		},
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);

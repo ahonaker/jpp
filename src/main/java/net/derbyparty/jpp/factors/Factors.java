@@ -15,8 +15,6 @@ import net.derbyparty.jpp.object.Horse;
 import net.derbyparty.jpp.object.PaceScenarioType;
 import net.derbyparty.jpp.object.PastPerformance;
 import net.derbyparty.jpp.object.Race;
-import net.derbyparty.jpp.object.RaceType;
-import net.derbyparty.jpp.object.Stat;
 import net.derbyparty.jpp.object.Workout;
 
 public class Factors {

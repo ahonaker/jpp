@@ -54,13 +54,27 @@ public class RaceTypeNameBlackTypeBreed {
 
     public static RaceTypeNameBlackTypeBreed parse(List<List<ChartCharacter>> lines)
             throws Breed.NoMatchingBreedException, RaceTypeNameOrBreedNotIdentifiable {
-        for (List<ChartCharacter> line : lines) {
+    	
+    	for (int i = 0; i < lines.size(); i++) {
+    		List<ChartCharacter> line = lines.get(i);
             String rawText = Chart.convertToText(line);
             Optional<RaceTypeNameBlackTypeBreed> raceTypeNameGradeBreed =
                     parseRaceTypeNameBlackTypeBreed(rawText);
             if (raceTypeNameGradeBreed.isPresent()) {
                 return raceTypeNameGradeBreed.get();
             }
+    	}
+    	for (int i = 0; i < lines.size(); i++) {
+            
+            if (i < lines.size()-1) {
+            	String rawText = Chart.convertToText(lines.get(i)) + " " + Chart.convertToText(lines.get(i+1));
+            	Optional<RaceTypeNameBlackTypeBreed> raceTypeNameGradeBreed =
+	                    parseRaceTypeNameBlackTypeBreed(rawText);
+	            if (raceTypeNameGradeBreed.isPresent()) {
+	                return raceTypeNameGradeBreed.get();
+	            }
+            }
+            
         }
         throw new RaceTypeNameOrBreedNotIdentifiable("Unable to identify a valid race type, name " +
                 "and/or breed");

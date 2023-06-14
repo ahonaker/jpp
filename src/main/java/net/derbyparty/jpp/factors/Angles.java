@@ -263,7 +263,7 @@ public class Angles {
 	public static Boolean angle_0001(Race race, Horse horse) throws Exception {	
 		//Most Recent Year Best Speed is equal or better than Max Speed Rating in the Race.	
 		try {
-			return (horse.getMostRecentYearBestSpeed() >= race.getMaxSpeed());
+			return (horse.getMostRecentYearBestSpeed() >= race.getMaxSpeed() && race.getMaxSpeed() > 0);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;			
@@ -1720,7 +1720,7 @@ public class Angles {
 	public static Boolean angle_0095(Race race, Horse horse) throws Exception {	
 		//Maiden Moving Up
 		try {
-			return (horse.getPastPerformances().size() > 1
+			return (horse.getPastPerformances().size() > 0
 				&& (horse.getPastPerformances().get(0).getRaceType().equals(RaceType.MAIDEN_SPECIAL_WEIGHT)
 					|| horse.getPastPerformances().get(0).getRaceType().equals(RaceType.MAIDEN_OPTIONAL_CLAIMING)
 					|| horse.getPastPerformances().get(0).getRaceType().equals(RaceType.MAIDEN_CLAIMING))

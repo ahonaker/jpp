@@ -415,15 +415,22 @@ export default {
 		},
 		highlightSpeedInRange(value,key,item) {
 			if (!this.race) return;
-			if (item.brisspeedRating >= this.race.parSpeed) return "greenHighlight";
-			if (item.brisspeedRating >= this.race.parSpeed - 3) return "lightGreenHighlight";
+            if (this.race.parSpeed > 0) {
+                if (item.brisspeedRating >= this.race.parSpeed) return "greenHighlight";
+                if (item.brisspeedRating >= this.race.parSpeed - 3) return "lightGreenHighlight";
+            } else {
+                if (item.brisspeedRating >= this.race.maxSpeed) return "greenHighlight";
+                if (item.brisspeedRating >= this.race.maxSpeed - 3) return "lightGreenHighlight";
+            }
 		},
         highlightRaceStrength(value,key,item) {
 			if (!this.race) return;
             if (item.raceStrength >= this.race.parSpeed - 2) return "greenHighlight";
         },
         highlightPace(value,key,item) {
-			if (!this.race) return;
+			if (!this.race || (this.race.furlongs < 8 ? this.race.parPace2F : this.race.parPace4F) == 0
+                || (this.race.furlongs < 8 ? this.race.parPace4F : this.race.parPace6F) == 0 
+                || this.race.parLatePace == 0)  return;
             if (item.e1 >= (this.race.furlongs < 8 ? this.race.parPace2F : this.race.parPace4F) -2 
                 && item.e2 >= (this.race.furlongs < 8 ? this.race.parPace4F : this.race.parPace6F) -2 
                 && item.paceFigureLate >= this.race.parLatePace -2)

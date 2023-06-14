@@ -7,7 +7,10 @@
             </b-col>
             <b-col>
                 <b-button variant="primary" @click="updateAllHorsesToWatchWithPPs">Update H2W</b-button>
-            </b-col>			
+            </b-col>
+            <b-col>
+                <b-button variant="primary" @click="generateStats">Generate Stats</b-button>
+            </b-col>						
             <b-col>
 				<b-form-file
 					id="filenameform"
@@ -184,7 +187,44 @@ export default {
                 console.log(err);
                 
             }
-		},			
+		},
+		async generateStats() {
+            try {
+				this.status = "Generating Angle Stats";
+                await axios({
+                    url: 'generateAngleStats',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});				
+				this.status = "Generating Combo 2 Stats";
+                await axios({
+                    url: 'generateComboStats/2',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});		
+				this.status = "Generating Combo 3 Stats";
+                await axios({
+                    url: 'generateComboStats/3',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});			
+/* 				this.status = "Generating Race Stats";
+                await axios({
+                    url: 'generateRaceStats',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});	 */		
+                axios({
+                    url: 'generateStats',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});				
+				this.status = "";
+            } catch (err) {
+                console.log(err);
+                
+            }
+		},					
 		async extractPP() {
             try {
 				this.status = "Extracting";
