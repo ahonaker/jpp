@@ -512,6 +512,26 @@ public class Remote {
 	  
 	}	
 	
+	@Path("downloadChart/{track}/{year}/{month}/{day}")
+	@GET
+	public Response downloadChart(@PathParam("track") String track ,
+			@PathParam("year") int year,
+			@PathParam("month") int month,
+			@PathParam("day") int day) throws Exception {
+	  
+	  try {
+		    
+		    //ProcessChart.downloadChart(track, LocalDate.of(year, month, day));
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	}	
+	
+	
 	@Path("toggleChartReviewed/{track}/{year}/{month}/{day}")
 	@GET
 	public Response toggleChartReviewed(@PathParam("track") String track ,

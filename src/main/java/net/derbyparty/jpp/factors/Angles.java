@@ -366,6 +366,7 @@ public class Angles {
 				&& horse.getPastPerformances().get(0).getFinishPosition().equals("1") 
 				&& horse.getPedigreeRatingTurf().charAt(0) != '?'
 				&& !horse.getPedigreeRatingTurf().contains("?") 
+				&& !horse.getPedigreeRatingTurf().contains("*") 
 				&& Integer.parseInt(horse.getPedigreeRatingTurf()) > 105
 				&& fastTurfFinish(horse.getPastPerformances().get(0)));			
 		} catch (Exception e) {
@@ -574,6 +575,7 @@ public class Angles {
 		try {		
 			return (horse.getPastPerformances().size() >= 5
 				&& horse.getPastPerformances().get(0).getBRISSpeedRating() - 5 > horse.getPastPerformances().get(1).getBRISSpeedRating()
+				&& horse.getWorkouts().size() >= 2
 				&& horse.getWorkouts().get(0).getDateOfWorkout().isAfter(horse.getPastPerformances().get(0).getRaceDate())
 				&& horse.getWorkouts().get(0).getTimeOfWorkout() / horse.getWorkouts().get(0).getFurlongs() <
 					horse.getWorkouts().get(1).getTimeOfWorkout() / horse.getWorkouts().get(1).getFurlongs()

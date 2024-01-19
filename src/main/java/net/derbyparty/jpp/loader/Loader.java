@@ -16,8 +16,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.text.WordUtils;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -26,6 +31,7 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
 import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.object.AgeRestrictionRangeType;
 import net.derbyparty.jpp.object.AgeRestrictionType;
@@ -48,6 +54,23 @@ import net.derbyparty.jpp.object.SexRestrictionType;
 public class Loader {
 	
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+	
+	static ChromeDriver driver;
+	
+	static String mainHandle;
+	
+	public static boolean defaultOddsProvider;
+	public static boolean initializing = false;
+	
+	static String user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36";
+	
+	static ChromeOptions options = new ChromeOptions()
+		//.addArguments("--headless=new")
+		.addArguments("--no-sandbox")
+		.addArguments("--window-size=1920,1080")
+		.addArguments("--disable-dev-shm-usage")
+		.addArguments("--remote-allow-origins=*")
+		.addArguments("user-agent=" + user_agent);	
 	
 	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	
@@ -301,6 +324,8 @@ public class Loader {
 						    		}
 			    					break;
 			    				case "CD":
+			    				case "ELP":
+			    				case "KD":
 			    					if (values[240].contains("PICK ")) {
 			    						try {
 				    						multiRaceWagers.add(
@@ -328,6 +353,7 @@ public class Loader {
 			    					}
 			    					break;	
 			    				case "BEL":
+			    				case "SAR":
 			    					index = 0;
 			    					multiStrings = values[240].split(";");
 			    					for (String multi : multiStrings) {
@@ -372,6 +398,7 @@ public class Loader {
 			    					break;				    					
 			    				case "DMR" :
 			    				case "GP":
+			    				case "SA" :
 			    					multiStrings = values[values[0].trim().equals("GP") ? 240 : 241].split("\\/");
 						    		index = 0;
 						    		for (String multi : multiStrings) {
@@ -419,6 +446,30 @@ public class Loader {
 	    							.build()
 	    						);
 	    					} else if (values[239].contains("PICK 5")) {
+	    						multiRaceWagers.add(
+		    							MultiRaceWager.builder()
+		    								.withName("PICK 5")
+		    								.withIndex(0)
+		    								.withMin((float) 0.50)
+		    								.withFirstRace(raceNum)
+		    								.withNumRaces(5)
+		    							.build()
+		    						);
+	    					}
+		    			}
+		    			
+		    			if (values[0].trim().equals("SA")) {
+	    					if (values[240].contains("PICK 4")) {
+	    						multiRaceWagers.add(
+	    							MultiRaceWager.builder()
+	    								.withName("PICK 4")
+	    								.withIndex(0)
+	    								.withMin((float) 0.50)
+	    								.withFirstRace(raceNum)
+	    								.withNumRaces(4)
+	    							.build()
+	    						);
+	    					} else if (values[240].contains("PICK 5")) {
 	    						multiRaceWagers.add(
 		    							MultiRaceWager.builder()
 		    								.withName("PICK 5")
@@ -862,5 +913,34 @@ public class Loader {
 		
 	}
 	
+    public static void download(String fileURL, String localFilename) throws Exception {
+
+    	try {
+			Map<String, Object> prefs = new HashMap<String, Object>();
+			prefs.put("download.prompt_for_download", false);	
+			prefs.put("download.default_directory", localFilename);
+			options.setExperimentalOption("prefs", prefs);
+			
+			java.util.logging.Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
+			
+			ChromeDriverService chromeDriverService = new ChromeDriverService.Builder().build(); 
+			chromeDriverService.sendOutputTo(NullOutputStream.NULL_OUTPUT_STREAM);
+			
+			WebDriverManager.chromedriver().setup();
+			ChromeDriver driver = new ChromeDriver(chromeDriverService, options);
+			driver.get(fileURL);
+			Thread.sleep(1000);
+			
+			System.out.println(driver.getPageSource());
+    		
+ 		} catch (Exception e) {
+			e.printStackTrace();
+			
+			
+ 		} 
+     
+    
+	}
+    
 	
 }

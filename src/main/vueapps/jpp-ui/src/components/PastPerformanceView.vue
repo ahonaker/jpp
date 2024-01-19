@@ -565,10 +565,10 @@ export default {
 						+ str_pad_left(d[1],0,2)  + "-"
 						+ str_pad_left(d[2],0,2); 
                 });
-
             const day = pp.raceDate[0] + "-"
 				+ str_pad_left(pp.raceDate[1],0,2)   + "-"
 				+ str_pad_left(pp.raceDate[2],0,2);
+                 console.log(day);
 			return chartDates.indexOf(day) >  -1;
         },
         dayOfWeek(raceDate) {

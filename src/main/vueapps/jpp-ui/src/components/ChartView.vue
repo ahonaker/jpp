@@ -122,7 +122,9 @@
             <strong>Fractional Times: </strong>&nbsp;&nbsp;<span v-for="(fractional, findex) in race.fractionals" :key="'f' + findex">{{fractional.time}}&nbsp;&nbsp;&nbsp;</span><br>
             <strong>Split Times: </strong>&nbsp;&nbsp;<span v-for="(split, sindex) in race.splits" :key="'s' + sindex">({{split.time}})&nbsp;&nbsp;&nbsp;</span><br><br>
             <strong>Winner: </strong>{{winner.horse.program}} - {{winner.horse.name}}, {{winner.horse.color}} {{winner.horse.sex}}, by {{winner.horse.sire.name}} out of {{winner.horse.dam.name}} by {{winner.horse.damSire.name}}. Foaled {{formatDate(winner.horse.foalingDate)}} in {{winner.horse.foalingLocation}}<br>
-            <strong>Winning Owner: </strong>{{race.starters[0].owner.name}}<br>
+            <span v-if="race.starters[0].owner">
+                <strong >Winning Owner: </strong>{{race.starters[0].owner.name}}<br>
+            </span>
             <span v-if="race.keyRace != null">
                 <strong>Key Race Next Out Performances: </strong>
                 <span v-for="(horse, khindex) in race.keyRace.horses" :key="khindex">

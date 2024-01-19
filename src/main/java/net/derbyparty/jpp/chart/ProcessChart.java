@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.derbyparty.jpp.chartparser.ChartParser;
 import net.derbyparty.jpp.chartparser.charts.pdf.RaceResult;
 import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
+import net.derbyparty.jpp.loader.Loader;
 import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.PotentialKeyRace;
 import net.derbyparty.jpp.object.PotentialKeyRaceHorse;
@@ -30,6 +31,7 @@ public class ProcessChart {
 	final static String keyRacesFile = "/Users/ahonaker/Google Drive/pp/jpp/keyRaces.json";
 	final static String raceDatesFile =  "/Users/ahonaker/Google Drive/pp/jpp/raceDates.json";
 	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
+	final static String chartDownloadDir = "/Users/ahonaker/Google Drive/pp/jpp/newcharts/";
 	
 	public static List<PotentialKeyRace> getKeyRacesList() throws Exception {
 		
@@ -239,7 +241,7 @@ public class ProcessChart {
             .forEach(path -> {
                 File file = new File(path.toString());
                 try {
-                	//System.out.println(path);
+                	System.out.println(path);
 					if (path.toString().contains(".pdf")) {
 						List<RaceResult> results = process(file);
 						String fullFileName = targetDir + results.get(0).getTrack().getCode() + results.get(0).getRaceDate().format(DateTimeFormatter.ofPattern("MMddYYYY")) + "USA.pdf";
@@ -418,5 +420,6 @@ public class ProcessChart {
 		}
 		
 	}
+	
 	
 }
