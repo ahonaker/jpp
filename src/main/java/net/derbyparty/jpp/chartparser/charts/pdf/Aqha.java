@@ -7,8 +7,8 @@ package net.derbyparty.jpp.chartparser.charts.pdf;
  */
 public class Aqha {
 
-    private final Long individualTimeMillis;
-    private final Integer speedIndex;
+	public Long individualTimeMillis;
+    public Integer speedIndex;
 
     public Aqha(Long individualTimeMillis, Integer speedIndex) {
         this.individualTimeMillis = individualTimeMillis;
@@ -50,4 +50,11 @@ public class Aqha {
                 ", speedIndex=" + speedIndex +
                 '}';
     }
+
+	public Aqha() {
+		super();
+
+		// TODO Auto-generated constructor stub
+	}
+    
 }

@@ -1,18 +1,18 @@
 package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.format.TextStyle;
-import java.util.Locale;
-
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.annotation.Generated;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class Workout implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	
-	private LocalDate DateOfWorkout;
+	@JsonFormat(shape=JsonFormat.Shape.NUMBER, pattern="s")
+	private Date DateOfWorkout;
 	private Float TimeOfWorkout;
 	private String TrackOfWorkout;
 	private int DistanceOfWorkout;
@@ -39,16 +39,17 @@ public class Workout implements Serializable {
 		this.Rank = builder.Rank;
 	}
 
-	public LocalDate getDateOfWorkout() {
+	public Date getDateOfWorkout() {
 		return DateOfWorkout;
 	}
-	public void setDateOfWorkout(LocalDate dateOfWorkout) {
+	public void setDateOfWorkout(Date dateOfWorkout) {
 		DateOfWorkout = dateOfWorkout;
 	}
 	public String getDateOfWorkoutString() {
-		return DateOfWorkout.getDayOfMonth() +
-				DateOfWorkout.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH) +
-				(DateOfWorkout.getYear()-2000);
+		return new SimpleDateFormat("ddMMMYY").format(DateOfWorkout);
+//		return DateOfWorkout.getDayOfMonth() +
+//				DateOfWorkout.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH) +
+//				(DateOfWorkout.getYear()-2000);
 	}
 	public Float getTimeOfWorkout() {
 		return TimeOfWorkout;
@@ -176,7 +177,7 @@ public class Workout implements Serializable {
 	}
 	@Generated("SparkTools")
 	public static final class Builder {
-		private LocalDate DateOfWorkout;
+		private Date DateOfWorkout;
 		private Float TimeOfWorkout;
 		private String TrackOfWorkout;
 		private int DistanceOfWorkout;
@@ -189,7 +190,7 @@ public class Workout implements Serializable {
 		private Builder() {
 		}
 
-		public Builder withDateOfWorkout(LocalDate DateOfWorkout) {
+		public Builder withDateOfWorkout(Date DateOfWorkout) {
 			this.DateOfWorkout = DateOfWorkout;
 			return this;
 		}

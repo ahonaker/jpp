@@ -1,7 +1,7 @@
 <template>
     <b-table
         id="pps"
-        :items="race.horses"
+        :items="race.entries"
         :fields="horseFields"
         small
         :tbody-tr-class="rowClass"
@@ -151,7 +151,8 @@ export default {
 			return formatter.format(amount);
 		},        	
 		formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+			return new Date(date).toLocaleDateString;
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},  
         formatOdds (value, key) {
             return "text-center " + ((this.hideML) ? "" : this.highlightMin(value,key));
@@ -161,7 +162,7 @@ export default {
             if (item.flag == 'Star') return "star";
         },   
 		highlightMin(value, key) {
-			var values = _.pluck(_.reject(this.race.horses, function(h) {
+			var values = _.pluck(_.reject(this.race.entries, function(h) {
 				return h.scratchedFlag;
 			}), key);
 
@@ -170,7 +171,7 @@ export default {
 			}
 		},          
 		highlightMax(value, key) {
-			var values = _.pluck(_.reject(this.race.horses, function(h) {
+			var values = _.pluck(_.reject(this.race.entries, function(h) {
 				return h.scratchedFlag;
 			}), key);
 
@@ -208,7 +209,7 @@ export default {
 			if (item.brisspeedRating >= this.race.parSpeed - 3) return "lightGreenHighlight";
 		},
 		highlightPaceAdvantage(value, key, item) {
-			if (_.contains(this.race.advantagedHorses, item.name)) return "greenHighlight";
+			if (_.contains(this.race.advantagedEntries, item.name)) return "greenHighlight";
 		},
 		highlightShift(value) {
 			if (value < 0) return "greenHighlight";

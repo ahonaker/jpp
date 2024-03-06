@@ -5,7 +5,7 @@ package net.derbyparty.jpp.chartparser.charts.pdf;
  */
 public class Breeder {
 
-    private final String name;
+	public String name;
 
     public Breeder(String name) {
         this.name = name;
@@ -36,4 +36,10 @@ public class Breeder {
                 "name='" + name + '\'' +
                 '}';
     }
+
+	public Breeder() {
+
+		
+		// TODO Auto-generated constructor stub
+	}
 }

@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -20,7 +21,7 @@ import jakarta.ws.rs.core.Response;
 import net.derbyparty.jpp.chart.ProcessChart;
 import net.derbyparty.jpp.main.Analytics;
 import net.derbyparty.jpp.main.Main;
-import net.derbyparty.jpp.object.HorseToWatch;
+import net.derbyparty.jpp.object.Horse;
 import net.derbyparty.jpp.object.Track;
 import net.derbyparty.jpp.pastperformanceparser.PastPerformanceParser;
 
@@ -119,7 +120,12 @@ public class Remote {
 			@PathParam("day") int day) throws Exception {
 		
 		try {
-			return Response.ok().entity(Main.retrieve(track, LocalDate.of(year, month, day))).build();
+
+			return Response.ok().entity(Main.retrieve(track, java.util.Date.from(LocalDate.of(year, month, day)
+				  .atStartOfDay()
+			      .atZone(ZoneId.systemDefault())
+			      .toInstant())))
+				.build();
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -335,7 +341,10 @@ public class Remote {
 	public Response toggleIgnored(@FormDataParam("raceNumber") int raceNumber, @FormDataParam("name") String name, @FormDataParam("year") int year, @FormDataParam("month") int month, @FormDataParam("day") int day) throws Exception {
 		
 		try {
-			Main.toggleIgnored(raceNumber, name, LocalDate.of(year, month, day));
+			Main.toggleIgnored(raceNumber, name, java.util.Date.from(LocalDate.of(year, month, day)
+					  .atStartOfDay()
+				      .atZone(ZoneId.systemDefault())
+				      .toInstant()));
 			
  		} catch (Exception e) {
 			e.printStackTrace();
@@ -503,7 +512,10 @@ public class Remote {
 	  
 	  try {
 		    
-		    return Response.ok().entity(ProcessChart.getChartString(track, LocalDate.of(year, month, day))).build();
+		    return Response.ok().entity(ProcessChart.getChartString(track, java.util.Date.from(LocalDate.of(year, month, day)
+					  .atStartOfDay()
+				      .atZone(ZoneId.systemDefault())
+				      .toInstant()))).build();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -541,7 +553,10 @@ public class Remote {
 	  
 	  try {
 		    
-		    Main.toggleChartReviewed(track, LocalDate.of(year, month, day));
+		    Main.toggleChartReviewed(track, java.util.Date.from(LocalDate.of(year, month, day)
+					  .atStartOfDay()
+				      .atZone(ZoneId.systemDefault())
+				      .toInstant()));
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -678,7 +693,7 @@ public class Remote {
 	  
 	  try {
 		    
-		    return Response.ok().entity(ProcessChart.getCharts()).build();
+		    return Response.ok().entity(Main.getTracksList()).build();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -723,6 +738,7 @@ public class Remote {
 	public Response saveTracks(  @FormDataParam("data") String data) throws Exception {
 	  
 	  try {	
+		  	System.out.println(data);
 		    Main.saveTracks(Arrays.asList(mapper.readValue(data, Track[].class)));
 	  
 		} catch (Exception e) {
@@ -733,68 +749,23 @@ public class Remote {
 	  	return Response.noContent().build();
 	}
 	
-	@Path("convertRaceDates")
-	@GET
-	public Response convertRaceDates() throws Exception {
-	  
-	  try {
-		    
-		    Main.convertRaceDates();;
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
+//	@Path("convertRaceDates")
+//	@GET
+//	public Response convertRaceDates() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Main.convertRaceDates();
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
 	
-	@Path("getHorsesToWatch")
-	@GET
-	public Response getHorsesToWatch() throws Exception {
-	  
-	  try {
-		    
-		    return Response.ok().entity(Main.getHorsesToWatch()).build();
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	}
-	
-	@Path("getHorseToWatch/{name}")
-	@GET
-	public Response getHorseToWatch(@PathParam("name") String name) throws Exception {
-	  
-	  try {
-		    
-		    return Response.ok().entity(Main.getHorseToWatch(name)).build();
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	}
-	
-	@Path("saveHorseToWatch")
-	@POST
-	@Consumes("multipart/form-data")
-	public Response saveHorseToWatch(  @FormDataParam("data") String data) throws Exception {
-	  
-	  try {	
-		    Main.saveHorseToWatch(mapper.readValue(data, HorseToWatch.class));;
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	}
 	
 	@Path("convertNotes")
 	@GET
@@ -802,7 +773,7 @@ public class Remote {
 	  
 	  try {
 		    
-		    Main.convertNotes();;
+		    Main.convertNotes();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -812,6 +783,103 @@ public class Remote {
 	  	return Response.noContent().build();
 	  
 	}
+	
+	@Path("convertCards")
+	@GET
+	public Response convertCards() throws Exception {
+	  
+	  try {
+		    
+		    Main.convertCards();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+//	
+//	@Path("convertAngles")
+//	@GET
+//	public Response convertAngles() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Angles.convertAngles();
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
+	
+	@Path("getHorses")
+	@GET
+	public Response getHorses() throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Main.getHorses()).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	}
+	
+	@Path("getHorse/{name}")
+	@GET
+	public Response getHorse(@PathParam("name") String name) throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Main.getHorse(name)).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	}
+	
+	@Path("saveHorse")
+	@POST
+	@Consumes("multipart/form-data")
+	public Response saveHorse(  @FormDataParam("data") String data) throws Exception {
+	  
+	  try {	
+		    Main.saveHorse(mapper.readValue(data, Horse.class));;
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	}
+	
+//	@Path("convertNotes")
+//	@GET
+//	public Response convertNotes() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Main.convertNotes();;
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
 	
 	@Path("markChartsReviewed")
 	@GET
@@ -830,74 +898,40 @@ public class Remote {
 	  
 	}
 	
-	@Path("updateHorsesToWatchWithPPs/{track}/{year}/{month}/{day}")	
-	@GET
-	public Response updateHorsesToWatchWithPPs(@PathParam("track") String track ,
-			@PathParam("year") int year,
-			@PathParam("month") int month,
-			@PathParam("day") int day) throws Exception {
-		
-		try {
-			Main.updateHorsesToWatchWithPPs(track, LocalDate.of(year, month, day));
-			
- 		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
- 		} 
-		return Response.noContent().build();
-
-	}
 	
-	@Path("updateAllHorsesToWatchWithPPs")
-	@GET
-	public Response uppdateAllHorsesToWatchWithPPs() throws Exception {
-	  
-	  try {
-		    
-		    Main.updateAllHorsesToWatchWithPPs();
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
-	
-	@Path("generateRaceTimes")
-	@GET
-	public Response generateRaceTimes() throws Exception {
-	  
-	  try {
-		    
-		    Analytics.generateRaceTimesCSV();;
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
-	
-	@Path("generateRawTimes")
-	@GET
-	public Response generateRawTimes() throws Exception {
-	  
-	  try {
-		    
-		    Analytics.generateRawTimesCSV();;
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
+//	@Path("generateRaceTimes")
+//	@GET
+//	public Response generateRaceTimes() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Analytics.generateRaceTimesCSV();;
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
+//	
+//	@Path("generateRawTimes")
+//	@GET
+//	public Response generateRawTimes() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Analytics.generateRawTimesCSV();;
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
 	
 	@Path("generateAngleStats")
 	@GET
@@ -905,7 +939,7 @@ public class Remote {
 	  
 	  try {
 		    
-		    Analytics.generateAngleStatsCSV();
+		    Analytics.generateAngleStats();
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -916,73 +950,73 @@ public class Remote {
 	  
 	}
 	
-	@Path("generateStats")
-	@GET
-	public Response generateStats() throws Exception {
-	  
-	  try {
-		    
-		    Analytics.generateStatsCSV();
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
+//	@Path("generateStats")
+//	@GET
+//	public Response generateStats() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Analytics.generateStatsCSV();
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
+//	
+//	@Path("generateComboStats/{n}")
+//	@GET
+//	public Response generateComboStats(@PathParam("n") int n) throws Exception {
+//	  
+//	  try {
+//		    
+//		    Analytics.generateComboStatsCSV(n);
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
+//	
+//	@Path("generateRaceStats")
+//	@GET
+//	public Response generateRaceStats() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Analytics.generateRaceStatsCSV();
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
 	
-	@Path("generateComboStats/{n}")
-	@GET
-	public Response generateComboStats(@PathParam("n") int n) throws Exception {
-	  
-	  try {
-		    
-		    Analytics.generateComboStatsCSV(n);
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
-	
-	@Path("generateRaceStats")
-	@GET
-	public Response generateRaceStats() throws Exception {
-	  
-	  try {
-		    
-		    Analytics.generateRaceStatsCSV();
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
-	
-	@Path("updateAngleStatsFile")
-	@GET
-	public Response updateAngleStatsFile() throws Exception {
-	  
-	  try {
-		    
-		    Analytics.updateAngleStatsFile();
-	  
-		} catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-		} 
-	  
-	  	return Response.noContent().build();
-	  
-	}
+//	@Path("updateAngleStatsFile")
+//	@GET
+//	public Response updateAngleStatsFile() throws Exception {
+//	  
+//	  try {
+//		    
+//		    Analytics.updateAngleStatsFile();
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.noContent().build();
+//	  
+//	}
 	
 	@Path("retrieveCalculateAndSaveAll")
 	@GET

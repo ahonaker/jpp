@@ -24,15 +24,15 @@ public class Winner {
     private static final DateTimeFormatter MONTH_DAY_YEAR_FORMATTER =
             DateTimeFormatter.ofPattern("MMM dd, yyyy");
 
-    private final String horseName;
-    private final String horseColor;
-    private final String horseSex;
-    private final String sireName;
-    private final String damName;
-    private final String damSireName;
-    private final LocalDate foalingDate;
-    private final String foalingLocation;
-    private Breeder breeder;
+    public String horseName;
+    public String horseColor;
+    public String horseSex;
+    public String sireName;
+    public String damName;
+    public String damSireName;
+    public LocalDate foalingDate;
+    public String foalingLocation;
+    public Breeder breeder;
 
     public Winner(String horseName, String horseColor, String horseSex, String sireName, String
             damName, String damSireName, LocalDate foalingDate, String foalingLocation) {
@@ -195,7 +195,13 @@ public class Winner {
                 == null;
     }
 
-    @Override
+    public Winner() {
+    	super();
+		
+		// TODO Auto-generated constructor stub
+	}
+
+	@Override
     public int hashCode() {
         int result = horseName != null ? horseName.hashCode() : 0;
         result = 31 * result + (horseColor != null ? horseColor.hashCode() : 0);

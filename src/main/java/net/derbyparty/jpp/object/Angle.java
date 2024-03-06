@@ -1,11 +1,35 @@
 package net.derbyparty.jpp.object;
 
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import java.io.Serializable;
 import javax.annotation.Generated;
+
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.UpdateResult;
 
 public class Angle implements Serializable, Comparable<Angle> {
 
 	private static final long serialVersionUID = 1L;
+	
+	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+		
+	final static String mongoUri = "mongodb://localhost/jpp";
+	static MongoClient mongoClient = MongoClients.create(mongoUri);
+	static MongoDatabase database = mongoClient.getDatabase("jpp").withCodecRegistry(pojoCodecRegistry);
+
 
 	private String source;
 	private String name;
@@ -269,5 +293,30 @@ public class Angle implements Serializable, Comparable<Angle> {
 			return new Angle(this);
 		}
 	}
+	
+	public void save() throws Exception {
+		ReplaceOptions opts = new ReplaceOptions().upsert(true);
+		
+		Document query = new Document()
+				.append("name", name);	
+		
+		MongoCollection<Angle> collection = database.getCollection("angles", Angle.class);
+		UpdateResult result = collection.replaceOne(query, this, opts);
+//		if (result.getModifiedCount() == 1) {
+//			System.out.println(this.getName() + " updated.");
+//		} else {
+//			System.out.println(this.getName() + " inserted. (ID = " + result.getUpsertedId());
+//		}
+
+	}
+		
+	public void delete() throws Exception {		
+		Document query = new Document()
+				.append("name", name);	
+		
+		MongoCollection<Angle> collection = database.getCollection("angles",Angle.class);
+		collection.findOneAndDelete(query);
+	}
+
 	
 }

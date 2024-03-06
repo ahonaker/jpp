@@ -1,34 +1,47 @@
 package net.derbyparty.jpp.main;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.Conventions;
+import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.conversions.Bson;
+import static com.mongodb.client.model.Filters.eq;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import net.derbyparty.jpp.chart.ProcessChart;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Projections;
 import net.derbyparty.jpp.factors.Angles;
 import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.factors.Ratings;
 import net.derbyparty.jpp.loader.Loader;
 import net.derbyparty.jpp.object.Angle;
+import net.derbyparty.jpp.object.Card;
+import net.derbyparty.jpp.object.Entry;
 import net.derbyparty.jpp.object.Horse;
-import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.MultiRaceWager;
 import net.derbyparty.jpp.object.PastPerformance;
-import net.derbyparty.jpp.object.PotentialKeyRace;
 import net.derbyparty.jpp.object.Race;
 import net.derbyparty.jpp.object.RaceDate;
 import net.derbyparty.jpp.object.RaceNote;
@@ -37,7 +50,10 @@ import net.derbyparty.jpp.pastperformanceparser.PastPerformanceParser;
 
 public class Main {
 
-	static List<Race> races = new ArrayList<Race>();
+	//static List<Race> races = new ArrayList<Race>();
+	static SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+	
+	static Card card = new Card();
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 	
 	static String distanceOption = "all";
@@ -49,7 +65,16 @@ public class Main {
 	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	final static String tracksFile = "/Users/ahonaker/Google Drive/pp/jpp/tracks.json";
 	final static String raceDatesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceDates.json";
-
+	
+	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().
+		       conventions(Arrays.asList(Conventions.ANNOTATION_CONVENTION)).automatic(true).build();
+	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+	
+	final static String mongoUri = "mongodb://localhost/jpp";
+	static MongoClient mongoClient = MongoClients.create(mongoUri);
+	static MongoDatabase database = mongoClient.getDatabase("jpp").withCodecRegistry(pojoCodecRegistry);
+	
+		
 	public static void updateOptions(String dOption, String sOption, String cOption) throws Exception {
 		distanceOption = dOption;
 		surfaceOption = sOption;
@@ -59,7 +84,11 @@ public class Main {
 	public static String load(String filename) throws Exception {
 		
 		try {
+			List<Race> races = new ArrayList<Race>();
 			races = Loader.get(dir + filename);
+			card.setTrack(races.get(0).getTrack());
+			card.setDate(races.get(0).getDate());
+			card.setRaces(races);
 			getChanges();
 		} catch (Exception e) {
 			throw e;
@@ -70,23 +99,18 @@ public class Main {
 	
 	public static void save() throws Exception {
 		
-		try {
-			mapper.writeValue(Paths.get(
-				saveDir
-				+ races.get(0).getTrack() 
-				+ races.get(0).getDate().format(DateTimeFormatter.ofPattern("MMddYYYY"))
-				+ ".json"
-			).toFile(), races);
+		try {			
+			card.save();
 		} catch (Exception e) {
 			throw e;
 		}
 
 	}
 	
-	public static String retrieve(String track, LocalDate date) throws Exception {
+	public static String retrieve(String track, Date date) throws Exception {
 		
 		try {
-			races = Arrays.asList(mapper.readValue(Paths.get(saveDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
+			card = Card.get(track, date);		
 			return getAll();
 		} catch (Exception e) {
 			throw e;
@@ -96,22 +120,16 @@ public class Main {
 	
 	public static String getSavedList() throws Exception {
 		
-		try {
-			ArrayNode saves = mapper.createArrayNode();
-	        Files.list(new File(saveDir).toPath())
-            .forEach(path -> {
-            	if (path.toString().contains(".json")) {
-            		ObjectNode save = mapper.createObjectNode();
-            		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
-            		Matcher matcher =  pattern.matcher(path.toString());
-            		if (matcher.find()) {
-            			save.put("track", matcher.group(1));
-            			save.put("date", LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))).toString());
-            			saves.add(save);
-            		}
-            	}
-		 	});
+		try {	        
+			List<Document> saves = new ArrayList<>();
+            Bson projection = Projections.fields(Projections.include("track", "date"), Projections.excludeId());
+			MongoCollection<Document> collection = database.getCollection("cards");
+			FindIterable<Document> iterable = collection.find().projection(projection);
+			iterable.into(saves);
+			System.out.println(mapper.writeValueAsString(saves));
+			
             return mapper.writeValueAsString(saves);
+            
     		} catch (Exception e) {
     			throw e;
     		}
@@ -119,21 +137,21 @@ public class Main {
 	
 	public static int getNumRaces() throws Exception {
 		
-		return races.size();
+		return card.getRaces().size();
 	}
 		
 	public static String getAll() throws Exception {
 		
-		addKeyRacesToPP();
-		addHorsesToWatchToPP();
-		return mapper.writeValueAsString(races);
+//		addKeyRacesToPP();
+//		addHorsesToPP();
+		return mapper.writeValueAsString(card.getRaces());
 	}
 	
 	public static String get(int raceNumber) throws Exception {
 		
-		addKeyRacesToPP();
-		addHorsesToWatchToPP();
-		for (Race race : races) {
+//		addKeyRacesToPP();
+//		addHorsesToPP();
+		for (Race race : card.getRaces()) {
 			if (race.getRaceNumber() == raceNumber) return mapper.writeValueAsString(race);
 		}
  		throw new Exception("Race not found.");
@@ -142,22 +160,22 @@ public class Main {
 	public static String getSelectionSummary() throws Exception {
 		
 		ArrayNode rs = mapper.createArrayNode();
-		for (Race race : races) {
+		for (Race race : card.getRaces()) {
 			ObjectNode r = mapper.createObjectNode();
 			r.put("raceNumber", race.getRaceNumber());
 			r.put("postTimes", race.getPostTimes());
 			r.put("track", race.getTrack());
-			r.put("date", race.getDate().format(DateTimeFormatter.ofPattern("YYYYMMdd")));
+			r.put("date", formatter.format(race.getDate()));
 			ArrayNode hs = mapper.createArrayNode();
-			for (Horse horse : race.getUnscratchedHorses()) {
+			for (Entry entry : race.getUnscratchedEntries()) {
 				ObjectNode h = mapper.createObjectNode();
-				h.put("programNumber", horse.getProgramNumber());
-				h.put("pick", horse.getPick());
-				h.put("selection", horse.getSelection());
-				h.put("afv", horse.getARatingFairValue());
-				h.put("bettingLine", horse.getBettingLine());
-				h.put("mlodds", horse.getMLOdds());
-				h.put("finishPosition", horse.getFinishPosition());
+				h.put("programNumber", entry.getProgramNumber());
+				h.put("pick", entry.getPick());
+				h.put("selection", entry.getSelection());
+				h.put("afv", entry.getARatingFairValue());
+				h.put("bettingLine", entry.getBettingLine());
+				h.put("mlodds", entry.getMLOdds());
+				h.put("finishPosition", entry.getFinishPosition());
 				hs.add(h);
 			}
 			r.set("horses", hs);
@@ -167,72 +185,75 @@ public class Main {
 	}
 	
 	
-	public static void addKeyRacesToPP() throws Exception {
-		
-		try {
-			for (PotentialKeyRace keyRace : ProcessChart.getKeyRacesList()) {
-				for (Race race : races) {
-					for (Horse horse : race.getHorses()) {
-						for (PastPerformance pp : horse.getPastPerformances()) {
-							if (pp.getTrackCode().equals(keyRace.getTrack())
-								&& pp.getRaceDate().equals(keyRace.getRaceDate())
-								&& pp.getRaceNumber() == keyRace.getRaceNumber()) pp.setKeyRace(keyRace);
-						}
-					}
-				}
-			};
-		} catch (Exception e) {
-			throw e;
-		}
-	}
+//	public static void addKeyRacesToPP() throws Exception {
+//		
+//		try {
+//			for (PotentialKeyRace keyRace : ProcessChart.getKeyRacesList()) {
+//				for (Race race : card.getRaces()) {
+//					for (Entry entry : race.getEntries()) {
+//						for (PastPerformance pp : entry.getPastPerformances()) {
+//							if (pp.getTrackCode().equals(keyRace.getTrack())
+//								&& pp.getRaceDate().equals(keyRace.getRaceDate())
+//								&& pp.getRaceNumber() == keyRace.getRaceNumber()) pp.setKeyRace(keyRace);
+//						}
+//					}
+//				}
+//			};
+//		} catch (Exception e) {
+//			throw e;
+//		}
+//	}
 	
-	public static void addHorsesToWatchToPP() throws Exception {
-		
-		try {
-			
-			for (Race race : races) {
-				for (Horse horse : race.getHorses()) {
-					File horseToWatchFile = new File(horsesToWatchDir + horse.getName().replaceAll("\\s\\(.+\\)", "") + ".json");
-					if (horseToWatchFile.exists()) {
-						String name = horse.getName().replaceAll("\\s\\(.+\\)", "");
-						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + name + ".json").toFile(), HorseToWatch.class);
-						horse.setComment(horseToWatch.getComment());
-						horse.setFlag(horseToWatch.getFlag());
-						for (PastPerformance pp : horse.getPastPerformances()) {
-				    		for (int j = 0; j < horseToWatch.getRaceNotes().size(); j++) {
-				    			if (horseToWatch.getRaceNotes().get(j).getTrack().equals(pp.getTrackCode())
-				    				&& horseToWatch.getRaceNotes().get(j).getRaceDate().equals(pp.getRaceDate())
-				    				&& horseToWatch.getRaceNotes().get(j).getRaceNumber() == pp.getRaceNumber()) {
-				    					pp.setComment(horseToWatch.getRaceNotes().get(j).getComment());
-				    					pp.setFlag(horseToWatch.getRaceNotes().get(j).getFlag());
-				    					pp.setFootnote(horseToWatch.getRaceNotes().get(j).getFootnote());
-				    			}
-				    		}
-						}
-					}
-				}
-			}
-			
-		} catch (Exception e) {
-			throw e;
-		}
-	}
+//	public static void addHorsesToPP() throws Exception {
+//		
+//		try {
+//			
+//			for (Race race : card.getRaces()) {
+//				for (Entry entry : race.getEntries()) {
+//					MongoCollection<Horse> horsesCollection = database.getCollection("horses", Horse.class);
+//					Bson horseQuery = eq("name", entry.getName().replaceAll("\\s\\(.+\\)", ""));
+//					
+//					Horse horse = horsesCollection.find(horseQuery).first();
+//					if (horse != null) {
+//						
+//						entry.setComment(horse.getComment());
+//						entry.setFlag(horse.getFlag());						
+//				
+//						for (PastPerformance pp : entry.getPastPerformances()) {
+//				    		for (int j = 0; j < horse.getRaceNotes().size(); j++) {
+//				    			if (horse.getRaceNotes().get(j).getTrack().equals(pp.getTrackCode())
+//				    				&& horse.getRaceNotes().get(j).getRaceDate().equals(pp.getRaceDate())
+//				    				&& horse.getRaceNotes().get(j).getRaceNumber() == pp.getRaceNumber()) {
+//				    					pp.setComment(horse.getRaceNotes().get(j).getComment());
+//				    					pp.setFlag(horse.getRaceNotes().get(j).getFlag());
+//				    					pp.setFootnote(horse.getRaceNotes().get(j).getFootnote());
+//				    			}
+//				    		}
+//						}
+//					}
+//				}
+//			}
+//			
+//		} catch (Exception e) {
+//			throw e;
+//		}
+//	}
 	
 	public static void getChanges () throws Exception {
 		
 		try {
 		
-			ObjectNode program = Loader.getDRF(races.get(0).getTrack(), races.get(0).getDate());
+			ObjectNode program = Loader.getDRF(card.getTrack(), card.getDate());
 			for (JsonNode raceNode : program.get("races")) {
-				for (Race race : races) {
+				for (Race race : card.getRaces()) {
 					if (race.getRaceNumber() == raceNode.get("raceKey").get("raceNumber").asInt()) {				
 						List<String> changes = new ArrayList<String>();
 						for (JsonNode changeNode : raceNode.get("changes")) {	
 							changes.add(changeNode.get("text").asText());
 							if (changeNode.get("type").asText().equals("S")) {
-								for (Horse horse : race.getHorses()) {
-									if (horse.getName().equals(changeNode.get("text").asText().replace(" scratched", ""))) {
-										horse.setScratchedFlag(true);
+								for (Entry entry : race.getEntries()) {
+									if (entry.getName().equals(changeNode.get("text").asText().replace(" scratched", ""))) {
+										entry.setScratchedFlag(true);
 									}
 								}
 							}
@@ -252,25 +273,25 @@ public class Main {
 		
 		try {
 		
-			ObjectNode program = Loader.getDRFResults(races.get(0).getTrack(), races.get(0).getDate());
+			ObjectNode program = Loader.getDRFResults(card.getTrack(), card.getDate());
 			if (program.has("races")) {
 				for (JsonNode raceNode : program.get("races")) {
-					for (Race race : races) {
+					for (Race race : card.getRaces()) {
 						if (race.getRaceNumber() == raceNode.get("raceKey").get("raceNumber").asInt()) {				
 							
 							for (JsonNode runnerNode : raceNode.get("runners")) {	
-								for (Horse horse : race.getHorses()) {
-									if (horse.getProgramNumber().equals(runnerNode.get("programNumber").asText().trim())) {
-										horse.setWinPayout(runnerNode.get("winPayoff").floatValue());
-										horse.setPlacePayout(runnerNode.get("placePayoff").floatValue());
-										horse.setShowPayout(runnerNode.get("showPayoff").floatValue());
+								for (Entry entry : race.getEntries()) {
+									if (entry.getProgramNumber().equals(runnerNode.get("programNumber").asText().trim())) {
+										entry.setWinPayout(runnerNode.get("winPayoff").floatValue());
+										entry.setPlacePayout(runnerNode.get("placePayoff").floatValue());
+										entry.setShowPayout(runnerNode.get("showPayoff").floatValue());
 										if (runnerNode.get("winPayoff").floatValue() > 0) {
-											horse.setFinishPosition(1);
+											entry.setFinishPosition(1);
 										} else if (runnerNode.get("placePayoff").floatValue() > 0) {
-											horse.setFinishPosition(2);
+											entry.setFinishPosition(2);
 										} else if (runnerNode.get("showPayoff").floatValue() > 0) {
-											horse.setFinishPosition(3);
-										} else horse.setFinishPosition(0);
+											entry.setFinishPosition(3);
+										} else entry.setFinishPosition(0);
 									}
 								}
 	
@@ -290,7 +311,7 @@ public class Main {
 	public static String augment (File ppFile) throws Exception {
 		
 		try {
-			PastPerformanceParser.extractPastPerformance(races, ppFile);
+			PastPerformanceParser.extractPastPerformance(card.getRaces(), ppFile);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -304,20 +325,20 @@ public class Main {
 		
 		try {
 			List<Race> updatedRaces =  Loader.get(dir + filename);
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				for (Race updatedRace : updatedRaces) {
 					if (race.getRaceNumber() == updatedRace.getRaceNumber()) {
 						race.setWagerTypes(updatedRace.getWagerTypes());
-						for (Horse horse : race.getHorses()) {
+						for (Entry entry : race.getEntries()) {
 							Boolean found = false;
-							for (Horse updatedHorse : updatedRace.getHorses()) {
-								if (horse.getName().equals(updatedHorse.getName())) {
-									horse.setProgramNumber(updatedHorse.getProgramNumber());
-									horse.setMLOdds(updatedHorse.getMLOdds());
+							for (Entry updatedHorse : updatedRace.getEntries()) {
+								if (entry.getName().equals(updatedHorse.getName())) {
+									entry.setProgramNumber(updatedHorse.getProgramNumber());
+									entry.setMLOdds(updatedHorse.getMLOdds());
 									found = true;
 								}
 							}
-							if (!found) toggleScratch(race.getRaceNumber(),horse.getName());
+							if (!found) toggleScratch(race.getRaceNumber(),entry.getName());
 						}
 					}
 				}
@@ -377,11 +398,11 @@ public class Main {
 	public static String calculate() throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 							
-				for (Horse horse : race.getUnscratchedHorses()) {
+				for (Entry entry : race.getUnscratchedEntries()) {
 					
-					List<PastPerformance> pps = filterPastPerformances(race, horse.getUnignoredPastPerformances());
+					List<PastPerformance> pps = filterPastPerformances(race, entry.getUnignoredPastPerformances());
 					
 					for (int p = 0; p < pps.size(); p++) {
 					
@@ -391,66 +412,66 @@ public class Main {
 						pp.setRaceShape(Factors.DetermineRaceShape(pp));
 					}
 					
-					horse.setE1Avg(Factors.CalcE1Avg(pps));
-					horse.setE2Avg(Factors.CalcE2Avg(pps));
-					horse.setMaxE2(Factors.CalcMaxE2(pps));
-					horse.setLatePaceAvg(Factors.CalcLatePaceAvg(pps));
-					horse.setAvgAdjustedSpeedRating(Factors.CalcAverageAdjustedSpeedRating(pps));
+					entry.setE1Avg(Factors.CalcE1Avg(pps));
+					entry.setE2Avg(Factors.CalcE2Avg(pps));
+					entry.setMaxE2(Factors.CalcMaxE2(pps));
+					entry.setLatePaceAvg(Factors.CalcLatePaceAvg(pps));
+					entry.setAvgAdjustedSpeedRating(Factors.CalcAverageAdjustedSpeedRating(pps));
 					
 					ObjectNode closingRatio = Factors.CalcClosingRatio(pps);
-					if (closingRatio.hasNonNull("EarlyPosition")) horse.setEarlyPosition(closingRatio.get("EarlyPosition").floatValue());
-					if (closingRatio.hasNonNull("LatePosition")) horse.setLatePosition(closingRatio.get("LatePosition").floatValue());
-					if (closingRatio.hasNonNull("ClosingRatio")) horse.setClosingRatio(closingRatio.get("ClosingRatio").floatValue());
+					if (closingRatio.hasNonNull("EarlyPosition")) entry.setEarlyPosition(closingRatio.get("EarlyPosition").floatValue());
+					if (closingRatio.hasNonNull("LatePosition")) entry.setLatePosition(closingRatio.get("LatePosition").floatValue());
+					if (closingRatio.hasNonNull("ClosingRatio")) entry.setClosingRatio(closingRatio.get("ClosingRatio").floatValue());
 					
-					horse.setLatePaceBestLast3(Factors.CalcLatePaceBestLast3(pps));
-					horse.setPaceAdjustedLate(Factors.CalcPaceAdjustedLate(pps));
-					horse.setLatePaceLast(Factors.CalcLatePaceLast(pps));
+					entry.setLatePaceBestLast3(Factors.CalcLatePaceBestLast3(pps));
+					entry.setPaceAdjustedLate(Factors.CalcPaceAdjustedLate(pps));
+					entry.setLatePaceLast(Factors.CalcLatePaceLast(pps));
 					
-					horse.setClassRating((Factors.CalcClassRating(pps, race)));
-					horse.setAverageCompetitiveLevel((Factors.CalcAverageCompetitiveLevel(pps, race)));
-					horse.setLastRaceStrength(Factors.CalcLastRaceStrength(pps));
+					entry.setClassRating((Factors.CalcClassRating(pps, race)));
+					entry.setAverageCompetitiveLevel((Factors.CalcAverageCompetitiveLevel(pps, race)));
+					entry.setLastRaceStrength(Factors.CalcLastRaceStrength(pps));
 					
-					horse.setClassShift(Factors.CalcClassShift(pps, race));
-					horse.setPurseShift(Factors.CalcPurseShift(pps, race));
+					entry.setClassShift(Factors.CalcClassShift(pps, race));
+					entry.setPurseShift(Factors.CalcPurseShift(pps, race));
 					
-					horse.setSpeedRating(Factors.CalcSpeedRating(pps, race));
+					entry.setSpeedRating(Factors.CalcSpeedRating(pps, race));
 					
-					horse.setBasicFitness(Factors.CalcBasicFitness(pps, horse.getWorkouts()));
-					horse.setFormPoints(Factors.CalcFormPoints(pps));
-					horse.setFurlongDays(Factors.CalcFurlongDays(pps, horse.getWorkouts(), race));
-					horse.setTurnTime(Factors.CalcTurnTime(pps));
+					entry.setBasicFitness(Factors.CalcBasicFitness(pps, entry.getWorkouts()));
+					entry.setFormPoints(Factors.CalcFormPoints(pps));
+					entry.setFurlongDays(Factors.CalcFurlongDays(pps, entry.getWorkouts(), race));
+					entry.setTurnTime(Factors.CalcTurnTime(pps));
 					
-					horse.setARatingClass(Ratings.calcARatingClass(race, horse));
-					horse.setARatingForm(Ratings.calcARatingForm(race, horse));
-					horse.setARatingConnections(Ratings.calcARatingConnections(race, horse));
-					horse.setARating(Ratings.calcARating(race, horse));
+					entry.setARatingClass(Ratings.calcARatingClass(race, entry));
+					entry.setARatingForm(Ratings.calcARatingForm(race, entry));
+					entry.setARatingConnections(Ratings.calcARatingConnections(race, entry));
+					entry.setARating(Ratings.calcARating(race, entry));
 					
 				}
 				
-				race.setPaceScenario(Factors.DeterminePaceScenario(race.getUnscratchedHorses()));
-				race.setE1Avg(Factors.CalcRaceE1Avg(race.getUnscratchedHorses()));
-				race.setE2Avg(Factors.CalcRaceE2Avg(race.getUnscratchedHorses()));
-				race.setMaxE2(Factors.CalcRaceMaxE2(race.getUnscratchedHorses()));
-				race.setLatePaceBestLast3(Factors.CalcRaceLatePaceBestLast3(race.getUnscratchedHorses()));
-				race.setMaxSpeedRating(Factors.CalcRaceMaxSpeedRating(race.getUnscratchedHorses()));
-				race.setMaxSpeed(Factors.CalcRaceMaxSpeed(race.getUnscratchedHorses()));
-				race.setAverageAdjustedSpeed(Factors.CalcRaceAverageAdjustedSpeedRating(race.getUnscratchedHorses()));
-				race.setTotalSpeedPoints(Factors.CalcTotalSpeedPoints(race.getUnscratchedHorses()));
+				race.setPaceScenario(Factors.DeterminePaceScenario(race.getUnscratchedEntries()));
+				race.setE1Avg(Factors.CalcRaceE1Avg(race.getUnscratchedEntries()));
+				race.setE2Avg(Factors.CalcRaceE2Avg(race.getUnscratchedEntries()));
+				race.setMaxE2(Factors.CalcRaceMaxE2(race.getUnscratchedEntries()));
+				race.setLatePaceBestLast3(Factors.CalcRaceLatePaceBestLast3(race.getUnscratchedEntries()));
+				race.setMaxSpeedRating(Factors.CalcRaceMaxSpeedRating(race.getUnscratchedEntries()));
+				race.setMaxSpeed(Factors.CalcRaceMaxSpeed(race.getUnscratchedEntries()));
+				race.setAverageAdjustedSpeed(Factors.CalcRaceAverageAdjustedSpeedRating(race.getUnscratchedEntries()));
+				race.setTotalSpeedPoints(Factors.CalcTotalSpeedPoints(race.getUnscratchedEntries()));
 				
-				race.setAdvantagedHorses(Ratings.identifyPaceAdvantage(race));
+				race.setAdvantagedEntries(Ratings.identifyPaceAdvantage(race));
 				race.setHandicappingNotes(Factors.GenerateHandicappingNotes(race));
 				
-				for (Horse horse : race.getUnscratchedHorses()) {
+				for (Entry entry : race.getUnscratchedEntries()) {
 					
-					List<Angle> angles = horse.getAngles();
+					List<Angle> angles = entry.getAngles();
 					List<Angle> newAngles = new ArrayList<Angle>();
 					for (Angle angle : angles) {
 						if (angle.getSource().equals("Augmented")) newAngles.add(angle);
 					}
-					for (Angle angle : Angles.generateAngles(race, horse)) {
+					for (Angle angle : Angles.generateAngles(race, entry)) {
 						newAngles.add(angle);
 					}
-					horse.setAngles(newAngles);
+					entry.setAngles(newAngles);
 				}
 			}
 			
@@ -467,22 +488,22 @@ public class Main {
 		
 		try {
 			
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				float maxARating = 0;
-				for (Horse horse : race.getUnscratchedHorses()) {
-					if (horse.getARating() > maxARating && horse.getClassRating() > 0) maxARating = horse.getARating();
+				for (Entry entry : race.getUnscratchedEntries()) {
+					if (entry.getARating() > maxARating && entry.getClassRating() > 0) maxARating = entry.getARating();
 				}
 				float total = 0;
-				for (Horse horse : race.getUnscratchedHorses()) {
-					if (horse.getClassRating() > 0) total += (1 / (maxARating - horse.getARating() + 1));
+				for (Entry entry : race.getUnscratchedEntries()) {
+					if (entry.getClassRating() > 0) total += (1 / (maxARating - entry.getARating() + 1));
 				}
-				for (Horse horse : race.getUnscratchedHorses()) {
-					if (horse.getClassRating() > 0) {
-						horse.setARatingFairValue(1 / 
-							((1 / (maxARating - horse.getARating() + 1)) / total)
+				for (Entry entry : race.getUnscratchedEntries()) {
+					if (entry.getClassRating() > 0) {
+						entry.setARatingFairValue(1 / 
+							((1 / (maxARating - entry.getARating() + 1)) / total)
 							- 1);
 					} else {
-						horse.setARatingFairValue(0);
+						entry.setARatingFairValue(0);
 					}
 				}
 			}
@@ -495,13 +516,13 @@ public class Main {
 	public static void toggleScratch(int raceNumber, String name) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
-					for (Horse horse : race.getHorses()) {
-						if (horse.getName().equals(name)) {
-							horse.setScratchedFlag(!horse.getScratchedFlag());
-							if (horse.getScratchedFlag()) horse.setSelection("X");
-							if (horse.getScratchedFlag()) horse.setPick(false);
+					for (Entry entry : race.getEntries()) {
+						if (entry.getName().equals(name)) {
+							entry.setScratchedFlag(!entry.getScratchedFlag());
+							if (entry.getScratchedFlag()) entry.setSelection("X");
+							if (entry.getScratchedFlag()) entry.setPick(false);
 						}
 					}
 				}
@@ -514,11 +535,11 @@ public class Main {
 	public static void togglePick(int raceNumber, String name) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
-					for (Horse horse : race.getHorses()) {
-						if (horse.getName().equals(name)) {
-							horse.setPick(!horse.getPick());
+					for (Entry entry : race.getEntries()) {
+						if (entry.getName().equals(name)) {
+							entry.setPick(!entry.getPick());
 						}
 					}
 				}
@@ -531,11 +552,12 @@ public class Main {
 	public static void toggleShowDetail(int raceNumber, String name) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
-					for (Horse horse : race.getHorses()) {
-						if (horse.getName().equals(name)) {
-							horse.set_showDetails(!horse.get_showDetails());
+					for (Entry entry : race.getEntries()) {
+						if (entry.getName().equals(name)) {
+							if (entry.get_showDetails() == null) entry.set_showDetails(false);
+							entry.set_showDetails(!entry.get_showDetails());
 						}
 					}
 				}
@@ -545,14 +567,14 @@ public class Main {
 		}
 	}	
 	
-	public static void toggleIgnored(int raceNumber, String name, LocalDate raceDate) throws Exception {
+	public static void toggleIgnored(int raceNumber, String name, Date raceDate) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
-					for (Horse horse : race.getHorses()) {
-						if (horse.getName().equals(name)) {
-							for (PastPerformance pp : horse.getPastPerformances()) {
+					for (Entry entry : race.getEntries()) {
+						if (entry.getName().equals(name)) {
+							for (PastPerformance pp : entry.getPastPerformances()) {
 								if (pp.getRaceDate().equals(raceDate)) {
 									pp.setIgnore(!pp.getIgnore());
 								}
@@ -569,7 +591,7 @@ public class Main {
 	public static void toggleOffTheTurf(int raceNumber) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
 					race.setOffTheTurfFlag(!race.getOffTheTurfFlag());
 				}
@@ -583,7 +605,7 @@ public class Main {
 	public static void toggleOntoAllWeather(int raceNumber) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
 					race.setOntoAllWeatherFlag(!race.getOntoAllWeatherFlag());
 				}
@@ -597,7 +619,7 @@ public class Main {
 	public static void setTrackCondition(int raceNumber, String condition) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
 					race.setTrackCondition(condition);
 				}
@@ -610,7 +632,7 @@ public class Main {
 	public static void setRaceNote(int raceNumber, String note) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
 					race.setNote(note);
 				}
@@ -623,11 +645,11 @@ public class Main {
 	public static void setHorseNote(int raceNumber, String name, String note) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
-					for (Horse horse : race.getHorses()) {
-						if (horse.getName().equals(name)) {
-							horse.setNote(note);
+					for (Entry entry : race.getEntries()) {
+						if (entry.getName().equals(name)) {
+							entry.setNote(note);
 						}
 					}
 				}
@@ -660,11 +682,11 @@ public class Main {
 	public static void setBettingLine(int raceNumber, String name, float bettingLine) throws Exception {
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
-					for (Horse horse : race.getHorses()) {
-						if (horse.getName().equals(name)) {
-							horse.setBettingLine(bettingLine);
+					for (Entry entry : race.getEntries()) {
+						if (entry.getName().equals(name)) {
+							entry.setBettingLine(bettingLine);
 						}
 					}
 				}
@@ -680,17 +702,17 @@ public class Main {
 		ArrayNode results = mapper.createArrayNode();
 		
 		try {
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				if (race.getRaceNumber() == raceNumber) {
-					for (Horse horse : race.getHorses()) {
-						if (horse.getName().equals(name)) {
-							horse.setSelection(selection);
+					for (Entry entry : race.getEntries()) {
+						if (entry.getName().equals(name)) {
+							entry.setSelection(selection);
 						}
 					}
 				}
 			}
 			
-			for (Race race : races) {
+			for (Race race : card.getRaces()) {
 				ArrayNode wagerNodes = mapper.createArrayNode();
 				
 				for (MultiRaceWager wager : race.getMultiRaceWagers()) {
@@ -707,19 +729,19 @@ public class Main {
 						List<String> bHorses = new ArrayList<String>();
 						List<String> cHorses = new ArrayList<String>();
 						
-						for (Horse horse : races.get(i).getUnscratchedHorses()) {
-							String s = horse.getProgramNumber().isEmpty() ? String.valueOf(horse.getPostPosition()) : horse.getProgramNumber();
-							if (horse.getSelection() != null) {
-								if (horse.getSelection().equals("A")) {
+						for (Entry entry : card.getRaces().get(i).getUnscratchedEntries()) {
+							String s = entry.getProgramNumber().isEmpty() ? String.valueOf(entry.getPostPosition()) : entry.getProgramNumber();
+							if (entry.getSelection() != null) {
+								if (entry.getSelection().equals("A")) {
 									if (!aHorses.contains(s)) aHorses.add(s);
 									if (!abHorses.contains(s)) abHorses.add(s);
 									
 								}
-								if (horse.getSelection().equals("B")) {
+								if (entry.getSelection().equals("B")) {
 									if (!abHorses.contains(s)) abHorses.add(s);
 									if (!bHorses.contains(s)) bHorses.add(s);
 								}
-								if (horse.getSelection().equals("C")) {
+								if (entry.getSelection().equals("C")) {
 									if (!cHorses.contains(s)) cHorses.add(s);
 								}
 							}
@@ -843,18 +865,175 @@ public class Main {
 		return mapper.writeValueAsString(results);
 	}
 	
+	public static void convertCards() throws Exception {
+		try {
+			Files.list(new File(saveDir).toPath())
+            .forEach(path -> {
+                File file = new File(path.toString());
+                try {                	
+                	System.out.println(path);
+                	if (path.toString().contains(".json")) {
+                		JsonNode card = mapper.readValue(file, JsonNode.class);
+                		ArrayNode newCard = mapper.readValue(
+                		mapper.writeValueAsString(card)
+                			.replace("advantagedHorses", "advantagedEntries")
+                			.replace("unscratchedHorsesCount", "unscratchedEntriesCount")
+                			.replace("\"horses\":", "\"entries\":"), ArrayNode.class);
+                		
+                		List<Race> races = new ArrayList<Race>();
+                		for (JsonNode race : newCard) {
+                			ObjectNode raceNode = (ObjectNode) new ObjectMapper().readTree(mapper.writeValueAsString(race));
+                			raceNode.put("date", 
+										LocalDate.of(
+											raceNode.get("date").get(0).asInt(),
+											raceNode.get("date").get(1).asInt(),
+											raceNode.get("date").get(2).asInt())
+										  .atStartOfDay()
+									      .atZone(ZoneId.systemDefault())
+									      .toInstant()
+									      .toEpochMilli()
+									      
+                					);
+                			ArrayNode horses = mapper.createArrayNode();
+                			for (JsonNode horse : race.get("entries")) {
+                				ArrayNode pps = mapper.createArrayNode();
+                				ObjectNode horseNode = (ObjectNode) new ObjectMapper().readTree(mapper.writeValueAsString(horse));
+                 				for (JsonNode pp : horseNode.get("pastPerformances")) {
+                        			ObjectNode ppNode = (ObjectNode) new ObjectMapper().readTree(mapper.writeValueAsString(pp));
+                        			
+                        			long millis = LocalDate.of(
+											ppNode.get("raceDate").get(0).asInt(),
+											ppNode.get("raceDate").get(1).asInt(),
+											ppNode.get("raceDate").get(2).asInt())
+										  .atStartOfDay()
+									      .atZone(ZoneId.systemDefault())
+									      .toInstant()
+									      .toEpochMilli();
+                        			
+                        			ppNode.remove("raceDate");
+                        			ppNode.put("raceDate", millis);
+                        			
+                        			ppNode.remove("keyRace");
+                        			
+                        			pps.add(ppNode);
+                				}		
+                				horseNode.set("pastPerformances", pps);
+                				
+                				ArrayNode works = mapper.createArrayNode();
+                				for (JsonNode work : horseNode.get("workouts")) {
+                        			ObjectNode workNode = (ObjectNode) new ObjectMapper().readTree(mapper.writeValueAsString(work));
+                        			
+                        			Long millis = LocalDate.of(
+											workNode.get("dateOfWorkout").get(0).asInt(),
+											workNode.get("dateOfWorkout").get(1).asInt(),
+											workNode.get("dateOfWorkout").get(2).asInt())
+										  .atStartOfDay()
+									      .atZone(ZoneId.systemDefault())
+									      .toInstant()
+									      .toEpochMilli();
+                        			workNode.remove("dateOfWorkout");
+                        			workNode.put("dateOfWorkout", millis);
+                        			
+                        			works.add(workNode);
+                				}
+                				
+                				horseNode.set("workouts", works);
+                				horses.add(horseNode);
+                			}
+                			
+                			raceNode.set("entries", horses);
+                			
+                			races.add(mapper.readValue(mapper.writeValueAsString(raceNode), Race.class));
+                		}
+                		Card convertedCard = Card.builder()
+                			.withTrack(races.get(0).getTrack())
+                			.withDate(races.get(0).getDate())
+                			.withRaces(races)
+                			.build();
+                		convertedCard.save();
+                	}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+            });
+           
+		} catch (Exception e) {
+			
+		}
+	}
+	
+	public static void convertNotes() throws Exception {
+		
+		try {
+			Files.list(new File(horsesToWatchDir).toPath())
+            .forEach(path -> {
+                File file = new File(path.toString());
+                try {
+                	System.out.println(path);
+					if (path.toString().contains(".json")) {
+						ObjectNode obj = mapper.readValue(file, ObjectNode.class);
+						Horse horse = Horse.builder()
+							.withName(obj.get("name").asText())
+							.withFlag((!obj.get("flag").isNull()) ? obj.get("flag").asText() : null)
+							.withComment((!obj.get("comment").isNull()) ? obj.get("comment").asText() : null)
+							.build();
+						JsonNode notes = mapper.readTree(mapper.writeValueAsString(obj.get("raceNotes")));
+						List<RaceNote> raceNotes = new ArrayList<RaceNote>();
+						for (JsonNode jsonNote : notes) {
+							RaceNote raceNote = RaceNote.builder()
+								.withTrack(jsonNote.get("track").asText())
+								.withRaceDate(java.util.Date.from(
+										LocalDate.of(
+											jsonNote.get("raceDate").get(0).asInt(),
+											jsonNote.get("raceDate").get(1).asInt(),
+											jsonNote.get("raceDate").get(2).asInt())
+										  .atStartOfDay()
+									      .atZone(ZoneId.systemDefault())
+									      .toInstant()))
+								.withRaceNumber(jsonNote.get("raceNumber").asInt())
+								.withType(jsonNote.get("type").asText())
+								.withRaceClassification(jsonNote.get("raceClassification").asText())
+								.withPurse(jsonNote.get("purse").asInt())
+								.withClaimingPrice(jsonNote.get("claimingPrice").asInt())
+								.withDistance(jsonNote.get("distance").asInt())
+								.withExactDistance(jsonNote.get("exactDistance").asBoolean())
+								.withSurface(jsonNote.get("surface").asText())
+								.withOffTurf(jsonNote.get("offTurf").asBoolean())
+								.withTrackCondition(jsonNote.get("trackCondition").asText())
+								.withPosition(jsonNote.get("position").asInt())
+								.withBeatenLengths(Float.valueOf(jsonNote.get("beatenLengths").asText()))
+								.withComment((!jsonNote.get("comment").isNull()) ? jsonNote.get("comment").asText() : null)
+								.withFootnote(jsonNote.get("footnote").asText())
+								.withFlag((!jsonNote.get("flag").isNull()) ? jsonNote.get("flag").asText() : null)
+								.build();
+							raceNotes.add(raceNote);
+						}
+						horse.setRaceNotes(raceNotes);
+						horse.save();					
+					}
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+            });
+            
+		} catch (Exception e) {
+			
+		}
+	}
+	
 	public static void saveNotes(JsonNode data) throws Exception {
 		
 		try {
 			for (JsonNode race :data) {
-				LocalDate raceDate = LocalDate.of(race.get("raceDate").get(0).asInt(), race.get("raceDate").get(1).asInt(), race.get("raceDate").get(2).asInt());
+				Date raceDate = formatter.parse(race.get("raceDate").toString());
 				for (JsonNode starter : race.get("starters")) {
 					File horseFile = new File(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json");
 					if (horseFile.exists()) {
-						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
-						if (!starter.get("horseFlag").isNull()) horseToWatch.setFlag(starter.get("horseFlag").asText());
+						Horse horse = mapper.readValue(Paths.get(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), Horse.class);
+						if (!starter.get("horseFlag").isNull()) horse.setFlag(starter.get("horseFlag").asText());
 						Boolean raceFound = false;
-						for (RaceNote raceNote : horseToWatch.getRaceNotes()) {
+						for (RaceNote raceNote : horse.getRaceNotes()) {
 							
 							if (raceNote.getTrack().equals(race.get("track").asText()) 
 								&& raceDate.equals(raceNote.getRaceDate())
@@ -865,7 +1044,7 @@ public class Main {
 							}
 						}
 						if (!raceFound) {
-							List<RaceNote> raceNotes = new ArrayList<RaceNote>(horseToWatch.getRaceNotes());
+							List<RaceNote> raceNotes = new ArrayList<RaceNote>(horse.getRaceNotes());
 							raceNotes.add(RaceNote.builder()
 								.withTrack(race.get("track").asText())
 								.withRaceDate(raceDate)
@@ -884,9 +1063,9 @@ public class Main {
 								.withComment(!starter.get("note").isNull()? starter.get("note").asText() : "")
 								.withFlag(!starter.get("raceFlag").isNull() ? starter.get("raceFlag").asText() : "")
 								.build());
-							horseToWatch.setRaceNotes(raceNotes);
+							horse.setRaceNotes(raceNotes);
 						}
-						horseToWatch.save();
+						horse.save();
 					} else {
 						List<RaceNote> raceNotes = new ArrayList<RaceNote>();
 						raceNotes.add(RaceNote.builder()
@@ -907,12 +1086,12 @@ public class Main {
 							.withComment(!starter.get("note").isNull() ? starter.get("note").asText() : "")
 							.withFlag(!starter.get("raceFlag").isNull() ? starter.get("raceFlag").asText() : "")
 							.build());
-						HorseToWatch horseToWatch = HorseToWatch.builder()
+						Horse horse = Horse.builder()
 							.withName(starter.get("name").asText())
 							.withFlag(!starter.get("horseFlag").isNull() ? starter.get("horseFlag").asText() : "")
 							.withRaceNotes(raceNotes)
 							.build();
-						horseToWatch.save();
+						horse.save();
 					}
 				}
 			}
@@ -924,7 +1103,13 @@ public class Main {
 	
 	public static List<Track> getTracksList() throws Exception {
 		try {
-			return new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
+			List<Track> tracks = new ArrayList<>();
+			
+			MongoCollection<Track> collection = database.getCollection("tracks", Track.class);
+			FindIterable<Track> iterable = collection.find();
+			iterable.into(tracks);
+
+			return tracks;
 		} catch (Exception e) {
 			throw e;
 		}
@@ -932,7 +1117,9 @@ public class Main {
 	
 	public static void saveTracks(List<Track> tracks) throws Exception {
 		try {
-			mapper.writeValue(Paths.get(raceDatesFile).toFile(), tracks);
+			for (Track track : tracks) {
+				track.save();
+			}
 		} catch (Exception e) {
 			throw e;
 		}
@@ -946,115 +1133,93 @@ public class Main {
 		}
 	}
 	
-	public static void convertRaceDates() throws Exception  {
-		try {
-			JsonNode tracks = mapper.readTree(Path.of(tracksFile).toFile());
-			List<Track> raceDates = new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
-			for (JsonNode track : tracks) {
-				for (Track raceDateTrack : raceDates) {
-					if (track.get("code").asText().equals(raceDateTrack.getCode())) {
-						for (JsonNode dates : track.get("raceDates")) {
-							LocalDate raceDateDate = LocalDate.of(
-									dates.get(0).asInt(), 
-									dates.get(1).asInt(), 
-									dates.get(2).asInt());
-							Boolean dateFound = false;
-							for (RaceDate raceDate : raceDateTrack.getRaceDates()) {
-								if (raceDateDate.equals(raceDate.getRaceDate())) {
-									dateFound = true;
-								}
-							}
-							if (!dateFound) {
-								raceDateTrack.getRaceDates().add(RaceDate.builder()
-									.withRaceDate(raceDateDate)
-									.withReviewedFlag(false)
-									.build());
-							}
-						}
-
-					}
-				}
-			}
-			mapper.writeValue(Paths.get(raceDatesFile).toFile(), raceDates);
-		} catch (Exception e) {
-			throw e;
-		}
-	}
+//	public static void convertRaceDates() throws Exception  {
+//		try {
+//			
+//			List<JsonNode> jsonTracks = new ArrayList<JsonNode>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), JsonNode[].class)));
+//			
+//			for (JsonNode jsonTrack : jsonTracks) {
+//				
+//				Track track = Track.builder()
+//					.withCode(jsonTrack.get("code").toString().replace("\"",""))
+//					.withName(jsonTrack.get("name").toString().replace("\"",""))
+//					.build();
+//				
+//				List<RaceDate> dates = new ArrayList<RaceDate>();
+//				for (JsonNode jsonDate : jsonTrack.get("raceDates")) {
+//					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-M-d");
+//					System.out.println("" +
+//								jsonDate.get("raceDate").get(0).asInt() + "-"
+//								+ jsonDate.get("raceDate").get(1).asInt() + "-"
+//								+ jsonDate.get("raceDate").get(2).asInt());
+//					RaceDate raceDate = RaceDate.builder()
+//						.withHasChartFlag(jsonDate.get("hasChartFlag").asBoolean())
+//						.withReviewedFlag(jsonDate.get("reviewedFlag").asBoolean())
+//						.withRaceDate(
+//							sdf.parse("" +
+//								jsonDate.get("raceDate").get(0).asInt() + "-"
+//								+ jsonDate.get("raceDate").get(1).asInt() + "-"
+//								+ jsonDate.get("raceDate").get(2).asInt()
+//									)
+//						)
+//						.build();
+//					dates.add(raceDate);
+//				}
+//				
+//				track.setRaceDates(dates);	
+//				track.save();
+//			}
+//		} catch (Exception e) {
+//			throw e;
+//		}
+//	}
 	
-	public static String getHorsesToWatch() throws Exception {
+	public static String getHorses() throws Exception {
 		
 		try {
-			ArrayNode horses = mapper.createArrayNode();
-	        Files.list(new File(horsesToWatchDir).toPath())
-            .forEach(path -> {
-            	if (path.toString().contains(".json")) {
-            		ObjectNode node = mapper.createObjectNode();
-            		String name = path.toString().replace(".json", "").replace(horsesToWatchDir, "");
-            		node.put("name", name);
-            		try {
-						HorseToWatch horse = mapper.readValue(Paths.get(horsesToWatchDir + name + ".json").toFile(), HorseToWatch.class);
-						node.put("flag", horse.getFlag());
-						node.put("comment", horse.getComment());
-					} catch (IOException e) {
-						e.printStackTrace();
-					}   		
-            		horses.add(node);
-            	}
-		 	});
+	        
+			List<Document> horses = new ArrayList<>();
+			
+			MongoCollection<Document> collection = database.getCollection("horses");
+			Bson projection = Projections.fields(Projections.include("name", "flag"), Projections.excludeId());
+			FindIterable<Document> iterable = collection.find().projection(projection);
+			iterable.into(horses);
+	     		
             return mapper.writeValueAsString(horses);
+            
     		} catch (Exception e) {
     			throw e;
     		}
 	}
 	
-	public static String getHorseToWatch(String name) throws Exception {
-		try {
-			HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + name + ".json").toFile(), HorseToWatch.class);
-			return mapper.writeValueAsString(horseToWatch);
+	public static String getHorse(String name) throws Exception {
+		try {			
+			MongoCollection<Horse> collection = database.getCollection("horses", Horse.class);
+			Bson query = eq("name", name);
+			
+			Horse horse = collection.find(query).first();
+			
+			List<PastPerformance> pps = new ArrayList<PastPerformance>();
+			Document ppQuery = new Document()
+					.append("name", horse.getName());
+			MongoCollection<PastPerformance> ppCollection = database.getCollection("pastPerformances", PastPerformance.class);
+			FindIterable<PastPerformance> iterable = ppCollection.find(ppQuery);
+			iterable.into(pps);
+			horse.setPastPerformances(pps);
+			return mapper.writeValueAsString(horse);
 		} catch (Exception e) {
 			throw e;
 		}
 	}
 	
-	public static void saveHorseToWatch(HorseToWatch horse) throws Exception {
+	public static void saveHorse(Horse horse) throws Exception {
 		try {
 			horse.save();
 		} catch (Exception e) {
 			throw e;
 		}
 	}
-	
-	public static void convertNotes() throws Exception {
 		
-		try {
-			JsonNode horses = mapper.readTree(Path.of("/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch.json").toFile());
-			for (JsonNode horse : horses) {
-				HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + horse.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
-				horseToWatch.setFlag(horse.get("flag").asText());
-				for (JsonNode raceNote : horse.get("raceNotes")) {
-					LocalDate raceNoteDate = LocalDate.of(
-							raceNote.get("raceDate").get(0).asInt(), 
-							raceNote.get("raceDate").get(1).asInt(), 
-							raceNote.get("raceDate").get(2).asInt());
-					for (RaceNote existingRaceNote : horseToWatch.getRaceNotes()) {
-						if (raceNote.get("track").asText().equals(existingRaceNote.getTrack())
-							&& raceNoteDate.equals(existingRaceNote.getRaceDate())
-							&& raceNote.get("raceNumber").asInt() == existingRaceNote.getRaceNumber()) {
-								existingRaceNote.setComment(raceNote.get("comment").asText());
-								existingRaceNote.setFlag(raceNote.get("flag").asText());
-							}
-					}
-				}
-				horseToWatch.save();
-			}
-			
-			
-		} catch (Exception e) {
-			throw e;
-		}
-	
- 	}
-	
 	
 	public static void markChartsReviewed() throws Exception {
 		try {
@@ -1065,10 +1230,7 @@ public class Main {
 					for (Track track : raceDates) {
 						if (track.getCode().equals(raceNoteHorse.get("track").asText()))
 						for (RaceDate raceDate : track.getRaceDates()) {
-							if (raceDate.getRaceDate().equals(LocalDate.of(
-								raceNoteHorse.get("raceDate").get(0).asInt(),
-								raceNoteHorse.get("raceDate").get(1).asInt(),
-								raceNoteHorse.get("raceDate").get(2).asInt()))) {
+							if (raceDate.getRaceDate().equals(formatter.parse(raceNoteHorse.get("raceDate").toString()))) {
 								raceDate.setReviewedFlag(true);
 							}
 						}
@@ -1084,7 +1246,7 @@ public class Main {
 		}
 	}
 	
-	public static void toggleChartReviewed(String trackToMark, LocalDate date) throws Exception {
+	public static void toggleChartReviewed(String trackToMark, Date date) throws Exception {
 		
 		try {
 			List<Track> raceDates = new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
@@ -1100,91 +1262,27 @@ public class Main {
 		}
 	}
 	
-	public static void updateHorsesToWatchWithPPs(String track, LocalDate date) throws Exception {
-		
-		try {
-			List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
-			for (Race race : card) {
-				for (Horse horse : race.getHorses()) {
-					File horseToWatchFile = new File(horsesToWatchDir + horse.getName().replaceAll("\\s\\(.+\\)", "") + ".json");
-					if (horseToWatchFile.exists()) {
-						HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + horse.getName().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
-						if (horseToWatch.getPastPerformances().size() == 0) {
-							horseToWatch.setPastPerformances(horse.getPastPerformances());
-						} else {
-							for (PastPerformance newPP : horse.getPastPerformances()) {
-								Boolean found = false;
-								for (PastPerformance existingPP : horseToWatch.getPastPerformances()) {
-									if (existingPP.equals(newPP)) {
-										found = true;
-										break;
-									}
-								}
-								if (!found) horseToWatch.getPastPerformances().add(newPP);
-							}
-						}
-						horseToWatch.save();
-					} else {
-						HorseToWatch horseToWatch = HorseToWatch.builder()
-							.withName(horse.getName())
-							.withPastPerformances(horse.getPastPerformances())
-							.build();
-						horseToWatch.save();
-					}
-				}
-			}
-		} catch (Exception e) {
-			
-			throw e;
-		}
-	}
-	
-	public static void updateAllHorsesToWatchWithPPs() throws Exception {
-		try {
-
-	        Files.list(new File(saveDir).toPath())
-            .forEach(path -> {
-            	if (path.toString().contains(".json")) {
-            		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
-            		Matcher matcher =  pattern.matcher(path.toString());
-            		if (matcher.find()) {            			
-            			try {
-							updateHorsesToWatchWithPPs(matcher.group(1), LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))));
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-            		}
-            	}
-		 	});
-		
-		} catch (Exception e) {
-			throw e;
-		}
-	}
 	
 	public static void retrieveCalculateAndSaveAll() throws Exception {
 		try {
+			System.out.println("retrieveCalculateAndSaveAll started.");
+			
+			List<Document> saves = new ArrayList<>();
+            Bson projection = Projections.fields(Projections.include("track", "date"), Projections.excludeId());
+			MongoCollection<Document> collection = database.getCollection("cards");
+			FindIterable<Document> iterable = collection.find().projection(projection);
+			iterable.into(saves);
 
-	        Files.list(new File(saveDir).toPath())
-            .forEach(path -> {
-            	if (path.toString().contains(".json")) {
-            		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
-            		Matcher matcher =  pattern.matcher(path.toString());
-            		if (matcher.find()) {            			
-            			try {
-            				LocalDate date = LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)));
-            				retrieve(matcher.group(1), date);
-            				calculate();
-            				save();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-            		}
-            	}
-		 	});
-		
+			for (Document save : saves) {
+				card = Card.get(save.getString("track"), save.getDate("date"));
+				calculate();
+				save();
+			}
+					
 		} catch (Exception e) {
 			throw e;
 		}
+		
+		System.out.println("retrieveCalculateAndSaveAll finished.");
 	}
 }

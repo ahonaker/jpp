@@ -17,8 +17,8 @@ public class Owner {
     private static final Pattern OWNER_PATTERN = Pattern.compile("(\\w+)?\\s?-\\s?(.+)");
 
     @JsonIgnore
-    private final String program;
-    private final String name;
+    public String program;
+    public String name;
 
     public Owner(String program, String name) {
         this.program = program;
@@ -99,4 +99,11 @@ public class Owner {
                 ", name='" + name + '\'' +
                 '}';
     }
+
+	public Owner() {
+		super();
+		
+		
+		// TODO Auto-generated constructor stub
+	}
 }

@@ -12,7 +12,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.derbyparty.jpp.object.Angle;
-import net.derbyparty.jpp.object.Horse;
+import net.derbyparty.jpp.object.Entry;
 import net.derbyparty.jpp.object.Race;
 import net.derbyparty.jpp.object.Stat;
 import net.derbyparty.jpp.object.TrackBias;
@@ -71,7 +71,7 @@ public class PastPerformanceParser {
 			doc.close();
 			
 			Race thisRace = null;;
-			Horse horse = null;
+			Entry entry = null;
 			
 			for (int i = 0; i < lines.length; i++) {
 				Matcher firstRaceMatcher = RACE_HEADER.matcher(lines[i]);
@@ -94,14 +94,14 @@ public class PastPerformanceParser {
 				if (raceMatcher.find() && Integer.parseInt(raceMatcher.group(1).trim()) != thisRace.getRaceNumber()) {
 					for (Race race: races) {
 						if (race.getRaceNumber() == Integer.parseInt(raceMatcher.group(1).trim())) {
-							List<String> currentStrings = rankStrings.subList(thisRace.getHorses().size() * 2, thisRace.getHorses().size() * 3);							
-							List<String> last3Strings = rankStrings.subList(thisRace.getHorses().size() * 3, thisRace.getHorses().size() * 4);
+							List<String> currentStrings = rankStrings.subList(thisRace.getEntries().size() * 2, thisRace.getEntries().size() * 3);							
+							List<String> last3Strings = rankStrings.subList(thisRace.getEntries().size() * 3, thisRace.getEntries().size() * 4);
 							
 							for (String current : currentStrings) {
 								Matcher matcher = RANK_LIST_MEMBER.matcher(current);
 								matcher.find();
 								if (!matcher.group(1).equals("NA")) {
-									thisRace.getHorseWithName(matcher.group(2)).setBrisCurrentClass(Float.parseFloat(matcher.group(1)));
+									thisRace.getEntryWithName(matcher.group(2)).setBrisCurrentClass(Float.parseFloat(matcher.group(1)));
 								}
 							}
 							
@@ -109,7 +109,7 @@ public class PastPerformanceParser {
 								Matcher matcher = RANK_LIST_MEMBER.matcher(last3);
 								matcher.find();
 								if (!matcher.group(1).equals("NA")) {
-									thisRace.getHorseWithName(matcher.group(2)).setBrisAvgLast3Class(Float.parseFloat(matcher.group(1)));
+									thisRace.getEntryWithName(matcher.group(2)).setBrisAvgLast3Class(Float.parseFloat(matcher.group(1)));
 								}
 							}							
 							
@@ -136,47 +136,47 @@ public class PastPerformanceParser {
 					
 				Matcher runnerMatcher = RUNNER_LINE.matcher(lines[i]);
 				if (runnerMatcher.find()) {
-					horse = thisRace.getHorseWithName(runnerMatcher.group(4));
+					entry = thisRace.getEntryWithName(runnerMatcher.group(4));
 				}
 				
 				Matcher primePowerMatcher = PRIME_POWER.matcher(lines[i]);
-				if (horse != null && primePowerMatcher.find()) horse.setPrimePower(Float.parseFloat(primePowerMatcher.group(1)));
+				if (entry != null && primePowerMatcher.find()) entry.setPrimePower(Float.parseFloat(primePowerMatcher.group(1)));
 								
 				Matcher sireStatsMatcher = SIRE_STATS.matcher(lines[i]);
-				if (horse != null && sireStatsMatcher.find()) {
-					if (sireStatsMatcher.group(1) != null) horse.setSireAWD(Float.parseFloat(sireStatsMatcher.group(1)));
-					if (sireStatsMatcher.group(2) != null) horse.setSireMudPercent(Integer.parseInt(sireStatsMatcher.group(2)));
-					if (sireStatsMatcher.group(3) != null) horse.setSireMudStarts(Integer.parseInt(sireStatsMatcher.group(3)));
-					if (sireStatsMatcher.group(5) != null) horse.setSireTurfPercent(Integer.parseInt(sireStatsMatcher.group(5)));
-					if (sireStatsMatcher.group(7) != null) horse.setSireFirstTurfPercent(Integer.parseInt(sireStatsMatcher.group(7)));
-					if (sireStatsMatcher.group(9) != null) horse.setSireFirstPercent(Integer.parseInt(sireStatsMatcher.group(9)));
-					if (sireStatsMatcher.group(10) != null) horse.setSireSPI(Float.parseFloat(sireStatsMatcher.group(10)));
+				if (entry != null && sireStatsMatcher.find()) {
+					if (sireStatsMatcher.group(1) != null) entry.setSireAWD(Float.parseFloat(sireStatsMatcher.group(1)));
+					if (sireStatsMatcher.group(2) != null) entry.setSireMudPercent(Integer.parseInt(sireStatsMatcher.group(2)));
+					if (sireStatsMatcher.group(3) != null) entry.setSireMudStarts(Integer.parseInt(sireStatsMatcher.group(3)));
+					if (sireStatsMatcher.group(5) != null) entry.setSireTurfPercent(Integer.parseInt(sireStatsMatcher.group(5)));
+					if (sireStatsMatcher.group(7) != null) entry.setSireFirstTurfPercent(Integer.parseInt(sireStatsMatcher.group(7)));
+					if (sireStatsMatcher.group(9) != null) entry.setSireFirstPercent(Integer.parseInt(sireStatsMatcher.group(9)));
+					if (sireStatsMatcher.group(10) != null) entry.setSireSPI(Float.parseFloat(sireStatsMatcher.group(10)));
 				}
 					
 				Matcher damsSireStatsMatcher = DAMS_SIRE_STATS.matcher(lines[i]);
-				if (horse != null && damsSireStatsMatcher.find()) {
-					if (damsSireStatsMatcher.group(1) != null) horse.setDamSireAWD(Float.parseFloat(damsSireStatsMatcher.group(1)));
-					if (damsSireStatsMatcher.group(2) != null) horse.setDamSireMudPercent(Integer.parseInt(damsSireStatsMatcher.group(2)));
-					if (damsSireStatsMatcher.group(3) != null) horse.setDamSireMudStarts(Integer.parseInt(damsSireStatsMatcher.group(3)));
-					if (damsSireStatsMatcher.group(5) != null) horse.setDamSireTurfPercent(Integer.parseInt(damsSireStatsMatcher.group(5)));
-					if (damsSireStatsMatcher.group(7) != null) horse.setDamSireFirstTurfPercent(Integer.parseInt(damsSireStatsMatcher.group(7)));
-					if (damsSireStatsMatcher.group(9) != null) horse.setDamSireFirstPercent(Integer.parseInt(damsSireStatsMatcher.group(9)));
-					if (damsSireStatsMatcher.group(10) != null) horse.setDamSireSPI(Float.parseFloat(damsSireStatsMatcher.group(10)));
+				if (entry != null && damsSireStatsMatcher.find()) {
+					if (damsSireStatsMatcher.group(1) != null) entry.setDamSireAWD(Float.parseFloat(damsSireStatsMatcher.group(1)));
+					if (damsSireStatsMatcher.group(2) != null) entry.setDamSireMudPercent(Integer.parseInt(damsSireStatsMatcher.group(2)));
+					if (damsSireStatsMatcher.group(3) != null) entry.setDamSireMudStarts(Integer.parseInt(damsSireStatsMatcher.group(3)));
+					if (damsSireStatsMatcher.group(5) != null) entry.setDamSireTurfPercent(Integer.parseInt(damsSireStatsMatcher.group(5)));
+					if (damsSireStatsMatcher.group(7) != null) entry.setDamSireFirstTurfPercent(Integer.parseInt(damsSireStatsMatcher.group(7)));
+					if (damsSireStatsMatcher.group(9) != null) entry.setDamSireFirstPercent(Integer.parseInt(damsSireStatsMatcher.group(9)));
+					if (damsSireStatsMatcher.group(10) != null) entry.setDamSireSPI(Float.parseFloat(damsSireStatsMatcher.group(10)));
 				}				
 
 				Matcher damStatsMatcher = DAM_STATS.matcher(lines[i]);
-				if (horse != null && damStatsMatcher.find()) {
-					if (damStatsMatcher.group(1) != null) horse.setDamDescription(damStatsMatcher.group(1));
-					if (damStatsMatcher.group(3) != null) horse.setDamTwoYearOldPercent(Integer.parseInt(damStatsMatcher.group(3)));
-					if (damStatsMatcher.group(5) != null) horse.setDamTurfWinners(Integer.parseInt(damStatsMatcher.group(5)));
-					if (damStatsMatcher.group(6) != null) horse.setDamStarters(Integer.parseInt(damStatsMatcher.group(6)));
-					if (damStatsMatcher.group(7) != null) horse.setDamWinners(Integer.parseInt(damStatsMatcher.group(7)));
-					if (damStatsMatcher.group(8) != null) horse.setDamStakesWinners(Integer.parseInt(damStatsMatcher.group(8)));
-					if (damStatsMatcher.group(9) != null) horse.setDamDPI(Float.parseFloat(damStatsMatcher.group(9)));
+				if (entry != null && damStatsMatcher.find()) {
+					if (damStatsMatcher.group(1) != null) entry.setDamDescription(damStatsMatcher.group(1));
+					if (damStatsMatcher.group(3) != null) entry.setDamTwoYearOldPercent(Integer.parseInt(damStatsMatcher.group(3)));
+					if (damStatsMatcher.group(5) != null) entry.setDamTurfWinners(Integer.parseInt(damStatsMatcher.group(5)));
+					if (damStatsMatcher.group(6) != null) entry.setDamStarters(Integer.parseInt(damStatsMatcher.group(6)));
+					if (damStatsMatcher.group(7) != null) entry.setDamWinners(Integer.parseInt(damStatsMatcher.group(7)));
+					if (damStatsMatcher.group(8) != null) entry.setDamStakesWinners(Integer.parseInt(damStatsMatcher.group(8)));
+					if (damStatsMatcher.group(9) != null) entry.setDamDPI(Float.parseFloat(damStatsMatcher.group(9)));
 				}		
 				
 				Matcher jkyTypeStatsMatcher = JOCKEY_TYPE_STATS.matcher(lines[i]);
-				if (horse != null && jkyTypeStatsMatcher.find()) {
+				if (entry != null && jkyTypeStatsMatcher.find()) {
 					Stat stat = Stat.builder()
 						.withCategory(jkyTypeStatsMatcher.group(1))
 						.withStarts(Integer.parseInt(jkyTypeStatsMatcher.group(2)))
@@ -185,14 +185,14 @@ public class PastPerformanceParser {
 						.withROI(Float.parseFloat(jkyTypeStatsMatcher.group(5)))
 						.build();
 					Boolean exists = false;
-					for (Stat existingStat : horse.getJockey().getStats()) {
+					for (Stat existingStat : entry.getJockey().getStats()) {
 						if (stat.getCategory().equals(existingStat.getCategory())) exists = true;
 					}
-					if (!exists) horse.getJockey().getStats().add(stat);
+					if (!exists) entry.getJockey().getStats().add(stat);
 				}
 				
 				Matcher jkyTrainerStatsMatcher = JOCKEY_TRN_STATS.matcher(lines[i]);
-				if (horse != null && jkyTrainerStatsMatcher.find()) {
+				if (entry != null && jkyTrainerStatsMatcher.find()) {
 					Stat stat = Stat.builder()
 							.withCategory(jkyTrainerStatsMatcher.group(1))
 							.withStarts(Integer.parseInt(jkyTrainerStatsMatcher.group(2)))
@@ -201,16 +201,16 @@ public class PastPerformanceParser {
 							.withROI(Float.parseFloat(jkyTrainerStatsMatcher.group(5)))
 							.build();
 					Boolean exists = false;
-					for (Stat existingStat : horse.getJockey().getStats()) {
+					for (Stat existingStat : entry.getJockey().getStats()) {
 						if (stat.getCategory().equals(existingStat.getCategory())) exists = true;
 					}
-					if (!exists) horse.getJockey().getStats().add(stat);
+					if (!exists) entry.getJockey().getStats().add(stat);
 					
 				}
 				
 				Matcher angleLineMatcher = ANGLE_LINE.matcher(lines[i]);
-				if (horse != null) {
-					List<Angle> angles = horse.getAngles();
+				if (entry != null) {
+					List<Angle> angles = entry.getAngles();
 					if (angles == null) angles = new ArrayList<Angle>();
 					List<Angle> newAngles = new ArrayList<Angle>();
 					for (Angle angle : angles) {
@@ -224,12 +224,12 @@ public class PastPerformanceParser {
 							.withSource("Augmented")
 							.build() 
 						);
-						horse.setAngles(newAngles);
+						entry.setAngles(newAngles);
 					}
 				}
 				
 				if (lines[i].trim().equals("* MEET Totals *") || lines[i].trim().equals("* Week Totals *")) {
-					horse = null;
+					entry = null;
 					Matcher line1 = Pattern.compile(".*Speed Bias:\\s*([\\d]+)\\% WnrAvgBL").matcher(lines[i+1]);
 					Matcher line2 = Pattern.compile("\\# Races:\\s*([\\d]+)\\s*([0-9\\s\\-\\/]+)\\s*1stCall:\\s*([\\d\\.]+)").matcher(lines[i+2]);
 					Matcher line3 = Pattern.compile("\\%Wire:\\s*([\\d]+)\\% 2ndCall:\\s*([\\d\\.]+)").matcher(lines[i+3]);

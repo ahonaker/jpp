@@ -18,13 +18,13 @@ import static java.util.Locale.US;
  */
 public class ClaimingPrice {
 
-    private static final Pattern CLAIMING_PRICES = Pattern.compile("Claiming Prices:(.+)");
-    private static final Pattern CLAIMING_PRICE =
+    private static Pattern CLAIMING_PRICES = Pattern.compile("Claiming Prices:(.+)");
+    private static Pattern CLAIMING_PRICE =
             Pattern.compile("(\\w+)?\\s?-\\s?(.+?):\\s?\\$([0-9]{1,3}(,[0-9]{3})*)");
 
-    private final String program;
-    private final Horse horse;
-    private final int claimingPrice;
+    public String program;
+    public Horse horse;
+    public int claimingPrice;
 
     public ClaimingPrice(String program, Horse horse, int claimingPrice) {
         this.program = program;
@@ -126,4 +126,11 @@ public class ClaimingPrice {
                 ", claimingPrice=" + claimingPrice +
                 '}';
     }
+
+	public ClaimingPrice() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
+    
 }

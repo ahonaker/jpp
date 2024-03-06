@@ -347,7 +347,8 @@ export default {
 			return formatter.format(amount);
 		},
         formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+            return new Date(date).toLocaleDateString;
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},	
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);

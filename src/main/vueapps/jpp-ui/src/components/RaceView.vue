@@ -1,7 +1,7 @@
 <template>
     <b-table
         id="pps"
-        :items="race.horses"
+        :items="race.entries"
         :fields="horseFields"
         small
         sort-icon-left
@@ -14,7 +14,7 @@
             <span v-b-tooltip.hover :title="data.field.title">{{ data.label }}</span>
         </template>    
         <template #cell()="row">
-            <span v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.value}}</span>
+            <span v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')' : '')">{{row.value}}</span>
         </template>         
         <template #cell(scratchButton)="row">	
             <span v-if="!row.item.scratchedFlag">			
@@ -86,7 +86,7 @@
          </template>
         <template #cell(mlodds)="row">       
             <span class="text-danger" v-if="hideML"><b-icon-eye-slash-fill></b-icon-eye-slash-fill></span>
-            <span v-else v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.item.mlodds}}</span>
+            <span v-else v-b-tooltip.hover :title="(row.item.scratchedFlag) ? '' : row.field.label + ((row.field.rank) ? ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')' : '')">{{row.item.mlodds}}</span>
         </template>     
         <template #cell(name)="row">
             <span v-b-tooltip.hover :title="properize(row.item.trainer.name) + '/' + properize(row.item.jockey.name)">{{row.value}}</span> 
@@ -99,30 +99,30 @@
         </template>
         <template #cell(classRating)="row">
             <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
-                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
-                + (row.item.brisCurrentClass > 0 ? '<br>BRIS Cur: ' + format2Places(row.item.brisCurrentClass) + ' (' + rankOf(row.item.brisCurrentClass, 'brisCurrentClass', row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')': '') 
-                + (row.item.brisAvgLast3Class > 0 ? '<br>BRIS Avg L3: ' + format2Places(row.item.brisAvgLast3Class) + ' (' + rankOf(row.item.brisAvgLast3Class, 'brisAvgLast3Class', row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')': '')">{{row.value}}</span>
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')'
+                + (row.item.brisCurrentClass > 0 ? '<br>BRIS Cur: ' + format2Places(row.item.brisCurrentClass) + ' (' + rankOf(row.item.brisCurrentClass, 'brisCurrentClass', row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')': '') 
+                + (row.item.brisAvgLast3Class > 0 ? '<br>BRIS Avg L3: ' + format2Places(row.item.brisAvgLast3Class) + ' (' + rankOf(row.item.brisAvgLast3Class, 'brisAvgLast3Class', row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')': '')">{{row.value}}</span>
         </template>    
         <template #cell(aratingForm)="row">
             <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
-                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')'
                 + '<br>Basic Fitness: ' + row.item.basicFitness">{{row.value}}</span>
         </template>
         <template #cell(e2Avg)="row">
             <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
-                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
-                + '<br>Early Position: ' +format2Places(row.item.earlyPosition) + ' (' + rankOf(row.item.earlyPosition, 'earlyPosition', false) + ' of ' + race.unscratchedHorsesCount + ')'">{{row.value}}</span>
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')'
+                + '<br>Early Position: ' +format2Places(row.item.earlyPosition) + ' (' + rankOf(row.item.earlyPosition, 'earlyPosition', false) + ' of ' + race.unscratchedEntriesCount + ')'">{{row.value}}</span>
         </template>
         <template #cell(latePaceAvg)="row">
             <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
-                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
-                + '<br>Late Position: ' +format2Places(row.item.latePosition) + ' (' + rankOf(row.item.latePosition, 'latePosition', false) + ' of ' + race.unscratchedHorsesCount + ')'
-                + '<br>Closing Ratio: ' + format2Places(row.item.closingRatio) + ' (' + rankOf(row.item.closingRatio, 'closingRatio', false) + ' of ' + race.unscratchedHorsesCount + ')'">{{row.value}}</span>
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')'
+                + '<br>Late Position: ' +format2Places(row.item.latePosition) + ' (' + rankOf(row.item.latePosition, 'latePosition', false) + ' of ' + race.unscratchedEntriesCount + ')'
+                + '<br>Closing Ratio: ' + format2Places(row.item.closingRatio) + ' (' + rankOf(row.item.closingRatio, 'closingRatio', false) + ' of ' + race.unscratchedEntriesCount + ')'">{{row.value}}</span>
         </template>
         <template #cell(classShift)="row">
             <span v-b-tooltip.hover.html :title="(row.item.scratchedFlag) ? '' : row.field.label 
-                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedHorsesCount + ')'
-                + (row.item.lastRaceStrength > 0 ? '<br>Last Race Strength: ' + format2Places(row.item.lastRaceStrength) + ' (' + rankOf(row.item.lastRaceStrength, 'lastRaceStrength', false) + ' of ' + race.unscratchedHorsesCount + ')' : '')">{{row.value}}</span>
+                + ' (' + rankOf(row.unformatted, row.field.key, row.field.reverse) + ' of ' + race.unscratchedEntriesCount + ')'
+                + (row.item.lastRaceStrength > 0 ? '<br>Last Race Strength: ' + format2Places(row.item.lastRaceStrength) + ' (' + rankOf(row.item.lastRaceStrength, 'lastRaceStrength', false) + ' of ' + race.unscratchedEntriesCount + ')' : '')">{{row.value}}</span>
         </template>
         <template #cell(detailsButton)="row">				
             <b-button
@@ -555,7 +555,7 @@
                 <b-collapse :id="'extra-'+race.raceNumber+'-'+row.index" class="mt-2">
                     <horse-extra-view :horse="row.item"></horse-extra-view>
                 </b-collapse>               
-                <past-performance-view :horse="row.item" :race="race" :charts="charts" @goToChart="goToChart"></past-performance-view>
+                <past-performance-view :horse="row.item" :race="race" :tracks="tracks" @goToChart="goToChart"></past-performance-view>
                 <span v-for="workout in row.item.workouts" :key="workout.date">
                     <workout-view :workout="workout"></workout-view>
                 </span>										
@@ -579,7 +579,7 @@ export default {
     components: {
 		PastPerformanceView, WorkoutView, HorseExtraView, BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill, BIconFilePdf, BIconLightbulb 
     },
-    props : ['race', 'hideML', 'charts'],
+    props : ['race', 'hideML', 'tracks'],
     data () {
 		return {
             transProps: {
@@ -665,11 +665,11 @@ export default {
         }
     },
     computed: {
-        unscratchedHorses () {
-            return _.where(this.race.horses, {scratchedFlag: false});
+        unscratchedEntries () {
+            return _.where(this.race.entries, {scratchedFlag: false});
         },
         bettingLines () {
-            return _.filter(_.pluck(this.race.horses, 'bettingLine'), function(l) {
+            return _.filter(_.pluck(this.race.entries, 'bettingLine'), function(l) {
                 return l > 0;
             }).sort();
         },
@@ -732,8 +732,8 @@ export default {
 
                 item.pick = !item.pick;
                 if (item.pick) {
-                    for (var i = 0; i < this.race.horses.length; i++) {
-                        if (this.race.horses[i].programNumber != item.programNumber && this.race.horses[i].pick) this.$emit('togglePick', this.race.horses[i]);
+                    for (var i = 0; i < this.race.entries.length; i++) {
+                        if (this.race.entries[i].programNumber != item.programNumber && this.race.entries[i].pick) this.$emit('togglePick', this.race.entries[i]);
                     }
                 }                
             } catch (err) {
@@ -922,7 +922,8 @@ export default {
 			return formatter.format(amount);
 		},        	
 		formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+            return new Date(date).toLocaleDateString;
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},  
         formatOdds (value, key) {
             return "text-center " + ((this.hideML) ? "" : this.highlightMin(value,key));
@@ -932,7 +933,7 @@ export default {
             if (item.flag == 'Star') return "star";
         },   
 		highlightMin(value, key) {
-			var values = _.pluck(_.reject(this.race.horses, function(h) {
+			var values = _.pluck(_.reject(this.race.entries, function(h) {
 				return h.scratchedFlag;
 			}), key);
 
@@ -941,7 +942,7 @@ export default {
 			}
 		},          
 		highlightMax(value, key) {
-			var values = _.pluck(_.reject(this.race.horses, function(h) {
+			var values = _.pluck(_.reject(this.race.entries, function(h) {
 				return h.scratchedFlag;
 			}), key);
 
@@ -979,7 +980,7 @@ export default {
 			if (item.brisspeedRating >= this.race.parSpeed - 3) return "lightGreenHighlight";
 		},
 		highlightPaceAdvantage(value, key, item) {
-			if (_.contains(this.race.advantagedHorses, item.name)) return "greenHighlight";
+			if (_.contains(this.race.advantagedEntries, item.name)) return "greenHighlight";
 		},
 		highlightShift(value) {
 			if (value < 0) return "greenHighlight";
@@ -1000,7 +1001,7 @@ export default {
 			}
 		},
 		alsoInRace(nameToMatch, row) {
-			var names = _.pluck(this.race.horses, "name");
+			var names = _.pluck(this.race.entries, "name");
 			if (names.indexOf(nameToMatch) > -1 && nameToMatch != row.name) return "alsoInRace";
 
 		},
@@ -1056,7 +1057,7 @@ export default {
             return name;	
         },
         rankOf(value, property, reverse) {
-            var sa = _.pluck(this.unscratchedHorses, property);
+            var sa = _.pluck(this.unscratchedEntries, property);
             var sas = _.sortBy(sa, function(h) { return h;});
             if (!reverse) sas.reverse();
             return sas.indexOf(value) + 1;

@@ -17,12 +17,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonPropertyOrder({"cancelled", "reason"})
 public class Cancellation {
 
-    private static final Pattern CANCELLATION_PATTERN =
+	public static final Pattern CANCELLATION_PATTERN =
             Pattern.compile("^(Cancelled.*|CANCELLED.*) - (.+)");
     public static final String NO_REASON_AVAILABLE = null;
 
-    private final boolean cancelled;
-    private final String reason;
+    public final boolean cancelled;
+    public final String reason;
 
     public Cancellation() {
         this(false, NO_REASON_AVAILABLE);

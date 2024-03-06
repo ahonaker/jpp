@@ -1,22 +1,41 @@
 package net.derbyparty.jpp.chart;
 
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.UpdateResult;
+
 import net.derbyparty.jpp.chartparser.ChartParser;
 import net.derbyparty.jpp.chartparser.charts.pdf.RaceResult;
 import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
-import net.derbyparty.jpp.loader.Loader;
-import net.derbyparty.jpp.object.HorseToWatch;
+import net.derbyparty.jpp.main.Main;
+import net.derbyparty.jpp.object.Horse;
 import net.derbyparty.jpp.object.PotentialKeyRace;
 import net.derbyparty.jpp.object.PotentialKeyRaceHorse;
 import net.derbyparty.jpp.object.RaceDate;
@@ -30,20 +49,25 @@ public class ProcessChart {
 	
 	final static String keyRacesFile = "/Users/ahonaker/Google Drive/pp/jpp/keyRaces.json";
 	final static String raceDatesFile =  "/Users/ahonaker/Google Drive/pp/jpp/raceDates.json";
-	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
 	final static String chartDownloadDir = "/Users/ahonaker/Google Drive/pp/jpp/newcharts/";
+	
+	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+	
+	final static String mongoUri = "mongodb://localhost/jpp";
+	static MongoClient mongoClient = MongoClients.create(mongoUri);
+	static MongoDatabase database = mongoClient.getDatabase("jpp").withCodecRegistry(pojoCodecRegistry);
 	
 	public static List<PotentialKeyRace> getKeyRacesList() throws Exception {
 		
 		try {
+			List<PotentialKeyRace> races = new ArrayList<PotentialKeyRace>();
 			
-			List<PotentialKeyRace> potentialKeyRaces = new ArrayList<PotentialKeyRace>(Arrays.asList(mapper.readValue(Paths.get(keyRacesFile).toFile(), PotentialKeyRace[].class)));
-			List<PotentialKeyRace> keyRaces = new ArrayList<PotentialKeyRace>();
-			for (PotentialKeyRace potentialKeyRace : potentialKeyRaces) {
-				if (potentialKeyRace.getHorses().size() > 1) keyRaces.add(potentialKeyRace);
-			}
+			MongoCollection<PotentialKeyRace> collection = database.getCollection("tracks", PotentialKeyRace.class);
+			FindIterable<PotentialKeyRace> iterable = collection.find();
+			iterable.into(races);
 			
-			return keyRaces;
+			return races;
 			
 		} catch (Exception e) {
 			throw e;
@@ -66,13 +90,37 @@ public class ProcessChart {
 	public static List<RaceResult> process(File chart) throws Exception {
 		
 		try {
-			List<PotentialKeyRace> keyRaces = new ArrayList<PotentialKeyRace>(Arrays.asList(mapper.readValue(Paths.get(keyRacesFile).toFile(), PotentialKeyRace[].class)));
-			List<Track> raceDates = new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
+			List<Track> raceDates = Main.getTracksList();
 			
 			List<RaceResult> results = chartParser.parse(chart);
 			
 			for (RaceResult result : results) {
 				if (!result.getCancellation().isCancelled()) {
+					
+					ReplaceOptions opts = new ReplaceOptions().upsert(true);
+					
+					Document query = new Document()
+							.append("track.code", result.getTrack().getCode())
+							.append("raceDate", result.getRaceDate())
+							.append("raceNumber", result.getRaceNumber() );	
+					
+					MongoCollection<RaceResult> collection = database.getCollection("raceResults", RaceResult.class);
+					UpdateResult updateResult = collection.replaceOne(query, result, opts);
+					if (updateResult.getModifiedCount() == 1) {
+						System.out.println("raceResult "
+								+ result.getTrack().getCode() 
+								+ " - " + result.getRaceDate() 
+								+ " - Race " + result.getRaceNumber()
+								+ " updated.");
+					} else {
+						System.out.println("raceResult "
+								+ result.getTrack().getCode() 
+								+ " - " + result.getRaceDate() 
+								+ " - Race " + result.getRaceNumber()
+								+ " saved. (ID = " + updateResult.getUpsertedId());
+					}
+
+					
 					for (Starter starter : result.getStarters()) {
 						RaceNote raceNote = RaceNote.builder()
 							.withTrack(result.getTrack().getCode())
@@ -93,11 +141,14 @@ public class ProcessChart {
 									: 0)
 							.withFootnote(starter.getFootnote())
 							.build();
-						File horseToWatchFile = new File(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json");
-						if (horseToWatchFile.exists()) {
-							HorseToWatch horseToWatch = mapper.readValue(Paths.get(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
+						
+						MongoCollection<Horse> horsesCollection = database.getCollection("horses", Horse.class);
+						Bson horseQuery = eq("name", starter.getHorse().getName().replaceAll("\\s\\(.+\\)", ""));
+						
+						Horse horse = horsesCollection.find(horseQuery).first();
+						if (horse != null) {
 							Boolean noteFound = false;
-							Iterator<RaceNote> it = horseToWatch.getRaceNotes().iterator();
+							Iterator<RaceNote> it = horse.getRaceNotes().iterator();
 							while (it.hasNext()) {
 								RaceNote existingRaceNote = it.next();
 								if (existingRaceNote.getRaceDate().equals(result.getRaceDate())
@@ -108,17 +159,17 @@ public class ProcessChart {
 								}
 							}
 							if (!noteFound) {
-								horseToWatch.getRaceNotes().add(raceNote);
+								horse.getRaceNotes().add(raceNote);
 							}
-							horseToWatch.save();
+							horse.save();
 						} else {
 							List<RaceNote> raceNotes = new ArrayList<RaceNote>();
 							raceNotes.add(raceNote);
-							HorseToWatch horseToWatch = HorseToWatch.builder()
+							horse = Horse.builder()
 								.withName(starter.getHorse().getName())
 								.withRaceNotes(raceNotes)
 								.build();
-							horseToWatch.save();
+							horse.save();
 						}
 						
 						if (starter.getLastRaced() != null && starter.getLastRaced().getLastRacePerformance() != null && starter.getLastRaced().getLastRacePerformance().getRaceNumber() != null
@@ -133,32 +184,35 @@ public class ProcessChart {
 									.withRaceNumber(starter.getLastRaced().getLastRacePerformance().getRaceNumber())
 									.build();
 							
-							if (keyRaces.contains(keyRace)) {		
-								if (starter.getLastRaced() != null &&  starter.getLastRaced().getLastRacePerformance() != null
-									&& starter.getLastRaced().getLastRacePerformance().getTrack().getCode().equals(keyRace.getTrack())
-									&& starter.getLastRaced().getRaceDate().equals(keyRace.getRaceDate())
-									&& starter.getLastRaced().getLastRacePerformance().getRaceNumber() == keyRace.getRaceNumber()) {
-	
-									Boolean horseFound = false;
-									for (PotentialKeyRaceHorse keyRaceHorse : keyRace.getHorses()) {
-										if (starter.getHorse().getName().equals(keyRaceHorse.getName())) horseFound = true;
-									}	
-									if (!horseFound) {
-										List<PotentialKeyRaceHorse> keyRaceHorses = new ArrayList<PotentialKeyRaceHorse>(keyRace.getHorses());
-										PotentialKeyRaceHorse keyRaceHorse = PotentialKeyRaceHorse.builder()
-												.withName(starter.getHorse().getName())
-												.withPosition(starter.getFinishPosition())
-												.withBeatenLengths(
-														starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
-														? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
-														: 0)										
-												.withTrack(result.getTrack().getCode())
-												.withRaceDate(result.getRaceDate())
-												.withRaceNumber(result.getRaceNumber())
-												.build();
-										keyRaceHorses.add(keyRaceHorse);
-										keyRace.setHorses(keyRaceHorses);
-									}
+							MongoCollection<PotentialKeyRace> keyRacesCollection = database.getCollection("keyRaces", PotentialKeyRace.class);
+							Bson raceQuery = and(
+								eq("track", result.getTrack().getCode()),
+								eq("raceDate",result.getRaceDate()),
+								eq("raceNumber", result.getRaceNumber())
+							);
+							
+							PotentialKeyRace keyRaceFound = keyRacesCollection.find(raceQuery).first();
+							if (keyRaceFound != null) {
+								Boolean horseFound = false;
+								for (PotentialKeyRaceHorse keyRaceHorse : keyRaceFound.getHorses()) {
+									if (starter.getHorse().getName().equals(keyRaceHorse.getName())) horseFound = true;
+								}	
+								if (!horseFound) {
+									List<PotentialKeyRaceHorse> keyRaceHorses = new ArrayList<PotentialKeyRaceHorse>(keyRace.getHorses());
+									PotentialKeyRaceHorse keyRaceHorse = PotentialKeyRaceHorse.builder()
+											.withName(starter.getHorse().getName())
+											.withPosition(starter.getFinishPosition())
+											.withBeatenLengths(
+													starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
+													? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
+													: 0)										
+											.withTrack(result.getTrack().getCode())
+											.withRaceDate(result.getRaceDate())
+											.withRaceNumber(result.getRaceNumber())
+											.build();
+									keyRaceHorses.add(keyRaceHorse);
+									keyRaceFound.setHorses(keyRaceHorses);
+									keyRaceFound.save();
 								}
 							} else {
 								List<PotentialKeyRaceHorse> newKeyRaceHorses = new ArrayList<PotentialKeyRaceHorse>();
@@ -175,15 +229,13 @@ public class ProcessChart {
 									.build()			
 								);	
 								keyRace.setHorses(newKeyRaceHorses);				
-								keyRaces.add(keyRace);
+								keyRace.save();
 							}
 						}
 					
 					}
 				}
 			}
-			
-			mapper.writeValue(Paths.get(keyRacesFile).toFile(), keyRaces);
 			
 			Boolean trackFound = false;
 			for (Track track : raceDates) {
@@ -221,7 +273,7 @@ public class ProcessChart {
 				raceDates.add(track);
 			}
 			
-			mapper.writeValue(Paths.get(raceDatesFile).toFile(), raceDates);
+			Main.saveTracks(raceDates);
 			
 			return results;
 			
@@ -235,6 +287,7 @@ public class ProcessChart {
 	public static void parseDirectory () throws Exception {
 		
 		try {
+			SimpleDateFormat formatter = new SimpleDateFormat("MMddYYYY");
 			String sourceDir = "/Users/ahonaker/Google Drive/pp/jpp/newcharts/";
 			String targetDir = "/Users/ahonaker/Google Drive/pp/jpp/parsedcharts/";
 	        Files.list(new File(sourceDir).toPath())
@@ -244,7 +297,7 @@ public class ProcessChart {
                 	System.out.println(path);
 					if (path.toString().contains(".pdf")) {
 						List<RaceResult> results = process(file);
-						String fullFileName = targetDir + results.get(0).getTrack().getCode() + results.get(0).getRaceDate().format(DateTimeFormatter.ofPattern("MMddYYYY")) + "USA.pdf";
+						String fullFileName = targetDir + results.get(0).getTrack().getCode() + formatter.format(results.get(0).getRaceDate()) + "USA.pdf";
 						Files.move(path, path.resolveSibling(fullFileName),
 					            StandardCopyOption.REPLACE_EXISTING);
 					}
@@ -259,28 +312,18 @@ public class ProcessChart {
 		
 	}
 	
-	public static String getCharts() throws Exception {
-		
-		return mapper.writeValueAsString(getChartsArray());
-		
-	}
-	
-	public static List<Track> getChartsArray () throws Exception {
-		
-		return new ArrayList<Track>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), Track[].class)));
-
-	}
-	
-	public static List<RaceResult> addHorsesToWatchToChart(List<RaceResult> chart) throws Exception {
+	public static List<RaceResult> addHorsesToChart(List<RaceResult> chart) throws Exception {
 		
 		try {
 
 			for (RaceResult race : chart) {
 				if (!race.getCancellation().isCancelled()) {
 					for (Starter starter : race.getStarters()) {
-						File horseToWatchFile = new File(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json");
-						if (horseToWatchFile.exists()) {
-							HorseToWatch horse = mapper.readValue(Path.of(horsesToWatchDir + starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), HorseToWatch.class);
+						MongoCollection<Horse> horsesCollection = database.getCollection("horses", Horse.class);
+						Bson horseQuery = eq("name", starter.getHorse().getName().replaceAll("\\s\\(.+\\)", ""));
+						
+						Horse horse = horsesCollection.find(horseQuery).first();
+						if (horse != null) {						
 							if (starter.getHorse().getName().equals(horse.getName())) {
 								starter.setHorseFlag(horse.getFlag());
 								for (RaceNote raceNote : horse.getRaceNotes()) {
@@ -288,7 +331,7 @@ public class ProcessChart {
 										starter.setNote(raceNote.getComment());
 										starter.setRaceFlag(raceNote.getFlag());
 									}
-									if (raceNote.getRaceDate().isAfter(race.getRaceDate())) {
+									if (raceNote.getRaceDate().after(race.getRaceDate())) {
 										starter.setNextOutRaceNote(raceNote);
 									}
 								}
@@ -332,13 +375,20 @@ public class ProcessChart {
 		}
 	}
 	
-	public static List<RaceResult> getChart(String track, LocalDate date) throws Exception {
+	public static List<RaceResult> getChart(String track, Date date) throws Exception {
 		
-		String targetDir = "/Users/ahonaker/Google Drive/pp/jpp/parsedcharts/";
-		
-		try {
-			File file = new File(targetDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + "USA.pdf");
-			return addKeyRacesToChart(addHorsesToWatchToChart(chartParser.parse(file)));
+		try {						
+			List<RaceResult> raceResults = new ArrayList<>();
+			Document query = new Document()
+					.append("track.code", track)
+					.append("raceDate", date);
+			
+			MongoCollection<RaceResult> collection = database.getCollection("raceResults", RaceResult.class);
+			FindIterable<RaceResult> iterable = collection.find(query);
+			iterable.into(raceResults);
+
+
+			return raceResults;
 			
 		} catch (Exception e) {
 			throw e;
@@ -347,9 +397,10 @@ public class ProcessChart {
 		
 	}
 	
-	public static String getChartString(String track, LocalDate date) throws Exception {
+	public static String getChartString(String track, Date date) throws Exception {
 		
 		try {
+			System.out.println(track + date);
 			return mapper.writeValueAsString(getChart(track, date));
 			
 		} catch (Exception e) {
@@ -363,11 +414,11 @@ public class ProcessChart {
 		
 		try {
 			List<PotentialKeyRace> keyRaces = new ArrayList<PotentialKeyRace>();
-			List<Track> tracks = getChartsArray();
+			List<Track> tracks = Main.getTracksList();
 			for (Track track : tracks) {
 				for (RaceDate raceDate : track.getRaceDates()) {
 					if (raceDate.getHasChartFlag()) {
-						System.out.println("Updating Key Races for " + track.getCode() + " " + raceDate.getRaceDate().format(DateTimeFormatter.ofPattern("MMddYYYY")));
+						System.out.println("Updating Key Races for " + track.getCode() + " " + raceDate.getRaceDate().toString());
 						for (RaceResult raceResult : getChart(track.getCode(), raceDate.getRaceDate())) {
 							if (!raceResult.getCancellation().isCancelled()) {
 								for (Starter starter : raceResult.getStarters()) {

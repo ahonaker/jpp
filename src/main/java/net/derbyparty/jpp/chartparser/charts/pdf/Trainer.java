@@ -17,10 +17,10 @@ public class Trainer {
     private static final Pattern TRAINER_PATTERN = Pattern.compile("(\\w+)?\\s?-\\s?(.+),( (.+))?");
 
     @JsonIgnore
-    private final String program;
-    private final String name;
-    private final String firstName;
-    private final String lastName;
+    public String program;
+    public String name;
+    public String firstName;
+    public String lastName;
 
     public Trainer(String program, String firstName, String lastName) {
         this.program = program;
@@ -123,4 +123,10 @@ public class Trainer {
                 ", lastName='" + lastName + '\'' +
                 '}';
     }
+
+	public Trainer() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

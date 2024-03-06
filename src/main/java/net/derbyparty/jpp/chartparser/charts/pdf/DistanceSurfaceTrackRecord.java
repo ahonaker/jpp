@@ -9,7 +9,7 @@ import net.derbyparty.jpp.chartparser.fractionals.FractionalService;
 
 import static net.derbyparty.jpp.chartparser.charts.pdf.Purse.PURSE_PATTERN;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -25,8 +25,20 @@ import java.util.regex.Pattern;
 @JsonPropertyOrder({"distance", "surface", "trackCondition", "scheduledSurface", "offTurf",
         "trackRecord"})
 public class DistanceSurfaceTrackRecord {
+	
+	
 
-    static final Pattern DIST_SURF_RECORD_PATTERN =
+    public DistanceSurfaceTrackRecord() {
+    	super();
+		this.raceDistance = null;
+		this.surface = "";
+		this.scheduledSurface = "";
+		this.trackRecord = null;
+		
+		// TODO Auto-generated constructor stub
+	}
+
+	static final Pattern DIST_SURF_RECORD_PATTERN =
             Pattern.compile("^((About )?(One|Two|Three|Four|Five|Six|Seven|Eight|Nine)[\\w\\s]+) " +
                     "On The ([A-Za-z\\s]+)(\\s?- Originally Scheduled For " +
                     "([A-Za-z0-9\\-\\/\\s]+))?(\\|Current Track Record: \\((.+) - ([\\d:\\.]+) - (.+)\\))?");
@@ -59,11 +71,11 @@ public class DistanceSurfaceTrackRecord {
                     "]+)?)?$");
 
     @JsonProperty("distance")
-    private final RaceDistance raceDistance;
-    private final String surface;
-    private final String scheduledSurface;
-    private final TrackRecord trackRecord;
-    private String trackCondition;
+    public RaceDistance raceDistance;
+    public String surface;
+    public String scheduledSurface;
+    public TrackRecord trackRecord;
+    public String trackCondition;
 
     public DistanceSurfaceTrackRecord(String distanceDescription, String surface,
             String scheduledSurface, TrackRecord trackRecord) throws ChartParserException {
@@ -75,7 +87,7 @@ public class DistanceSurfaceTrackRecord {
     }
 
     public static DistanceSurfaceTrackRecord parse(final List<List<ChartCharacter>> lines)
-            throws ChartParserException {
+            throws Exception {
         boolean found = false;
         StringBuilder distanceSurfaceTrackRecordBuilder = new StringBuilder();
         String prefix = "";
@@ -117,7 +129,7 @@ public class DistanceSurfaceTrackRecord {
     }
 
     static Optional<DistanceSurfaceTrackRecord> parseDistanceSurface(String text)
-            throws ChartParserException {
+            throws Exception {
     	//System.out.println(text);
         Matcher matcher = DIST_SURF_RECORD_PATTERN.matcher(text.replace("Current Track Record", "|Current Track Record"));
         if (matcher.find()) {
@@ -139,7 +151,7 @@ public class DistanceSurfaceTrackRecord {
                         FractionalService.calculateMillisecondsForFraction(time);
 
                 String raceDateText = matcher.group(10);
-                LocalDate raceDate = TrackRaceDateRaceNumber.parseRaceDate(raceDateText);
+                Date raceDate = TrackRaceDateRaceNumber.parseRaceDate(raceDateText);
 
                 trackRecord = new TrackRecord(holder, time,
                         (recordTime.isPresent() ? recordTime.get() : null), raceDate);
@@ -326,9 +338,9 @@ public class DistanceSurfaceTrackRecord {
      */
     @JsonPropertyOrder({"text", "value", "exact", "runUp"})
     public static class RaceDistance {
-        private final String text;
-        private final boolean exact;
-        private final int value;
+        private String text;
+        private boolean exact;
+        private int value;
         private Integer runUp;
 
         RaceDistance(String text, boolean exact, int value) {
@@ -394,6 +406,14 @@ public class DistanceSurfaceTrackRecord {
             result = 31 * result + (runUp != null ? runUp.hashCode() : 0);
             return result;
         }
+
+		public RaceDistance() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
+
+
     }
 
     /**
@@ -401,12 +421,12 @@ public class DistanceSurfaceTrackRecord {
      * milliseconds) and the date when the record was set
      */
     public static class TrackRecord {
-        private final String holder;
-        private final String time;
-        private final Long millis;
-        private final LocalDate raceDate;
+    	public String holder;
+    	public String time;
+    	public Long millis;
+    	public Date raceDate;
 
-        public TrackRecord(String holder, String time, Long millis, LocalDate raceDate) {
+        public TrackRecord(String holder, String time, Long millis, Date raceDate) {
             this.holder = holder;
             this.time = time;
             this.millis = millis;
@@ -425,7 +445,7 @@ public class DistanceSurfaceTrackRecord {
             return millis;
         }
 
-        public LocalDate getRaceDate() {
+        public Date getRaceDate() {
             return raceDate;
         }
 
@@ -460,6 +480,12 @@ public class DistanceSurfaceTrackRecord {
             result = 31 * result + (raceDate != null ? raceDate.hashCode() : 0);
             return result;
         }
+
+		public TrackRecord() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
     }
 
     public String getSurface() {
@@ -531,7 +557,7 @@ public class DistanceSurfaceTrackRecord {
                 '}';
     }
 
-    public static class NoRaceDistanceFound extends ChartParserException {
+	public static class NoRaceDistanceFound extends ChartParserException {
         /**
 		 * 
 		 */

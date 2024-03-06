@@ -16,13 +16,13 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  * not
  */
 public class PostTimeStartCommentsTimer {
-    static final Pattern POST_START_TIMER_PATTERN =
+    static Pattern POST_START_TIMER_PATTERN =
             Pattern.compile("Off at: (.+)\\|Start: ([^\\|]+)(\\|Timer: (.+)\\|)?");
 
-    private final String postTime;
-    private final String startComments;
+    public String postTime;
+    public String startComments;
     @JsonInclude(NON_NULL)
-    private final String timer;
+    public String timer;
 
     @JsonCreator
     public PostTimeStartCommentsTimer(String postTime, String startComments) {
@@ -96,4 +96,10 @@ public class PostTimeStartCommentsTimer {
         result = 31 * result + (timer != null ? timer.hashCode() : 0);
         return result;
     }
+
+	public PostTimeStartCommentsTimer() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+    
 }

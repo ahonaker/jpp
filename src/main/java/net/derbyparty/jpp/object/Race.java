@@ -1,10 +1,12 @@
 package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Generated;
+
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -16,7 +18,7 @@ public class Race implements Serializable {
 	private static final long serialVersionUID = 1L;
 		
 	private String Track;
-	private LocalDate Date;
+	private Date Date;
 	private String PostTimes;
 	private int RaceNumber;
 	private int Distance;
@@ -47,7 +49,11 @@ public class Race implements Serializable {
 
 	private String WagerTypes;
 	private List<MultiRaceWager> MultiRaceWagers;
-	private List<Horse> Horses;
+	private List<Entry> Entries;
+	
+	@JsonIgnore
+	@BsonIgnore
+	private List<Entry> unscratchedHorses;
 	
 	private PaceScenarioType PaceScenario;
 	private float E1Avg;
@@ -63,9 +69,9 @@ public class Race implements Serializable {
 	private float furlongs;
 	private float miles;
 	@SuppressWarnings("unused")
-	private int unscratchedHorsesCount;
+	private int unscratchedEntriesCount;
 
-	private List<String> advantagedHorses;
+	private List<String> advantagedEntries;
 	
 	private String trackCondition;
 	private Boolean OffTheTurfFlag;
@@ -115,7 +121,7 @@ public class Race implements Serializable {
 		this.ParLatePace = builder.ParLatePace;
 		this.WagerTypes = builder.WagerTypes;
 		this.MultiRaceWagers = builder.MultiRaceWagers;
-		this.Horses = builder.Horses;
+		this.Entries = builder.Entries;
 		this.PaceScenario = builder.PaceScenario;
 		this.E1Avg = builder.E1Avg;
 		this.E2Avg = builder.E2Avg;
@@ -127,8 +133,8 @@ public class Race implements Serializable {
 		this.TotalSpeedPoints = builder.TotalSpeedPoints;
 		this.furlongs = builder.furlongs;
 		this.miles = builder.miles;
-		this.unscratchedHorsesCount = builder.unscratchedHorsesCount;
-		this.advantagedHorses = builder.advantagedHorses;
+		this.unscratchedEntriesCount = builder.unscratchedEntriesCount;
+		this.advantagedEntries = builder.advantagedEntries;
 		this.trackCondition = builder.trackCondition;
 		this.OffTheTurfFlag = builder.OffTheTurfFlag;
 		this.TurfFlag = builder.TurfFlag;
@@ -206,14 +212,14 @@ public class Race implements Serializable {
 		OntoAllWeatherFlag = ontoAllWeatherFlag;
 	}
 
-	public List<String> getAdvantagedHorses() {
-		return advantagedHorses;
+	public List<String> getAdvantagedEntries() {
+		return advantagedEntries;
 	}
 
 
 
-	public void setAdvantagedHorses(List<String> advantagedHorses) {
-		this.advantagedHorses = advantagedHorses;
+	public void setAdvantagedEntries(List<String> advantagedEntries) {
+		this.advantagedEntries = advantagedEntries;
 	}
 
 
@@ -340,10 +346,10 @@ public class Race implements Serializable {
 	public void setTrack(String track) {
 		Track = track;
 	}
-	public LocalDate getDate() {
+	public Date getDate() {
 		return Date;
 	}
-	public void setDate(LocalDate date) {
+	public void setDate(Date date) {
 		Date = date;
 	}
 	public String getPostTimes() {
@@ -512,26 +518,26 @@ public class Race implements Serializable {
 	}
 
 
-	public List<Horse> getHorses() {
-		return Horses;
+	public List<Entry> getEntries() {
+		return Entries;
 	}
 
-	public void setHorses(List<Horse> horses) {
-		Horses = horses;
+	public void setEntries(List<Entry> entries) {
+		Entries = entries;
 	}
 	
 	@JsonIgnore
-	public List<Horse> getUnscratchedHorses () {
-		List<Horse> horses = new ArrayList<Horse>();
-		if (Horses != null)
-			for (Horse horse : Horses) {
-				if (!horse.getScratchedFlag()) horses.add(horse);
+	public List<Entry> getUnscratchedEntries () {
+		List<Entry> entries = new ArrayList<Entry>();
+		if (Entries != null)
+			for (Entry entry : Entries) {
+				if (!entry.getScratchedFlag()) entries.add(entry);
 			}
-		return horses;
+		return entries;
 	}
 
-	public int getUnscratchedHorsesCount () {
-		return getUnscratchedHorses().size();
+	public int getUnscratchedEntriesCount () {
+		return getUnscratchedEntries().size();
 	}
 
 	public PaceScenarioType getPaceScenario() {
@@ -561,7 +567,7 @@ public class Race implements Serializable {
 		result = prime * result + Float.floatToIntBits(E1Avg);
 		result = prime * result + Float.floatToIntBits(E2Avg);
 		result = prime * result + ((HandicappingNotes == null) ? 0 : HandicappingNotes.hashCode());
-		result = prime * result + ((Horses == null) ? 0 : Horses.hashCode());
+		result = prime * result + ((Entries == null) ? 0 : Entries.hashCode());
 		result = prime * result + ((LasixList == null) ? 0 : LasixList.hashCode());
 		result = prime * result + LatePaceBestLast3;
 		result = prime * result + MaxE2;
@@ -590,7 +596,7 @@ public class Race implements Serializable {
 		result = prime * result + Float.floatToIntBits(TrackRecord);
 		result = prime * result + ((TurfFlag == null) ? 0 : TurfFlag.hashCode());
 		result = prime * result + ((WagerTypes == null) ? 0 : WagerTypes.hashCode());
-		result = prime * result + ((advantagedHorses == null) ? 0 : advantagedHorses.hashCode());
+		result = prime * result + ((advantagedEntries == null) ? 0 : advantagedEntries.hashCode());
 		result = prime * result + Float.floatToIntBits(furlongs);
 		result = prime * result + ((meetTrackBias == null) ? 0 : meetTrackBias.hashCode());
 		result = prime * result + Float.floatToIntBits(miles);
@@ -660,10 +666,10 @@ public class Race implements Serializable {
 				return false;
 		} else if (!HandicappingNotes.equals(other.HandicappingNotes))
 			return false;
-		if (Horses == null) {
-			if (other.Horses != null)
+		if (Entries == null) {
+			if (other.Entries != null)
 				return false;
-		} else if (!Horses.equals(other.Horses))
+		} else if (!Entries.equals(other.Entries))
 			return false;
 		if (LasixList == null) {
 			if (other.LasixList != null)
@@ -751,10 +757,10 @@ public class Race implements Serializable {
 				return false;
 		} else if (!WagerTypes.equals(other.WagerTypes))
 			return false;
-		if (advantagedHorses == null) {
-			if (other.advantagedHorses != null)
+		if (advantagedEntries == null) {
+			if (other.advantagedEntries != null)
 				return false;
-		} else if (!advantagedHorses.equals(other.advantagedHorses))
+		} else if (!advantagedEntries.equals(other.advantagedEntries))
 			return false;
 		if (Float.floatToIntBits(furlongs) != Float.floatToIntBits(other.furlongs))
 			return false;
@@ -801,7 +807,7 @@ public class Race implements Serializable {
 				.append(", AllWeatherSurfaceFlag=").append(AllWeatherSurfaceFlag).append(", ParPace2F=")
 				.append(ParPace2F).append(", ParPace4F=").append(ParPace4F).append(", ParPace6F=").append(ParPace6F)
 				.append(", ParSpeed=").append(ParSpeed).append(", ParLatePace=").append(ParLatePace)
-				.append(", WagerTypes=").append(WagerTypes).append(", Horses=").append(Horses).append("]");
+				.append(", WagerTypes=").append(WagerTypes).append(", Entries=").append(Entries).append("]");
 		return builder2.toString();
 	}
 	public float getFurlongs () {
@@ -814,9 +820,9 @@ public class Race implements Serializable {
 		
 	}
 	
-	public Horse getHorseWithName(String name) {
-		for (Horse horse: Horses) {
-			if (horse.getName().toUpperCase().equals(name.toUpperCase())) return horse;
+	public Entry getEntryWithName(String name) {
+		for (Entry entry: Entries) {
+			if (entry.getName().toUpperCase().equals(name.toUpperCase())) return entry;
 		}
 		return null;
 	}
@@ -829,7 +835,7 @@ public class Race implements Serializable {
 	@Generated("SparkTools")
 	public static final class Builder {
 		private String Track;
-		private LocalDate Date;
+		private Date Date;
 		private String PostTimes;
 		private int RaceNumber;
 		private int Distance;
@@ -857,7 +863,7 @@ public class Race implements Serializable {
 		private int ParLatePace;
 		private String WagerTypes;
 		private List<MultiRaceWager> MultiRaceWagers = Collections.emptyList();
-		private List<Horse> Horses = Collections.emptyList();
+		private List<Entry> Entries = Collections.emptyList();
 		private PaceScenarioType PaceScenario;
 		private float E1Avg;
 		private float E2Avg;
@@ -869,8 +875,8 @@ public class Race implements Serializable {
 		private int TotalSpeedPoints;
 		private float furlongs;
 		private float miles;
-		private int unscratchedHorsesCount;
-		private List<String> advantagedHorses = Collections.emptyList();
+		private int unscratchedEntriesCount;
+		private List<String> advantagedEntries = Collections.emptyList();
 		private String trackCondition;
 		private Boolean OffTheTurfFlag;
 		private Boolean TurfFlag;
@@ -890,7 +896,7 @@ public class Race implements Serializable {
 			return this;
 		}
 
-		public Builder withDate(LocalDate Date) {
+		public Builder withDate(Date Date) {
 			this.Date = Date;
 			return this;
 		}
@@ -1030,8 +1036,8 @@ public class Race implements Serializable {
 			return this;
 		}
 
-		public Builder withHorses(List<Horse> Horses) {
-			this.Horses = Horses;
+		public Builder withEntries(List<Entry> Entries) {
+			this.Entries = Entries;
 			return this;
 		}
 
@@ -1090,13 +1096,13 @@ public class Race implements Serializable {
 			return this;
 		}
 
-		public Builder withUnscratchedHorsesCount(int unscratchedHorsesCount) {
-			this.unscratchedHorsesCount = unscratchedHorsesCount;
+		public Builder withUnscratchedEntriesCount(int unscratchedEntriesCount) {
+			this.unscratchedEntriesCount = unscratchedEntriesCount;
 			return this;
 		}
 
-		public Builder withAdvantagedHorses(List<String> advantagedHorses) {
-			this.advantagedHorses = advantagedHorses;
+		public Builder withAdvantagedEntries(List<String> advantagedEntries) {
+			this.advantagedEntries = advantagedEntries;
 			return this;
 		}
 

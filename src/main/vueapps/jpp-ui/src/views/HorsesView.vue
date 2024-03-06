@@ -42,8 +42,8 @@
 							target="_blank"  
 						><b-icon-camera-video-fill></b-icon-camera-video-fill>
 						</a>						
-						{{formatDate(note.raceDate)}}<sup>{{note.raceNumber}}</sup> {{note.track}}<sup>{{note.position}}</sup> <span v-if="note.beatenLengths > 0">{{note.beatenLengths}}BL</span>
-						{{note.type}} {{note.raceClassification}} Purse: ${{note.purse}} <span v-if="note.claimingPrice > 0">Claiming Price: ${{note.claimingPrice}}</span>
+						{{formatDate(note.raceDate)}} &nbsp;&nbsp; {{note.track}}<sup>{{note.raceNumber}}</sup> &nbsp;&nbsp; {{note.position}} <span v-if="note.beatenLengths > 0"> - {{note.beatenLengths}}BL</span>
+						&nbsp;&nbsp; {{note.type}}  &nbsp;&nbsp; {{note.raceClassification}} Purse: ${{note.purse}} <span v-if="note.claimingPrice > 0"> &nbsp;&nbsp; Claiming Price: ${{note.claimingPrice}}</span>
 						<br>
 						<strong>{{note.flag}} </strong>
 						<span v-if="note.flag">/ </span>
@@ -130,7 +130,7 @@ export default {
 			try {
                 this.status = "Loading";
 				const response = await axios({
-					url: 'getHorsesToWatch',
+					url: 'getHorses',
 					method: 'GET',
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
@@ -145,7 +145,7 @@ export default {
 			try {
 				this.status = "Loading";
 				const response = await axios({
-					url: 'getHorseToWatch/' + name,
+					url: 'getHorse/' + name,
 					method: 'GET',
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
@@ -162,7 +162,7 @@ export default {
                 var formData = new FormData();
                 formData.append("data", JSON.stringify(this.horse));
                 await axios({
-                    url: 'saveHorseToWatch',
+                    url: 'saveHorse',
                     method: 'POST',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/',
                     headers: {
@@ -181,7 +181,8 @@ export default {
 			return (new Array(length+1).join(pad)+string).slice(-length);
 		},
 		formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+			return new Date(date).toLocaleDateString();
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},			
     }
 }

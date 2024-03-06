@@ -1,7 +1,7 @@
 package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.util.Date;
 import javax.annotation.Generated;
 
 public class PotentialKeyRaceHorse implements Serializable {
@@ -12,7 +12,7 @@ public class PotentialKeyRaceHorse implements Serializable {
 	private int position;
 	private double beatenLengths;
 	private String track;
-	private LocalDate raceDate;
+	private Date raceDate;
 	private int raceNumber;
 
 	@Generated("SparkTools")
@@ -24,6 +24,7 @@ public class PotentialKeyRaceHorse implements Serializable {
 		this.raceDate = builder.raceDate;
 		this.raceNumber = builder.raceNumber;
 	}
+
 
 	public String getName() {
 		return name;
@@ -40,7 +41,7 @@ public class PotentialKeyRaceHorse implements Serializable {
 	public double getBeatenLengths() {
 		return beatenLengths;
 	}
-	public void setBeatenLengths(float beatenLengths) {
+	public void setBeatenLengths(double beatenLengths) {
 		this.beatenLengths = beatenLengths;
 	}
 	public String getTrack() {
@@ -49,10 +50,10 @@ public class PotentialKeyRaceHorse implements Serializable {
 	public void setTrack(String track) {
 		this.track = track;
 	}
-	public LocalDate getRaceDate() {
+	public Date getRaceDate() {
 		return raceDate;
 	}
-	public void setRaceDate(LocalDate raceDate) {
+	public void setRaceDate(Date raceDate) {
 		this.raceDate = raceDate;
 	}
 	public int getRaceNumber() {
@@ -118,7 +119,7 @@ public class PotentialKeyRaceHorse implements Serializable {
 		return builder2.toString();
 	}
 
-	public PotentialKeyRaceHorse(String name, int position, float beatenLengths, String track, LocalDate raceDate,
+	public PotentialKeyRaceHorse(String name, int position, float beatenLengths, String track, Date raceDate,
 			int raceNumber) {
 		super();
 		this.name = name;
@@ -144,7 +145,7 @@ public class PotentialKeyRaceHorse implements Serializable {
 		private int position;
 		private double beatenLengths;
 		private String track;
-		private LocalDate raceDate;
+		private Date raceDate;
 		private int raceNumber;
 
 		private Builder() {
@@ -170,7 +171,7 @@ public class PotentialKeyRaceHorse implements Serializable {
 			return this;
 		}
 
-		public Builder withRaceDate(LocalDate raceDate) {
+		public Builder withRaceDate(Date raceDate) {
 			this.raceDate = raceDate;
 			return this;
 		}

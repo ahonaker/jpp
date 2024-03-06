@@ -1,12 +1,85 @@
 package net.derbyparty.jpp.object;
 
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import javax.annotation.Generated;
+
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.UpdateResult;
+
 import java.util.Collections;
 
 public class PotentialKeyRace implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	
+	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+	
+	final static String mongoUri = "mongodb://localhost/jpp";
+	static MongoClient mongoClient = MongoClients.create(mongoUri);
+	static MongoDatabase database = mongoClient.getDatabase("jpp").withCodecRegistry(pojoCodecRegistry);
+	
+	private Date raceDate;
+	private String track;
+	private int raceNumber;
+	
+	private List<PotentialKeyRaceHorse> horses;
+
+	@Generated("SparkTools")
+	private PotentialKeyRace(Builder builder) {
+		this.raceDate = builder.raceDate;
+		this.track = builder.track;
+		this.raceNumber = builder.raceNumber;
+		this.horses = builder.horses;
+	}
+
+	public Date getRaceDate() {
+		return raceDate;
+	}
+
+	public void setRaceDate(Date raceDate) {
+		this.raceDate = raceDate;
+	}
+
+	public String getTrack() {
+		return track;
+	}
+
+	public void setTrack(String track) {
+		this.track = track;
+	}
+
+	public int getRaceNumber() {
+		return raceNumber;
+	}
+
+	public void setRaceNumber(int raceNumber) {
+		this.raceNumber = raceNumber;
+	}
+
+	public List<PotentialKeyRaceHorse> getHorses() {
+		return horses;
+	}
+
+	public void setHorses(List<PotentialKeyRaceHorse> horses) {
+		this.horses = horses;
+	}
+	
 
 	@Override
 	public int hashCode() {
@@ -41,55 +114,7 @@ public class PotentialKeyRace implements Serializable {
 			return false;
 		return true;
 	}
-
-	private static final long serialVersionUID = 1L;
 	
-	private LocalDate raceDate;
-	private String track;
-	private int raceNumber;
-	
-	private List<PotentialKeyRaceHorse> horses;
-
-	@Generated("SparkTools")
-	private PotentialKeyRace(Builder builder) {
-		this.raceDate = builder.raceDate;
-		this.track = builder.track;
-		this.raceNumber = builder.raceNumber;
-		this.horses = builder.horses;
-	}
-
-	public LocalDate getRaceDate() {
-		return raceDate;
-	}
-
-	public void setRaceDate(LocalDate raceDate) {
-		this.raceDate = raceDate;
-	}
-
-	public String getTrack() {
-		return track;
-	}
-
-	public void setTrack(String track) {
-		this.track = track;
-	}
-
-	public int getRaceNumber() {
-		return raceNumber;
-	}
-
-	public void setRaceNumber(int raceNumber) {
-		this.raceNumber = raceNumber;
-	}
-
-	public List<PotentialKeyRaceHorse> getHorses() {
-		return horses;
-	}
-
-	public void setHorses(List<PotentialKeyRaceHorse> horses) {
-		this.horses = horses;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -98,7 +123,7 @@ public class PotentialKeyRace implements Serializable {
 		return builder.toString();
 	}
 
-	public PotentialKeyRace(LocalDate raceDate, String track, int raceNumber, List<PotentialKeyRaceHorse> horses) {
+	public PotentialKeyRace(Date raceDate, String track, int raceNumber, List<PotentialKeyRaceHorse> horses) {
 		super();
 		this.raceDate = raceDate;
 		this.track = track;
@@ -118,7 +143,7 @@ public class PotentialKeyRace implements Serializable {
 
 	@Generated("SparkTools")
 	public static final class Builder {
-		private LocalDate raceDate;
+		private Date raceDate;
 		private String track;
 		private int raceNumber;
 		private List<PotentialKeyRaceHorse> horses = Collections.emptyList();
@@ -126,7 +151,7 @@ public class PotentialKeyRace implements Serializable {
 		private Builder() {
 		}
 
-		public Builder withRaceDate(LocalDate raceDate) {
+		public Builder withRaceDate(Date raceDate) {
 			this.raceDate = raceDate;
 			return this;
 		}
@@ -150,5 +175,46 @@ public class PotentialKeyRace implements Serializable {
 			return new PotentialKeyRace(this);
 		}
 	}
+	
+	public void save() throws Exception {
+		
+		ReplaceOptions opts = new ReplaceOptions().upsert(true);
+		
+		Document query = new Document()
+				.append("track", track)
+				.append("raceDate", raceDate)
+				.append("raceNumber", raceNumber);			
+		
+		MongoCollection<PotentialKeyRace> collection = database.getCollection("keyRaces", PotentialKeyRace.class);
+		UpdateResult result = collection.replaceOne(query, this, opts);
+		if (result.getModifiedCount() == 1) {
+			System.out.println("potentialKeyRace " 
+					+ this.getTrack() + ":" 
+					+ this.getRaceDate() 
+					+ " - Race " + 
+					this.getRaceNumber() 
+					+ " updated.");
+		} else {
+			System.out.println("potentialKeyRace " 
+					+ this.getTrack() + ":" 
+					+ this.getRaceDate() 
+					+ " - Race " 
+					+ this.getRaceNumber() 
+					+ " inserted. (ID = " + result.getUpsertedId());
+		}
+
+	}
+		
+	public void delete() throws Exception {
+		
+		Document query = new Document()
+				.append("track", track)
+				.append("raceDate", raceDate)
+				.append("raceNumber", raceNumber);
+		
+		MongoCollection<PotentialKeyRace> collection = database.getCollection("keyRaces", PotentialKeyRace.class);
+		collection.findOneAndDelete(query);
+	}
+
 
 }

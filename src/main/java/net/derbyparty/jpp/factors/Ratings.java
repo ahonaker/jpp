@@ -6,34 +6,34 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import net.derbyparty.jpp.object.Horse;
+import net.derbyparty.jpp.object.Entry;
 import net.derbyparty.jpp.object.Race;
 
 public class Ratings {
 
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
-	public static float calcARating (Race race, Horse horse) {
+	public static float calcARating (Race race, Entry entry) {
 		
 		return 
-			horse.getClassRating() / 120 * 45
+			entry.getClassRating() / 120 * 45
 			+
-			horse.getSpeedRating() / 120 * 45
+			entry.getSpeedRating() / 120 * 45
 			+ 
-			horse.getARatingForm() / 35 * 5
+			entry.getARatingForm() / 35 * 5
 			+ 
-			horse.getARatingConnections() * 2 * 5;
+			entry.getARatingConnections() * 2 * 5;
 	}
 	
-	public static float calcARatingClass (Race race, Horse horse) {
+	public static float calcARatingClass (Race race, Entry entry) {
 		
 		float factor = 1;
 
-		factor += -1 * (float) horse.getClassShift() / 500;
-		factor += -1 * (float) horse.getPurseShift() / 1000000;
+		factor += -1 * (float) entry.getClassShift() / 500;
+		factor += -1 * (float) entry.getPurseShift() / 1000000;
 
 	
-		return horse.getClassRating() * factor;
+		return entry.getClassRating() * factor;
 	}
 	
 	public static List<String> identifyPaceAdvantage (Race race) throws Exception {
@@ -41,13 +41,13 @@ public class Ratings {
 		List <String> advantagedHorses = new ArrayList<String>();
 		
 		try {
-			float E2AvgSorted[] = new float[race.getUnscratchedHorses().size()];
-			float SpeedRatingSorted[] = new float[race.getUnscratchedHorses().size()];
-			float LatePaceAvgSorted[] = new float[race.getUnscratchedHorses().size()];
+			float E2AvgSorted[] = new float[race.getUnscratchedEntries().size()];
+			float SpeedRatingSorted[] = new float[race.getUnscratchedEntries().size()];
+			float LatePaceAvgSorted[] = new float[race.getUnscratchedEntries().size()];
 			
-			for (int i = 0; i < race.getUnscratchedHorses().size(); i ++) {
-				E2AvgSorted[i] = race.getUnscratchedHorses().get(i).getE2Avg();
-				SpeedRatingSorted[i] = race.getUnscratchedHorses().get(i).getSpeedRating();
+			for (int i = 0; i < race.getUnscratchedEntries().size(); i ++) {
+				E2AvgSorted[i] = race.getUnscratchedEntries().get(i).getE2Avg();
+				SpeedRatingSorted[i] = race.getUnscratchedEntries().get(i).getSpeedRating();
 			}
 			
 			Arrays.sort(E2AvgSorted);
@@ -57,66 +57,66 @@ public class Ratings {
 			switch (race.getPaceScenario()) {
 				
 				case FAST_EARLY_PACE:			
-					for (Horse horse : race.getUnscratchedHorses()) {
-						if (horse.getRunStyle().equals("E") && horse.getSpeedPoints() >= 6 && 
-								(horse.getE2Avg() - 4 > E2AvgSorted[race.getUnscratchedHorses().size()-2] 
-										|| horse.getSpeedRating() - 4 > SpeedRatingSorted[race.getUnscratchedHorses().size()-2])) {
-							advantagedHorses.add(horse.getName());
+					for (Entry entry : race.getUnscratchedEntries()) {
+						if (entry.getRunStyle().equals("E") && entry.getSpeedPoints() >= 6 && 
+								(entry.getE2Avg() - 4 > E2AvgSorted[race.getUnscratchedEntries().size()-2] 
+										|| entry.getSpeedRating() - 4 > SpeedRatingSorted[race.getUnscratchedEntries().size()-2])) {
+							advantagedHorses.add(entry.getName());
 						}
 					}
 					
 					if (advantagedHorses.size() == 0) {
-						for (Horse horse : race.getUnscratchedHorses()) {
-							if ((horse.getRunStyle().equals("E/P") || horse.getRunStyle().equals("P"))
-									&& horse.getSpeedRating() > SpeedRatingSorted[race.getUnscratchedHorses().size()-4]) {
-								advantagedHorses.add(horse.getName());
+						for (Entry entry : race.getUnscratchedEntries()) {
+							if ((entry.getRunStyle().equals("E/P") || entry.getRunStyle().equals("P"))
+									&& entry.getSpeedRating() > SpeedRatingSorted[race.getUnscratchedEntries().size()-4]) {
+								advantagedHorses.add(entry.getName());
 							}
 						}						
 					}
 					
 					break;
 				case LONE_EARLY_PACE:					
-					for (Horse horse : race.getUnscratchedHorses()) {
-						if ((horse.getRunStyle().equals("E") || horse.getRunStyle().equals("E/P")) && horse.getSpeedPoints() >= 4 && 
-								(horse.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedHorses().size()-2] 
-										|| horse.getSpeedRating() - 2 > SpeedRatingSorted[race.getUnscratchedHorses().size()-2])) {
-							advantagedHorses.add(horse.getName());
+					for (Entry entry : race.getUnscratchedEntries()) {
+						if ((entry.getRunStyle().equals("E") || entry.getRunStyle().equals("E/P")) && entry.getSpeedPoints() >= 4 && 
+								(entry.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedEntries().size()-2] 
+										|| entry.getSpeedRating() - 2 > SpeedRatingSorted[race.getUnscratchedEntries().size()-2])) {
+							advantagedHorses.add(entry.getName());
 						}
 					}
 					
 					break;
 				case HONEST_PACE:
-					for (Horse horse : race.getUnscratchedHorses()) {
-						if (horse.getRunStyle().equals("E/P") && 
-								(horse.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedHorses().size()-2] 
-										|| horse.getSpeedRating() - 2 > SpeedRatingSorted[race.getUnscratchedHorses().size()-2])) {
-							advantagedHorses.add(horse.getName());
+					for (Entry entry : race.getUnscratchedEntries()) {
+						if (entry.getRunStyle().equals("E/P") && 
+								(entry.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedEntries().size()-2] 
+										|| entry.getSpeedRating() - 2 > SpeedRatingSorted[race.getUnscratchedEntries().size()-2])) {
+							advantagedHorses.add(entry.getName());
 						}
 					}
 					
 					if (advantagedHorses.size() == 0) {
-						for (Horse horse : race.getUnscratchedHorses()) {
-							if ((horse.getRunStyle().equals("E/P"))
-									&& horse.getSpeedRating() > SpeedRatingSorted[race.getUnscratchedHorses().size()-4]) {
-								advantagedHorses.add(horse.getName());
+						for (Entry entry : race.getUnscratchedEntries()) {
+							if ((entry.getRunStyle().equals("E/P"))
+									&& entry.getSpeedRating() > SpeedRatingSorted[race.getUnscratchedEntries().size()-4]) {
+								advantagedHorses.add(entry.getName());
 							}
 						}						
 					}
 					
 					break;
 				case SLOW_PACE:
-					for (Horse horse : race.getUnscratchedHorses()) {
-						if (horse.getRunStyle().equals("P") && 
-								(horse.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedHorses().size()-2] )) {
-							advantagedHorses.add(horse.getName());
+					for (Entry entry : race.getUnscratchedEntries()) {
+						if (entry.getRunStyle().equals("P") && 
+								(entry.getE2Avg() - 2 > E2AvgSorted[race.getUnscratchedEntries().size()-2] )) {
+							advantagedHorses.add(entry.getName());
 						}
 					}
 					
 					if (advantagedHorses.size() == 0) {
-						for (Horse horse : race.getUnscratchedHorses()) {
-							if ((horse.getRunStyle().equals("P") || horse.getRunStyle().equals("S"))
-									&& horse.getLatePaceAvg() > LatePaceAvgSorted[race.getUnscratchedHorses().size()-4]) {
-								advantagedHorses.add(horse.getName());
+						for (Entry entry : race.getUnscratchedEntries()) {
+							if ((entry.getRunStyle().equals("P") || entry.getRunStyle().equals("S"))
+									&& entry.getLatePaceAvg() > LatePaceAvgSorted[race.getUnscratchedEntries().size()-4]) {
+								advantagedHorses.add(entry.getName());
 							}
 						}						
 					}
@@ -131,29 +131,29 @@ public class Ratings {
 		return advantagedHorses;
 	}
 	
-	public static float calcARatingForm (Race race, Horse horse) {
+	public static float calcARatingForm (Race race, Entry entry) {
 		
-		return horse.getBasicFitness() + horse.getFormPoints() + horse.getFurlongDays() * 5;
+		return entry.getBasicFitness() + entry.getFormPoints() + entry.getFurlongDays() * 5;
 	}
 	
-	public static float calcARatingConnections (Race race, Horse horse) {
+	public static float calcARatingConnections (Race race, Entry entry) {
 		
 		float rating = 0;
 		
-		if (horse.getTrainer().getCurrentMeetStarts() > 10 && horse.getTrainer().getCurrentYearStarts() > 10) {
-			rating += (((float) horse.getTrainer().getCurrentYearWins() / horse.getTrainer().getCurrentYearStarts() 
-					+ (float) horse.getTrainer().getCurrentMeetWins() / horse.getTrainer().getCurrentMeetStarts()) 
+		if (entry.getTrainer().getCurrentMeetStarts() > 10 && entry.getTrainer().getCurrentYearStarts() > 10) {
+			rating += (((float) entry.getTrainer().getCurrentYearWins() / entry.getTrainer().getCurrentYearStarts() 
+					+ (float) entry.getTrainer().getCurrentMeetWins() / entry.getTrainer().getCurrentMeetStarts()) 
 					/ 2);
-		} else if (horse.getTrainer().getCurrentYearStarts() > 10) {		
-			rating += (float) horse.getTrainer().getCurrentYearWins() / horse.getTrainer().getCurrentYearStarts();
+		} else if (entry.getTrainer().getCurrentYearStarts() > 10) {		
+			rating += (float) entry.getTrainer().getCurrentYearWins() / entry.getTrainer().getCurrentYearStarts();
 		}
 		
-		if (horse.getJockey().getCurrentMeetStarts() > 10 && horse.getJockey().getCurrentYearStarts() > 10) {
-			rating += (((float) horse.getJockey().getCurrentYearWins() / horse.getJockey().getCurrentYearStarts() 
-					+ (float) horse.getJockey().getCurrentMeetWins() / horse.getJockey().getCurrentMeetStarts()) 
+		if (entry.getJockey().getCurrentMeetStarts() > 10 && entry.getJockey().getCurrentYearStarts() > 10) {
+			rating += (((float) entry.getJockey().getCurrentYearWins() / entry.getJockey().getCurrentYearStarts() 
+					+ (float) entry.getJockey().getCurrentMeetWins() / entry.getJockey().getCurrentMeetStarts()) 
 					/ 2);
-		} else if (horse.getJockey().getCurrentYearStarts() > 10) {		
-			rating += (float) horse.getJockey().getCurrentYearWins() / horse.getJockey().getCurrentYearStarts();
+		} else if (entry.getJockey().getCurrentYearStarts() > 10) {		
+			rating += (float) entry.getJockey().getCurrentYearWins() / entry.getJockey().getCurrentYearStarts();
 		}
 		return rating;
 	}

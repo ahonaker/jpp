@@ -12,14 +12,14 @@ import java.util.regex.Pattern;
  */
 public class ClaimedHorse {
 
-    private static final Pattern CLAIMED_HORSES = Pattern.compile("(\\d+) Claimed Horse\\(s\\).+");
-    private static final Pattern CLAIMED_HORSE =
+    private static Pattern CLAIMED_HORSES = Pattern.compile("(\\d+) Claimed Horse\\(s\\).+");
+    private static Pattern CLAIMED_HORSE =
             Pattern.compile("([0-9a-zA-Z\\s\\-\\.\\'\\(\\)]+)[\\||\\s]New Trainer:( (.+))" +
                     "?[\\||\\s]New Owner:( (.+))?");
 
-    private final Horse horse;
-    private final String newTrainerName;
-    private String newOwnerName;
+    public Horse horse;
+    public String newTrainerName;
+    public String newOwnerName;
 
     public ClaimedHorse(Horse horse, String newTrainerName, String newOwnerName) {
         this.horse = horse;
@@ -136,4 +136,10 @@ public class ClaimedHorse {
                 ", newOwnerName='" + newOwnerName + '\'' +
                 '}';
     }
+
+	public ClaimedHorse() {
+		super();
+	
+		// TODO Auto-generated constructor stub
+	}
 }

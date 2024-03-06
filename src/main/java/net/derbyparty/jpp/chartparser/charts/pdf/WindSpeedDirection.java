@@ -14,8 +14,8 @@ public class WindSpeedDirection {
     static final Pattern WIND_SPEED_DIRECTION_PATTERN =
             Pattern.compile("Wind Speed: (\\d+) Wind Direction: (.+)");
 
-    private final Integer speed;
-    private final String direction;
+    public Integer speed;
+    public String direction;
 
     @JsonCreator
     public WindSpeedDirection(Integer speed, String direction) {
@@ -70,4 +70,10 @@ public class WindSpeedDirection {
         result = 31 * result + (direction != null ? direction.hashCode() : 0);
         return result;
     }
+
+	public WindSpeedDirection() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

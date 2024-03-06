@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  */
 public class DeadHeat {
 
-    private static final Pattern DEAD_HEATS = Pattern.compile("Dead Heats:.+");
+	public static final Pattern DEAD_HEATS = Pattern.compile("Dead Heats:.+");
 
     public static boolean parse(List<List<ChartCharacter>> lines) {
         for (List<ChartCharacter> line : lines) {

@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class Chart {
 
-    public static final BigDecimal THREE = new BigDecimal(3);
+    public static BigDecimal THREE = new BigDecimal(3);
 
     /**
      * Round half-up and to three decimal places
@@ -75,4 +75,9 @@ public class Chart {
 
         return ""; // no whitespace
     }
+
+	public Chart() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 }

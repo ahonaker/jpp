@@ -12,15 +12,15 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  */
 @JsonInclude(NON_NULL)
 public class Horse {
-    private final String name;
-    private String color;
-    private String sex;
-    private Horse sire;
-    private Horse dam;
-    private Horse damSire;
-    private LocalDate foalingDate;
-    private String foalingLocation;
-    private Breeder breeder;
+	public String name;
+	public String color;
+	public String sex;
+	public Horse sire;
+	public Horse dam;
+	public Horse damSire;
+	public LocalDate foalingDate;
+	public String foalingLocation;
+	public Breeder breeder;
 
     public Horse(String name) {
         this.name = name;
@@ -144,4 +144,10 @@ public class Horse {
                 ", breeder=" + breeder +
                 '}';
     }
+
+	public Horse() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

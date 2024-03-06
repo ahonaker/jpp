@@ -18,9 +18,9 @@ import java.util.List;
  */
 public class MedicationEquipment {
 
-    private final String text;
-    private List<Medication> medications;
-    private List<Equipment> equipment;
+	public String text;
+	public List<Medication> medications;
+	public List<Equipment> equipment;
 
     public MedicationEquipment(String text) throws ChartParserException {
         this.text = text;
@@ -221,4 +221,11 @@ public class MedicationEquipment {
                 ", equipment=" + equipment +
                 '}';
     }
+
+	public MedicationEquipment() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
+    
 }

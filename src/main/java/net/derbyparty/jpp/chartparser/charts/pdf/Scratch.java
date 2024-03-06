@@ -20,8 +20,8 @@ public class Scratch {
     private static final Pattern SCRATCHED_HORSE =
             Pattern.compile("(.+?(\\s\\([A-Z]{2,3}\\))?)\\s\\((.*?)\\)(\\s\\(Earned .+\\))?");
 
-    private final Horse horse;
-    private final String reason;
+    public Horse horse;
+    public String reason;
 
     @JsonCreator
     public Scratch(Horse horse, String reason) {
@@ -107,4 +107,10 @@ public class Scratch {
         result = 31 * result + (reason != null ? reason.hashCode() : 0);
         return result;
     }
+
+	public Scratch() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

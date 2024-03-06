@@ -19,8 +19,8 @@ public class HorseJockey {
     private static final Pattern HORSE_JOCKEY_PATTERN =
             Pattern.compile("(.+) \\(((.+),( (.+))?)?\\)");
 
-    private final Horse horse;
-    private final Jockey jockey;
+    public Horse horse;
+    public Jockey jockey;
 
     public HorseJockey(Horse horse, Jockey jockey) {
         this.horse = horse;
@@ -101,4 +101,11 @@ public class HorseJockey {
             super(String.format("Unable to parse horse and jockey names from: %s", text));
         }
     }
+
+	public HorseJockey() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
+    
 }

@@ -12,7 +12,7 @@ public enum Breed {
     ARABIAN("Arabian"),
     MIXED("Mixed");
 
-    private final String chartValue;
+	public final String chartValue;
 
     Breed(String chartValue) {
         this.chartValue = chartValue;

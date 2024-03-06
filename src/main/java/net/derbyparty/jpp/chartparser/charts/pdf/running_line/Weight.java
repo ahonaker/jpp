@@ -17,8 +17,8 @@ import static java.lang.Integer.parseInt;
 public class Weight {
 
     @JsonProperty("carried")
-    private final int weightCarried;
-    private final int jockeyAllowance;
+    public int weightCarried;
+    public int jockeyAllowance;
 
     public Weight(int weightCarried, int jockeyAllowance) {
         this.weightCarried = weightCarried;
@@ -94,4 +94,10 @@ public class Weight {
                 ", jockeyAllowance=" + jockeyAllowance +
                 '}';
     }
+
+	public Weight() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

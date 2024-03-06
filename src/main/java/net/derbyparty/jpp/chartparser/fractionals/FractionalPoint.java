@@ -14,9 +14,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class FractionalPoint {
 
-    private final String distance;
-    private final int floor;
-    private final List<Fractional> fractionals;
+	public String distance;
+	public int floor;
+	public List<Fractional> fractionals;
 
     public FractionalPoint(int floor) {
         this("", floor, new ArrayList<>());
@@ -32,13 +32,19 @@ public class FractionalPoint {
         this.fractionals = fractionals;
     }
 
-    /**
+    public FractionalPoint() {
+    	super();
+		
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
      * A specific fractional point for the {@link FractionalPoint} in question
      */
     public static class Fractional {
-        protected final int point;
-        protected final String text;
-        protected final int feet;
+        protected int point;
+        protected String text;
+        protected int feet;
         protected String time;
         protected Long millis;
 
@@ -125,6 +131,12 @@ public class FractionalPoint {
             result = 31 * result + (millis != null ? millis.hashCode() : 0);
             return result;
         }
+
+		public Fractional() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
     }
 
     public String getDistance() {
@@ -197,8 +209,8 @@ public class FractionalPoint {
      */
     public static class Split extends Fractional {
 
-        private final Fractional from;
-        private final Fractional to;
+    	public Fractional from;
+    	public Fractional to;
 
         @JsonCreator
         Split(int point, String text, int feet, String time, Long millis, Fractional from,
@@ -272,6 +284,12 @@ public class FractionalPoint {
                     ", to=" + to +
                     '}';
         }
+
+		public Split() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
     }
 
     public static String convertToTime(Long millis) {

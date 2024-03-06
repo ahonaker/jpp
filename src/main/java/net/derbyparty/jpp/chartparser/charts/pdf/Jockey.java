@@ -6,9 +6,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * The rider of the {@link Starter}
  */
 public class Jockey {
-    private final String name;
-    private final String firstName;
-    private final String lastName;
+	public String name;
+	public String firstName;
+	public String lastName;
 
     @JsonCreator
     public Jockey(String firstName, String lastName) {
@@ -59,4 +59,10 @@ public class Jockey {
                 ", lastName='" + lastName + '\'' +
                 '}';
     }
+
+	public Jockey() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

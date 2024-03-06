@@ -46,7 +46,6 @@ export default {
             numRaces: null,
 			race: null,
             status: "",
-            charts: [],
             options: {
                 margin: 10,
 
@@ -110,21 +109,7 @@ export default {
                 console.log(err);
                 
             }   
-        },
-		async getCharts() {
-			try {
-				const response = await axios({
-					url: 'getCharts/',
-					method: 'GET',
-					baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});
-				this.charts = response.data;
-				this.loadingCharts = false;
-			} catch (err) {
-				console.log(err.response);
-							
-			}	
-		},     
+        },    
         async generatePDF(raceNumber) {     
             try {
                 await this.get(raceNumber);
@@ -145,7 +130,8 @@ export default {
             }
         },
         formatDate (date) {
-			return "" + date[0] + this.str_pad_left(date[1],0,2) + this.str_pad_left(date[2],0,2);
+            var d  = new Date(date);
+			return "" + d.getFullYear() + this.str_pad_left(d.getMonth(),0,2) + this.str_pad_left(d.getDate(),0,2);
 		}, 
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);

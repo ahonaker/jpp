@@ -1,18 +1,41 @@
 package net.derbyparty.jpp.object;
 
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.format.TextStyle;
-import java.util.HashMap;
-import java.util.Locale;
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import javax.annotation.Generated;
+
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.UpdateResult;
 
 public class PastPerformance implements Serializable, Comparable<PastPerformance> {
 
 	private static final long serialVersionUID = 1L;
 	
-	private LocalDate RaceDate;
+	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+	
+	final static String mongoUri = "mongodb://localhost/jpp";
+	static MongoClient mongoClient = MongoClients.create(mongoUri);
+	static MongoDatabase database = mongoClient.getDatabase("jpp").withCodecRegistry(pojoCodecRegistry);
+
+	
+	private Date RaceDate;
 	private int DaysSinceLastRace;
 	private String TrackCode;
 	private String BRISTrackCode;
@@ -1125,16 +1148,18 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 	// Generated
 
 
-	public LocalDate getRaceDate() {
+	public Date getRaceDate() {
 		return RaceDate;
 	}
-	public void setRaceDate(LocalDate raceDate) {
+	public void setRaceDate(Date raceDate) {
 		RaceDate = raceDate;
 	}
 	public String getRaceDateString() {
-		return RaceDate.getDayOfMonth() +
-				RaceDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH) +
-				(RaceDate.getYear()-2000);
+		return new SimpleDateFormat("ddMMMYY").format(RaceDate);
+			
+				// RaceDate.getDate() +
+				// RaceDate.getmb RaceDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH) +
+				// (RaceDate.getYear()-2000);
 	}
 	public int getDaysSinceLastRace() {
 		return DaysSinceLastRace;
@@ -1928,7 +1953,7 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 	}
 	@Generated("SparkTools")
 	public static final class Builder {
-		private LocalDate RaceDate;
+		private Date RaceDate;
 		private int DaysSinceLastRace;
 		private String TrackCode;
 		private String BRISTrackCode;
@@ -2062,7 +2087,7 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 		private Builder() {
 		}
 
-		public Builder withRaceDate(LocalDate RaceDate) {
+		public Builder withRaceDate(Date RaceDate) {
 			this.RaceDate = RaceDate;
 			return this;
 		}
@@ -2717,5 +2742,67 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 		}
 	}
 	
+	public void save() {
+		ReplaceOptions opts = new ReplaceOptions().upsert(true);
+		
+		Document query = new Document()
+				.append("name", name)
+				.append("raceDate", RaceDate);	
+		
+		MongoCollection<PastPerformance> collection = database.getCollection("pastPerformances", PastPerformance.class);
+		UpdateResult result = collection.replaceOne(query, this, opts);
+//		if (result.getModifiedCount() == 1) {
+//			System.out.println(name + " - " + RaceDate + " updated.");
+//		} else {
+//			System.out.println(name + " - " + RaceDate + " saved. (ID = " + result.getUpsertedId());
+//		}
+	}
+	
+	public void delete() {
+		
+		Document query = new Document()
+				.append("name", name)
+				.append("raceDate", RaceDate);	
+		
+		MongoCollection<PastPerformance> collection = database.getCollection("pastPerformances", PastPerformance.class);
+		collection.findOneAndDelete(query);
+
+	}
+	
+	public void addKeyRace() { 
+		Document query = new Document()
+				.append("track", TrackCode)
+				.append("raceDate", RaceDate)
+				.append("raceNumber", RaceNumber);	
+		
+		MongoCollection<PotentialKeyRace> collection = database.getCollection("keyRaces", PotentialKeyRace.class);
+		PotentialKeyRace race = collection.find(query).first();
+		if (race != null) this.setKeyRace(race);
+
+	}
+	
+	public void addHorse() { 				
+		MongoCollection<RaceNote> collection = database.getCollection("horses", RaceNote.class);
+		RaceNote raceNote = collection.aggregate(Arrays.asList(new Document("$match", 
+		    new Document("name", name)), 
+		    new Document("$project", 
+		    new Document("raceNotes", 1L)
+		            .append("_id", 0L)), 
+		    new Document("$unwind", 
+		    new Document("path", "$raceNotes")), 
+		    new Document("$match", 
+		    new Document("raceNotes.track", TrackCode)
+		            .append("raceNotes.raceNumber", RaceNumber)
+		            .append("raceNotes.raceDate", RaceDate)), 
+		    new Document("$replaceRoot", 
+		    new Document("newRoot", "$raceNotes")))).first();
+		
+		if (raceNote != null) {
+			this.setComment(raceNote.getComment());
+			this.setFlag(raceNote.getFlag());
+			this.setFootnote(raceNote.getFootnote());
+		}
+
+	}
 	
 }

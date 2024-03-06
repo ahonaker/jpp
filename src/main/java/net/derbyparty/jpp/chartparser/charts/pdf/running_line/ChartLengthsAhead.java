@@ -109,4 +109,9 @@ public class ChartLengthsAhead {
         }
         return lengthsAhead;
     }
+
+	public ChartLengthsAhead() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 }

@@ -210,6 +210,7 @@
 <script>
 import { BIconStar, BIconStarFill, BIconCameraVideoFill, BIconKey, BIconBarChartSteps, BIconArrowUp, BIconArrowDown } from 'bootstrap-vue'
 import _ from 'underscore'
+import moment from 'moment'
 
 export default {
     name: 'ChartView',
@@ -248,7 +249,8 @@ export default {
     },
     methods: {
 		formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+            return new Date(date).toLocaleDateString();
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},	
 		formatCurrency(amount) {
 			const formatter = new Intl.NumberFormat('en-US', {
@@ -298,17 +300,15 @@ export default {
             return ret + "</span>";
         },
         hasChart(race) {
+            var str_pad_left = this.str_pad_left;
             if (race == null) return false;	
 			var trackCode = (race.track.code || race.track);
-            var str_pad_left = this.str_pad_left;
             var track = _.findWhere(this.charts, {code: trackCode});
             if (track == null) return false;
 			const chartDates = _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
                 , function (d) {
-					return d[0] + "-" 
-						+ str_pad_left(d[1],0,2)  + "-"
-						+ str_pad_left(d[2],0,2); 
+                    return moment(d,"YYYY-MM-DD").format("yyyy-MM-DD");
                 });
 
             const day = race.raceDate[0] + "-"

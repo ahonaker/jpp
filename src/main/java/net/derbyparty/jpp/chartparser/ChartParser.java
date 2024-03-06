@@ -43,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -119,7 +118,7 @@ public class ChartParser {
         return csvMapper;
     }
 
-    public List<RaceResult> parse(File pdfChartFile) {
+    public List<RaceResult> parse(File pdfChartFile) throws Exception {
         List<RaceResult> raceResults = new ArrayList<>();
 
         List<String> chartCsvs;
@@ -179,7 +178,7 @@ public class ChartParser {
                 raceResultBuilder.raceTypeAndRaceNameAndBlackTypeAndBreed(
                         raceTypeNameBlackTypeBreed);
                 
-                if (raceTypeNameBlackTypeBreed.getRaceType() == null) System.out.println(track.get().getCode() + " " + trackRaceDateRaceNumber.getRaceDate().format(DateTimeFormatter.ofPattern("MMddYYYY")) + " " + trackRaceDateRaceNumber.getRaceNumber());
+                if (raceTypeNameBlackTypeBreed.getRaceType() == null) System.out.println(track.get().getCode() + " " + trackRaceDateRaceNumber.getRaceDate() + " " + trackRaceDateRaceNumber.getRaceNumber());
 
                 // Race Conditions
                 RaceConditions raceConditions =

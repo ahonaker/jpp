@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
 public class WeatherTrackCondition {
     static final Pattern WEATHER_TRACK_PATTERN = Pattern.compile("Weather: (.+)\\|Track: (.+)");
 
-    private final String weather;
-    private final String trackCondition;
+    public String weather;
+    public String trackCondition;
 
     public WeatherTrackCondition(String weather, String trackCondition) {
         this.weather = weather;
@@ -68,4 +68,10 @@ public class WeatherTrackCondition {
         result = 31 * result + (trackCondition != null ? trackCondition.hashCode() : 0);
         return result;
     }
+
+	public WeatherTrackCondition() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

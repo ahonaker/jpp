@@ -1,7 +1,7 @@
 package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.util.Date;
 import javax.annotation.Generated;
 
 public class RaceNote implements Serializable, Comparable<RaceNote> {
@@ -9,7 +9,7 @@ public class RaceNote implements Serializable, Comparable<RaceNote> {
 	private static final long serialVersionUID = 1L;
 	
 	private String track;
-	private LocalDate raceDate;
+	private Date raceDate;
 	private int raceNumber;
 	private String type;
 	private String raceClassification;
@@ -53,10 +53,10 @@ public class RaceNote implements Serializable, Comparable<RaceNote> {
 	public void setTrack(String track) {
 		this.track = track;
 	}
-	public LocalDate getRaceDate() {
+	public Date getRaceDate() {
 		return raceDate;
 	}
-	public void setRaceDate(LocalDate raceDate) {
+	public void setRaceDate(Date raceDate) {
 		this.raceDate = raceDate;
 	}
 	public int getRaceNumber() {
@@ -270,7 +270,7 @@ public class RaceNote implements Serializable, Comparable<RaceNote> {
 		return raceDate.compareTo(o.getRaceDate());
 	}
 
-	public RaceNote(String track, LocalDate raceDate, int raceNumber, int position, int beatenLengths, String comment) {
+	public RaceNote(String track, Date raceDate, int raceNumber, int position, int beatenLengths, String comment) {
 		super();
 		this.track = track;
 		this.raceDate = raceDate;
@@ -291,7 +291,7 @@ public class RaceNote implements Serializable, Comparable<RaceNote> {
 	@Generated("SparkTools")
 	public static final class Builder {
 		private String track;
-		private LocalDate raceDate;
+		private Date raceDate;
 		private int raceNumber;
 		private String type;
 		private String raceClassification;
@@ -316,7 +316,7 @@ public class RaceNote implements Serializable, Comparable<RaceNote> {
 			return this;
 		}
 
-		public Builder withRaceDate(LocalDate raceDate) {
+		public Builder withRaceDate(Date raceDate) {
 			this.raceDate = raceDate;
 			return this;
 		}

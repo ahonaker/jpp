@@ -29,16 +29,16 @@ import static net.derbyparty.jpp.chartparser.charts.pdf.RaceTypeNameBlackTypeBre
 @JsonPropertyOrder({"raceTypeNameBlackTypeBreed", "text", "claimingPriceRange"})
 public class RaceConditions {
 
-    private final String text;
+	public String text;
     @JsonInclude(NON_NULL)
-    private final ClaimingPriceRange claimingPriceRange;
+    public ClaimingPriceRange claimingPriceRange;
     @JsonProperty("raceTypeNameBlackTypeBreed") // required for property order but unwrapped
     @JsonUnwrapped
-    private RaceTypeNameBlackTypeBreed raceTypeNameBlackTypeBreed;
-    private final String raceClassification;
-    private final SexRestrictionType sexRestrictionType;
-    private final AgeRestrictionType ageRestrictionType;
-    private final AgeRestrictionRangeType ageRestrictionRangeType;
+    public RaceTypeNameBlackTypeBreed raceTypeNameBlackTypeBreed;
+    public String raceClassification;
+    public SexRestrictionType sexRestrictionType;
+    public AgeRestrictionType ageRestrictionType;
+    public AgeRestrictionRangeType ageRestrictionRangeType;
 
     public RaceConditions(String text,
             ClaimingPriceRange claimingPriceRange,
@@ -183,8 +183,8 @@ public class RaceConditions {
                 Pattern.compile("Claiming Price: " +
                         "\\$([0-9]{1,3}(,[0-9]{3})*)( - \\$([0-9]{1,3}(,[0-9]{3})*))?$");
 
-        private final int min;
-        private final int max;
+        private int min;
+        private int max;
 
         public ClaimingPriceRange(Integer min, Integer max) {
             this.min = min;
@@ -268,6 +268,13 @@ public class RaceConditions {
                     ", max=" + max +
                     '}';
         }
+
+		public ClaimingPriceRange() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
+        
     }
     
     @Override
@@ -321,4 +328,12 @@ public class RaceConditions {
 				.append(", raceClassification=").append(raceClassification).append("]");
 		return builder.toString();
 	}
+
+	public RaceConditions() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
+    
+    
 }

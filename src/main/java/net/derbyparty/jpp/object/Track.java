@@ -1,14 +1,37 @@
 package net.derbyparty.jpp.object;
 
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import java.io.Serializable;
 import java.util.List;
 import javax.annotation.Generated;
+
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.UpdateResult;
+
 import java.util.Collections;
 
 public class Track implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+	
+	final static String mongoUri = "mongodb://localhost/jpp";
+	static MongoClient mongoClient = MongoClients.create(mongoUri);
+	static MongoDatabase database = mongoClient.getDatabase("jpp").withCodecRegistry(pojoCodecRegistry);
+
 	private String Code;
 	private String Name;
 	private List<RaceDate> raceDates;
@@ -20,7 +43,6 @@ public class Track implements Serializable {
 		this.Name = builder.Name;
 		this.raceDates = builder.raceDates;
 	}
-	
 	
 	public String getCode() {
 		return Code;
@@ -119,4 +141,30 @@ public class Track implements Serializable {
 		}
 	}
 
+	public void save() {
+		
+		ReplaceOptions opts = new ReplaceOptions().upsert(true);
+		
+		Document query = new Document()
+				.append("code", Code);	
+		
+		MongoCollection<Track> collection = database.getCollection("tracks", Track.class);
+		UpdateResult result = collection.replaceOne(query, this, opts);
+		if (result.getModifiedCount() == 1) {
+			System.out.println(this.getCode() + " updated.");
+		} else {
+			System.out.println(this.getCode() + " inserted. (ID = " + result.getUpsertedId());
+
+		}
+	}
+	
+	public void delete() {
+		
+		Document query = new Document()
+				.append("code", Code);	
+		
+		MongoCollection<Horse> collection = database.getCollection("tracks", Horse.class);
+		collection.findOneAndDelete(query);
+	}
+	
 }

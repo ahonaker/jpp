@@ -14,14 +14,14 @@ import net.derbyparty.jpp.chartparser.exceptions.ChartParserException;
  */
 public class Disqualification {
 
-    private static final Pattern DISQUALIFICATIONS = Pattern.compile("Disqualification\\(s\\):.+");
-    private static final Pattern DISQUALIFICATION =
+    private static Pattern DISQUALIFICATIONS = Pattern.compile("Disqualification\\(s\\):.+");
+    private static Pattern DISQUALIFICATION =
             Pattern.compile("#\\s?(\\d+\\w?)? (.+) from (\\d+) to (\\d+)");
 
-    private final String program;
-    private final Horse horse;
-    private final int originalPosition;
-    private final int newPosition;
+    public String program;
+    public Horse horse;
+    public int originalPosition;
+    public int newPosition;
 
     public Disqualification(String program, Horse horse, int originalPosition,
             int newPosition) {
@@ -116,4 +116,11 @@ public class Disqualification {
                 ", newPosition=" + newPosition +
                 '}';
     }
+
+	public Disqualification() {
+		super();
+		
+		
+		// TODO Auto-generated constructor stub
+	}
 }

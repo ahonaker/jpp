@@ -2,7 +2,7 @@ package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
-import java.time.LocalDate;
+import java.util.Date;
 import javax.annotation.Generated;
 
 public class RaceTime implements Serializable {
@@ -10,7 +10,7 @@ public class RaceTime implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private String track;
-	private LocalDate raceDate;
+	private Date raceDate;
 	private int raceNumber;
 	private int distance;
 	private SurfaceType surfaceType;
@@ -66,10 +66,10 @@ public class RaceTime implements Serializable {
 	public void setTrack(String track) {
 		this.track = track;
 	}
-	public LocalDate getRaceDate() {
+	public Date getRaceDate() {
 		return raceDate;
 	}
-	public void setRaceDate(LocalDate raceDate) {
+	public void setRaceDate(Date raceDate) {
 		this.raceDate = raceDate;
 	}
 	public int getRaceNumber() {
@@ -336,7 +336,7 @@ public class RaceTime implements Serializable {
 		return builder2.toString();
 	}
 	
-	public RaceTime(String track, LocalDate raceDate, int raceNumber, int distance, SurfaceType surface,
+	public RaceTime(String track, Date raceDate, int raceNumber, int distance, SurfaceType surface,
 			RaceType raceType, String allWeatherFlag, String raceClassification, String trackCondition, float fraction1,
 			float fraction2, float fraction3, float finalTime, int speedPar, int winnerPar, float raceShapeFirstCall,
 			float raceShapeSecondCall, int paceFigure2F, int paceFigure4F, int paceFigure6F, int paceFigure8F,
@@ -377,7 +377,7 @@ public class RaceTime implements Serializable {
 	@Generated("SparkTools")
 	public static final class Builder {
 		private String track;
-		private LocalDate raceDate;
+		private Date raceDate;
 		private int raceNumber;
 		private int distance;
 		private SurfaceType surface;
@@ -408,7 +408,7 @@ public class RaceTime implements Serializable {
 			return this;
 		}
 
-		public Builder withRaceDate(LocalDate raceDate) {
+		public Builder withRaceDate(Date raceDate) {
 			this.raceDate = raceDate;
 			return this;
 		}

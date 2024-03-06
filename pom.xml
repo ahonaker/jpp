@@ -144,7 +144,12 @@
 	    	<groupId>io.github.bonigarcia</groupId>
 	    	<artifactId>webdrivermanager</artifactId>
 	    	<version>5.5.2</version>
-	    </dependency>				        						                                 
+	    </dependency>	
+	    <dependency>
+	        <groupId>org.mongodb</groupId>
+	        <artifactId>mongodb-driver-sync</artifactId>
+	        <version>4.11.1</version>
+	    </dependency>    			        						                                 
   </dependencies>
 
 

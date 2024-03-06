@@ -31,11 +31,11 @@ public class Purse {
     private static final Pattern VALUE_OF_RACE_PATTERN =
             Pattern.compile("Value of Race: (\\$[\\s\\S]+)");
 
-    private Integer value;
-    private String text;
-    private String availableMoney;
-    private List<PurseEnhancement> enhancements = new ArrayList<>();
-    private String valueOfRace;
+    public Integer value;
+    public String text;
+    public String availableMoney;
+    public List<PurseEnhancement> enhancements = new ArrayList<>();
+    public String valueOfRace;
 
     public static Purse parse(final List<List<ChartCharacter>> lines) throws PurseParseException {
         Purse purse = new Purse();
@@ -176,13 +176,22 @@ public class Purse {
                 ", valueOfRace='" + valueOfRace + '\'' +
                 '}';
     }
+    
+    
 
-    /**
+    public Purse() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+
+
+	/**
      * Stores the value {@link EnhancementType} and its textual description
      */
     public static class PurseEnhancement {
-        private final EnhancementType type;
-        private final String text;
+        private EnhancementType type;
+        public String text;
 
         public PurseEnhancement(EnhancementType type, String text) {
             this.type = type;
@@ -222,6 +231,11 @@ public class Purse {
                     ", text='" + text + '\'' +
                     '}';
         }
+
+		public PurseEnhancement() {
+			super();
+			// TODO Auto-generated constructor stub
+		}
     }
 
     /**
@@ -247,6 +261,7 @@ public class Purse {
                     "chartValue='" + chartValue + '\'' +
                     '}';
         }
+
     }
 
     public static class PurseParseException extends ChartParserException {

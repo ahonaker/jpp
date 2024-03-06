@@ -1,18 +1,22 @@
 package net.derbyparty.jpp.loader;
 
 
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static com.mongodb.client.model.Filters.eq;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.file.Paths;
 import java.text.DateFormatSymbols;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +24,20 @@ import java.util.logging.Level;
 
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.text.WordUtils;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.conversions.Bson;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
@@ -36,8 +48,8 @@ import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.object.AgeRestrictionRangeType;
 import net.derbyparty.jpp.object.AgeRestrictionType;
 import net.derbyparty.jpp.object.EquipmentChangeType;
+import net.derbyparty.jpp.object.Entry;
 import net.derbyparty.jpp.object.Horse;
-import net.derbyparty.jpp.object.HorseToWatch;
 import net.derbyparty.jpp.object.Jockey;
 import net.derbyparty.jpp.object.MedicationType;
 import net.derbyparty.jpp.object.MultiRaceWager;
@@ -71,8 +83,14 @@ public class Loader {
 		.addArguments("--disable-dev-shm-usage")
 		.addArguments("--remote-allow-origins=*")
 		.addArguments("user-agent=" + user_agent);	
+		
+	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
 	
-	final static String horsesToWatchDir = "/Users/ahonaker/Google Drive/pp/jpp/horsesToWatch/";
+	final static String mongoUri = "mongodb://localhost/jpp";
+	static MongoClient mongoClient = MongoClients.create(mongoUri);
+	static MongoDatabase database = mongoClient.getDatabase("jpp").withCodecRegistry(pojoCodecRegistry);
+
 	
 	public static String externalGet(String urlString) throws Exception {
 
@@ -110,15 +128,17 @@ public class Loader {
 		return response;
 	}
 	
-	public static ObjectNode getDRF (String track_code, LocalDate date) throws Exception  {
+	public static ObjectNode getDRF (String track_code, Date date) throws Exception  {
 		
 		ObjectNode node;
 		try {
 
+			SimpleDateFormat sdf = new SimpleDateFormat("M-d-yyyy");
+			
 			String url = "http://pro.drf.com/entries/entryDetails/id/" + 
 				track_code + 
 				"/country/USA/date/" +
-				date.format( DateTimeFormatter.ofPattern("M-d-yyyy"));
+				sdf.format(date);
 			//System.out.println(url);
 			node = mapper.readValue(externalGet(url), ObjectNode.class);
 			
@@ -130,14 +150,16 @@ public class Loader {
 		
 	}
 	
-	public static ObjectNode getDRFResults (String track_code, LocalDate date) throws Exception  {
+	public static ObjectNode getDRFResults (String track_code, Date date) throws Exception  {
 		
 		ObjectNode node;
 		try {			
+			SimpleDateFormat sdf = new SimpleDateFormat("M-d-yyyy");
+			
 			String url = "http://pro.drf.com/results/resultDetails/id/" + 
 					track_code + 
 					"/country/USA/date/" +
-				date.format( DateTimeFormatter.ofPattern("M-d-yyyy"));
+				sdf.format(date);
 			//System.out.println(url);
 			node = mapper.readValue(externalGet(url), ObjectNode.class);
 			
@@ -264,8 +286,7 @@ public class Loader {
 		twoTurnTurfBreakMap.put("PRX", 4950);
 		twoTurnTurfBreakMap.put("WO", 6270);
 		
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-		
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
 		try {
 						
 			RFC4180Parser rfc4180Parser = new RFC4180ParserBuilder().build();
@@ -275,7 +296,7 @@ public class Loader {
 			
 			int raceNum = 0;
 			Race race = Race.builder().build();
-			List<Horse> horses = new ArrayList<Horse>();
+			List<Entry> entries = new ArrayList<Entry>();
 			
 			try (CSVReader csvReader = csvReaderBuilder.build()) {
 			    String[] values = null;
@@ -284,9 +305,9 @@ public class Loader {
 			    	if (raceNum != Integer.parseInt(values[2].trim())) {
 
 			    		if (raceNum != 0) {
-			    			race.setHorses(horses);
+			    			race.setEntries(entries);
 			    			races.add(race);
-			    			horses = new ArrayList<Horse>();
+			    			entries = new ArrayList<Entry>();
 			    		}
 				    				    		
 		    		    StringBuilder wagerTypes = new StringBuilder();
@@ -484,7 +505,7 @@ public class Loader {
 			    		
 				    	race = Race.builder()
 				    			.withTrack(values[0].trim())
-				    			.withDate(LocalDate.parse(values[1].trim(), formatter))
+				    			.withDate(formatter.parse(values[1].trim()))
 				    			.withPostTimes(values[1373].trim())
 				    			.withRaceNumber(Integer.parseInt(values[2].trim()))
 				    			.withDistance(Integer.parseInt(values[5].trim()))
@@ -527,11 +548,10 @@ public class Loader {
 			    		
 			    	}
 			    	
-					File horseToWatchFile = new File(horsesToWatchDir + WordUtils.capitalizeFully(values[44].trim()) + ".json");
-					HorseToWatch horseToWatch = null;
-					if (horseToWatchFile.exists()) {
-						horseToWatch =  mapper.readValue(Paths.get(horsesToWatchDir + WordUtils.capitalizeFully(values[44].trim()) + ".json").toFile(), HorseToWatch.class);
-					}
+					MongoCollection<Horse> horsesCollection = database.getCollection("horses", Horse.class);
+					Bson horseQuery = eq("name", values[44].trim().replaceAll("\\s\\(.+\\)", ""));
+					
+					Horse horse = horsesCollection.find(horseQuery).first();
 			    	    	
 			    	List<PastPerformance> pps = new ArrayList<PastPerformance>();
 			    	Boolean over90Flagged = false, over365Flagged = false;
@@ -540,7 +560,7 @@ public class Loader {
 			    	for (int i = 0; i < 10; i++ ) {
 			    		if (!values[255+i].isBlank()) {
 			    			PastPerformance pp = PastPerformance.builder()
-			    					.withRaceDate(LocalDate.parse(values[255+i].trim(), formatter))
+			    					.withRaceDate(formatter.parse(values[255+i].trim()))
 			    					.withDaysSinceLastRace(values[265+i].isEmpty() ? 0 : Integer.parseInt(values[265+i].trim()))
 			    					.withTrackCode(values[275+i].trim())
 			    					.withBRISTrackCode(values[285+i].trim())
@@ -646,14 +666,18 @@ public class Loader {
 			    					.withThisRaceNumber(raceNum)
 			    					.build();
 			    			
-			    			if (!over90Flagged && LocalDate.parse(values[255+i].trim(), formatter).plusDays(90).isBefore(LocalDate.parse(values[1].trim(), formatter))) {
+			    			if (!over90Flagged && 
+			    				pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+			    					.plusDays(90).isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+			    			) {
 			    				over90Flagged = true;
 			    				pp.setOver90Days(true);
 			    			} else {
 			    				pp.setOver90Days(false);
 			    			}
 			    			
-			    			if (!over365Flagged && LocalDate.parse(values[255+i].trim(), formatter).plusDays(365).isBefore(LocalDate.parse(values[1].trim(), formatter))) {
+			    			if (!over365Flagged && pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+			    					.plusDays(365).isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) {
 			    				over365Flagged = true;
 			    				pp.setOver365Days(true);
 			    			} else {
@@ -675,18 +699,18 @@ public class Loader {
 					    	pp.setSplit2(pp.getFraction3()  == 0 ? 0 : pp.getCalcFraction3() - pp.getCalcFraction2());
 					    	pp.setSplit3(pp.getFraction3()  == 0 ? pp.getCalcFinalTime() - pp.getCalcFraction2() : pp.getCalcFinalTime() - pp.getCalcFraction3());
 					    	    	
-					    	if (horseToWatch != null) {
-					    		for (int j = 0; j < horseToWatch.getRaceNotes().size(); j++) {
-					    			if (horseToWatch.getRaceNotes().get(j).getTrack().equals(pp.getTrackCode())
-					    				&& horseToWatch.getRaceNotes().get(j).getRaceDate().equals(pp.getRaceDate())
-					    				&& horseToWatch.getRaceNotes().get(j).getRaceNumber() == pp.getRaceNumber()) {
-					    					pp.setComment(horseToWatch.getRaceNotes().get(j).getComment());
-					    					pp.setFlag(horseToWatch.getRaceNotes().get(j).getFlag());
-					    					pp.setFootnote(horseToWatch.getRaceNotes().get(j).getFootnote());
+					    	if (horse != null) {
+					    		for (int j = 0; j < horse.getRaceNotes().size(); j++) {
+					    			if (horse.getRaceNotes().get(j).getTrack().equals(pp.getTrackCode())
+					    				&& horse.getRaceNotes().get(j).getRaceDate().equals(pp.getRaceDate())
+					    				&& horse.getRaceNotes().get(j).getRaceNumber() == pp.getRaceNumber()) {
+					    					pp.setComment(horse.getRaceNotes().get(j).getComment());
+					    					pp.setFlag(horse.getRaceNotes().get(j).getFlag());
+					    					pp.setFootnote(horse.getRaceNotes().get(j).getFootnote());
 					    			}
 					    		}
 					    	}
-					    	
+					    	pp.addKeyRace();
 			    			pps.add(pp);
 			    		}
 			    		
@@ -697,7 +721,7 @@ public class Loader {
 			    	for (int i = 0; i < 12; i++ ) {
 			    		if (!values[101+i].isBlank()) {
 			    			Workout workout = Workout.builder()
-			    					.withDateOfWorkout(LocalDate.parse(values[101+i].trim(), formatter))
+			    					.withDateOfWorkout(formatter.parse(values[101+i].trim()))
 			    					.withTimeOfWorkout(Float.parseFloat(values[113+i].trim()))
 			    					.withTrackOfWorkout(values[125+i].trim())
 			    					.withDistanceOfWorkout(Integer.parseInt(values[137+i].trim()))
@@ -782,7 +806,7 @@ public class Loader {
 			    			.withJockeyStats(jockeyStats)
 			    			.build();			    	
 			    	
-			    	Horse horse = Horse.builder()
+			    	Entry entry = Entry.builder()
 			    			.withRaceNumber(race.getRaceNumber())
 			    			.withOwner(WordUtils.capitalizeFully(values[38].trim()))
 			    			.withOwnerSilks(WordUtils.capitalizeFully(values[39].trim()))
@@ -891,11 +915,11 @@ public class Loader {
 							.withShowPayout(0)
 			    			.build();
 			    	
-			    	horses.add(horse);
+			    	entries.add(entry);
 				  		    				    	
 			    }
 			    
-    			race.setHorses(horses);
+    			race.setEntries(entries);
     			races.add(race);
 			    
 			}

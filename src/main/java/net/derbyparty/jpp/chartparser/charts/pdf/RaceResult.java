@@ -21,10 +21,12 @@ import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.Re
 import net.derbyparty.jpp.chartparser.tracks.Track;
 import net.derbyparty.jpp.object.PotentialKeyRace;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -42,31 +44,33 @@ public class RaceResult {
 
     @JsonProperty("cancellation") // required for property order but unwrapped
     @JsonUnwrapped
-    private final Cancellation cancellation;
-    private final LocalDate raceDate;
-    private final Track track;
-    private final Integer raceNumber;
+    public Cancellation cancellation;
+    public Date raceDate;
+    public Track track;
+    public Integer raceNumber;
     @JsonProperty("conditions")
-    private final RaceConditions raceConditions;
+    public RaceConditions raceConditions;
     @JsonProperty("distanceSurfaceTrackRecord") // required for property order but unwrapped
     @JsonUnwrapped
-    private final DistanceSurfaceTrackRecord distanceSurfaceTrackRecord;
-    private final Purse purse;
-    private final Weather weather;
+    public DistanceSurfaceTrackRecord distanceSurfaceTrackRecord;
+    public Purse purse;
+    public Weather weather;
     @JsonProperty("postTimeStartCommentsTimer") // required for property order but unwrapped
     @JsonUnwrapped
-    private final PostTimeStartCommentsTimer postTimeStartCommentsTimer;
-    private final boolean isDeadHeat;
-    private final List<Starter> starters;
-    private final List<Scratch> scratches;
-    private final List<Fractional> fractionals;
-    private final List<Split> splits;
+    public PostTimeStartCommentsTimer postTimeStartCommentsTimer;
+    public boolean isDeadHeat;
+    public List<Starter> starters;
+    public List<Scratch> scratches;
+    public List<Fractional> fractionals;
+    public List<Split> splits;
     @JsonProperty("wagering")
-    private final WagerPayoffPools wagerPayoffPools;
-    private final String footnotes;
-    private PotentialKeyRace keyRace;
+    public WagerPayoffPools wagerPayoffPools;
+    public String footnotes;
+    public PotentialKeyRace keyRace;
+    @BsonIgnore
+    public String winningTime;
 
-    private RaceResult(Builder builder) {
+    public RaceResult(Builder builder) {
         this.cancellation = builder.cancellation;
         this.raceDate = builder.raceDate;
         this.track = builder.track;
@@ -114,7 +118,7 @@ public class RaceResult {
         return cancellation;
     }
 
-    public LocalDate getRaceDate() {
+    public Date getRaceDate() {
         return raceDate;
     }
 
@@ -194,7 +198,7 @@ public class RaceResult {
         return new ArrayList<>();
     }
 
-    @JsonIgnore
+	@BsonIgnore
     public String getWinningTime() {
         if (getWinners() != null && !getWinners().isEmpty()) {
             return getWinners().get(0).getFinishFractional().getTime();
@@ -287,8 +291,10 @@ public class RaceResult {
                 '}';
     }
 
-    @JsonCreator
-    private RaceResult(Cancellation cancellation, LocalDate raceDate, Track track,
+
+
+	@JsonCreator
+    private RaceResult(Cancellation cancellation, Date raceDate, Track track,
             Integer raceNumber, RaceConditions raceConditions, DistanceSurfaceTrackRecord
             distanceSurfaceTrackRecord, Purse purse, Weather weather,
             PostTimeStartCommentsTimer postTimeStartCommentsTimer, boolean isDeadHeat,
@@ -317,7 +323,7 @@ public class RaceResult {
      */
     public static class Builder {
         private Cancellation cancellation;
-        private LocalDate raceDate;
+        private Date raceDate;
         private Track track;
         private Integer raceNumber;
         private RaceTypeNameBlackTypeBreed raceTypeNameBlackTypeBreed;
@@ -346,7 +352,7 @@ public class RaceResult {
             return this;
         }
 
-        public Builder raceDate(final LocalDate raceDate) {
+        public Builder raceDate(final Date raceDate) {
             this.raceDate = raceDate;
             return this;
         }
@@ -667,5 +673,18 @@ public class RaceResult {
                     ", windSpeedDirection=" + windSpeedDirection +
                     '}';
         }
+
+		public Weather() {
+			super();
+			this.text = "";
+			this.windSpeedDirection = null;
+			// TODO Auto-generated constructor stub
+		}
     }
+
+	public RaceResult() {
+		super();
+	}
+    
+    
 }

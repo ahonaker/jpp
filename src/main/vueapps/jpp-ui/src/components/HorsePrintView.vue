@@ -486,10 +486,11 @@ export default {
 			return formatter.format(amount);
 		},  
         formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+            return new Date(date).toLocaleDateString;
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},	              	            
 		alsoInRace(nameToMatch, row) {
-			var names = _.pluck(this.race.horses, "name");
+			var names = _.pluck(this.race.entries, "name");
 			if (names.indexOf(nameToMatch) > -1 && nameToMatch != row.name) return "alsoInRace";
 
 		},

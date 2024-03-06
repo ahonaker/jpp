@@ -1,6 +1,8 @@
 package net.derbyparty.jpp.chartparser.charts.pdf;
 
-import java.time.LocalDate;
+import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -10,21 +12,22 @@ import java.util.regex.Pattern;
 import net.derbyparty.jpp.chartparser.exceptions.ChartParserException;
 
 /**
- * Parses and stores the track name, the race date (as a {@link LocalDate} instance) and the race
+ * Parses and stores the track name, the race date (as a {@link Date} instance) and the race
  * number
  */
 public class TrackRaceDateRaceNumber {
     static final Pattern TRACK_DATE_NUMBER_PATTERN =
             Pattern.compile("([A-Z0-9\\s&]+)\\s-\\s(.+)+\\s-\\sRace\\s(\\d+)");
 
-    private static final DateTimeFormatter MONTH_DAY_YEAR_FORMATTER =
-            DateTimeFormatter.ofPattern("MMMM d, yyyy");
+    private static final SimpleDateFormat MONTH_DAY_YEAR_FORMATTER =
+    		new SimpleDateFormat("MMMM d, yyyy");
+            //DateTimeFormatter.ofPattern("MMMM d, yyyy");
 
-    private final String trackName;
-    private final LocalDate raceDate;
-    private final int raceNumber;
+    public String trackName;
+    public Date raceDate;
+    public int raceNumber;
 
-    protected TrackRaceDateRaceNumber(final String trackName, final LocalDate raceDate,
+    protected TrackRaceDateRaceNumber(final String trackName, final Date raceDate,
             final int raceNumber) {
         this.trackName = trackName;
         this.raceDate = raceDate;
@@ -32,7 +35,7 @@ public class TrackRaceDateRaceNumber {
     }
 
     public static TrackRaceDateRaceNumber parse(final List<List<ChartCharacter>> lines)
-            throws NoLinesToParse, InvalidRaceException {
+            throws Exception {
         if (lines == null || lines.isEmpty()) {
             throw new NoLinesToParse();
         }
@@ -49,20 +52,20 @@ public class TrackRaceDateRaceNumber {
         throw new InvalidRaceException("Unable to detect a valid race track, date and number");
     }
 
-    static Optional<TrackRaceDateRaceNumber> buildTrackRaceDateRaceNumber(String text) {
+    static Optional<TrackRaceDateRaceNumber> buildTrackRaceDateRaceNumber(String text) throws Exception {
     	//System.out.println(text);
         Matcher matcher = TRACK_DATE_NUMBER_PATTERN.matcher(text);
         if (matcher.find()) {
             String trackName = matcher.group(1);
-            LocalDate raceDate = parseRaceDate(matcher.group(2));
+            Date raceDate = parseRaceDate(matcher.group(2));
             int raceNumber = Integer.parseInt(matcher.group(3));
             return Optional.of(new TrackRaceDateRaceNumber(trackName, raceDate, raceNumber));
         }
         return Optional.empty();
     }
 
-    static LocalDate parseRaceDate(String raceDateText) {
-        return LocalDate.parse(raceDateText, MONTH_DAY_YEAR_FORMATTER);
+    static Date parseRaceDate(String raceDateText) throws Exception {
+        return MONTH_DAY_YEAR_FORMATTER.parse(raceDateText);
     }
 
     @Override
@@ -78,7 +81,7 @@ public class TrackRaceDateRaceNumber {
         return trackName;
     }
 
-    public LocalDate getRaceDate() {
+    public Date getRaceDate() {
         return raceDate;
     }
 
@@ -108,7 +111,12 @@ public class TrackRaceDateRaceNumber {
         return result;
     }
 
-    public static class InvalidRaceException extends ChartParserException {
+    public TrackRaceDateRaceNumber() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public static class InvalidRaceException extends ChartParserException {
         /**
 		 * 
 		 */

@@ -1,5 +1,6 @@
 package net.derbyparty.jpp.factors;
 
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import net.derbyparty.jpp.object.AgeRestrictionRangeType;
 import net.derbyparty.jpp.object.AgeRestrictionType;
-import net.derbyparty.jpp.object.Horse;
+import net.derbyparty.jpp.object.Entry;
 import net.derbyparty.jpp.object.PaceScenarioType;
 import net.derbyparty.jpp.object.PastPerformance;
 import net.derbyparty.jpp.object.Race;
@@ -50,12 +51,12 @@ public class Factors {
 			
 	}
 	
-	public static float CalcRaceE1Avg (List<Horse> horses) throws Exception {
+	public static float CalcRaceE1Avg (List<Entry> entries) throws Exception {
 		
 		try {
 			float max = 0;
-			for (Horse horse : horses) {
-				if (horse.getE1Avg() != 0) max = (max < horse.getE1Avg()) ? horse.getE1Avg() : max;
+			for (Entry entry : entries) {
+				if (entry.getE1Avg() != 0) max = (max < entry.getE1Avg()) ? entry.getE1Avg() : max;
 			}
 			return max;
 			
@@ -90,12 +91,12 @@ public class Factors {
 			
 	}
 	
-	public static float CalcRaceE2Avg (List<Horse> horses) throws Exception {
+	public static float CalcRaceE2Avg (List<Entry> entries) throws Exception {
 		
 		try {
 			float max = 0;
-			for (Horse horse : horses) {
-				if (horse.getE2Avg() != 0) max = (max < horse.getE2Avg()) ? horse.getE2Avg() : max;
+			for (Entry entry : entries) {
+				if (entry.getE2Avg() != 0) max = (max < entry.getE2Avg()) ? entry.getE2Avg() : max;
 			}
 			return max;
 			
@@ -127,12 +128,12 @@ public class Factors {
 			
 	}
 	
-	public static int CalcRaceMaxE2 (List<Horse> horses) throws Exception {
+	public static int CalcRaceMaxE2 (List<Entry> entries) throws Exception {
 		
 		try {
 			int max = 0;
-			for (Horse horse : horses) {
-				max = (max < horse.getMaxE2()) ? horse.getMaxE2() : max;
+			for (Entry entry : entries) {
+				max = (max < entry.getMaxE2()) ? entry.getMaxE2() : max;
 			}
 			return max;
 			
@@ -187,12 +188,12 @@ public class Factors {
 			
 	}
 	
-	public static float CalcRaceAverageAdjustedSpeedRating (List<Horse> horses) throws Exception {
+	public static float CalcRaceAverageAdjustedSpeedRating (List<Entry> entries) throws Exception {
 		
 		try {
 			float max = 0;
-			for (Horse horse : horses) {
-				if (horse.getAvgAdjustedSpeedRating() != 0) max = (max < horse.getAvgAdjustedSpeedRating()) ? horse.getAvgAdjustedSpeedRating() : max;
+			for (Entry entry : entries) {
+				if (entry.getAvgAdjustedSpeedRating() != 0) max = (max < entry.getAvgAdjustedSpeedRating()) ? entry.getAvgAdjustedSpeedRating() : max;
 			}
 			return max;
 			
@@ -285,12 +286,12 @@ public class Factors {
 			
 	}
 	
-	public static int CalcRaceLatePaceBestLast3 (List<Horse> horses) throws Exception {
+	public static int CalcRaceLatePaceBestLast3 (List<Entry> entries) throws Exception {
 		
 		try {
 			int max = 0;
-			for (Horse horse : horses) {
-				max = (max < horse.getLatePaceBestLast3()) ? horse.getLatePaceBestLast3() : max;
+			for (Entry entry : entries) {
+				max = (max < entry.getLatePaceBestLast3()) ? entry.getLatePaceBestLast3() : max;
 			}
 			return max;
 			
@@ -327,14 +328,14 @@ public class Factors {
 			
 	}
 	
-	public static PaceScenarioType DeterminePaceScenario (List<Horse> horses) throws Exception {
+	public static PaceScenarioType DeterminePaceScenario (List<Entry> entries) throws Exception {
 		
 		try {
 			int ECount = 0, EPCount = 0; 
 			
-			for (Horse horse : horses) {
-				if (horse.getRunStyle().equals("E")) ECount++;
-				if (horse.getRunStyle().equals("E/P")) EPCount++;
+			for (Entry entry : entries) {
+				if (entry.getRunStyle().equals("E")) ECount++;
+				if (entry.getRunStyle().equals("E/P")) EPCount++;
 			}
 			
 			if (ECount > 1) return PaceScenarioType.FAST_EARLY_PACE;
@@ -361,11 +362,14 @@ public class Factors {
 				} else if ((pp.getFurlongs() < 8 && race.getFurlongs() < 8) || (pp.getFurlongs() >= 8 && race.getFurlongs() >= 8)) {
 					thisWeight +=1;
 				}
-				if (race.getDate().minusDays(45).isBefore(pp.getRaceDate())) {
+				if (race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(45)
+						.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) {
 					thisWeight += 3;
-				} else if ((race.getDate().minusDays(90).isBefore(pp.getRaceDate()))) {
+				} else if ((race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(90)
+						.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()))) {
 					thisWeight += 2;
-				} else if ((race.getDate().minusDays(180).isBefore(pp.getRaceDate()))) {
+				} else if ((race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(180)
+						.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()))) {
 					thisWeight += 1;
 				}
 				if (thisWeight > 0 && pp.getSpeedPar() > 0) {
@@ -396,11 +400,14 @@ public class Factors {
 					} else if ((pp.getFurlongs() < 8 && race.getFurlongs() < 8) || (pp.getFurlongs() >= 8 && race.getFurlongs() >= 8)) {
 						thisWeight +=1;
 					}
-					if (race.getDate().minusDays(45).isBefore(pp.getRaceDate())) {
+					if (race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(45)
+							.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) {
 						thisWeight += 3;
-					} else if ((race.getDate().minusDays(90).isBefore(pp.getRaceDate()))) {
+					} else if ((race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(90)
+							.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()))) {
 						thisWeight += 2;
-					} else if ((race.getDate().minusDays(180).isBefore(pp.getRaceDate()))) {
+					} else if ((race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(180)
+							.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()))) {
 						thisWeight += 1;
 					}
 					if (thisWeight > 0 && pp.getSpeedPar() > 0) {
@@ -483,11 +490,14 @@ public class Factors {
 				} else if ((pp.getFurlongs() < 8 && race.getFurlongs() < 8) || (pp.getFurlongs() >= 8 && race.getFurlongs() >= 8)) {
 					thisWeight +=1;
 				}
-				if (race.getDate().minusDays(45).isBefore(pp.getRaceDate())) {
+				if (race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(45)
+						.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) {
 					thisWeight += 3;
-				} else if ((race.getDate().minusDays(90).isBefore(pp.getRaceDate()))) {
+				} else if ((race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(90)
+						.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()))) {
 					thisWeight += 2;
-				} else if ((race.getDate().minusDays(180).isBefore(pp.getRaceDate()))) {
+				} else if ((race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(180)
+						.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()))) {
 					thisWeight += 1;
 				}
 				if (thisWeight > 0 && pp.getBRISSpeedRating() > 0) {
@@ -503,12 +513,12 @@ public class Factors {
 		}
 	}
 	
-	public static float CalcRaceMaxSpeedRating (List<Horse> horses) throws Exception {
+	public static float CalcRaceMaxSpeedRating (List<Entry> entries) throws Exception {
 		
 		try {
 			float max = 0;
-			for (Horse horse : horses) {
-				max = (max < horse.getSpeedRating()) ? horse.getSpeedRating() : max;
+			for (Entry entry : entries) {
+				max = (max < entry.getSpeedRating()) ? entry.getSpeedRating() : max;
 			}
 			return max;
 			
@@ -519,12 +529,12 @@ public class Factors {
 			
 	}
 	
-	public static int CalcRaceMaxSpeed (List<Horse> horses) throws Exception {
+	public static int CalcRaceMaxSpeed (List<Entry> entries) throws Exception {
 		
 		try {
 			int max = 0;
-			for (Horse horse : horses) {
-				for (PastPerformance pp : horse.getUnignoredPastPerformances()) {
+			for (Entry entry : entries) {
+				for (PastPerformance pp : entry.getUnignoredPastPerformances()) {
 					max = (max < pp.getBRISSpeedRating()) ? pp.getBRISSpeedRating() : max;
 				}
 			}
@@ -548,17 +558,20 @@ public class Factors {
 	}
 	
 	private static int CalcWorkoutRacePoints (Workout workout, PastPerformance race) {
-		int diff = (int) Math.abs(workout.getDateOfWorkout().until(race.getRaceDate(), ChronoUnit.DAYS) - 7);
+		int diff = (int) Math.abs(workout.getDateOfWorkout().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+				.until(race.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), ChronoUnit.DAYS) - 7);
 		return 6 - (diff > 6 ? 6 : diff);		
 	}
 	
 	private static int CalcRaceWorkoutPoints (PastPerformance race, Workout workout) {
-		int diff = (int) Math.abs(race.getRaceDate().until(workout.getDateOfWorkout(), ChronoUnit.DAYS) - 7);
+		int diff = (int) Math.abs(race.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+				.until(workout.getDateOfWorkout().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), ChronoUnit.DAYS) - 7);
 		return 6 - (diff > 6 ? 6 : diff);		
 	}
 	
 	private static int CalcWorkoutWorkoutPoints (Workout workout1, Workout workout2) {
-		int diff = (int) Math.abs(workout1.getDateOfWorkout().until(workout2.getDateOfWorkout(), ChronoUnit.DAYS) - 7);
+		int diff = (int) Math.abs(workout1.getDateOfWorkout().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+				.until(workout2.getDateOfWorkout().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), ChronoUnit.DAYS) - 7);
 		return 6 - (diff > 6 ? 6 : diff);		
 	}
 	
@@ -578,7 +591,8 @@ public class Factors {
 			
 			if (!noRaces) {
 				for (int i = 0; i < (workouts.size() > 3 ? 3 : workouts.size()); i++) {
-					if (race.getRaceDate().isBefore(workouts.get(i).getDateOfWorkout())) workoutsSince++;
+					if (race.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+							.isBefore(workouts.get(i).getDateOfWorkout().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) workoutsSince++;
 				}
 			} else workoutsSince = (workouts.size() > 3 ? 3 :0);
 			
@@ -705,10 +719,12 @@ public class Factors {
 			float furlongs = 0;
 			
 			for (PastPerformance pp : pps) {
-				if (race.getDate().minusDays(30).isBefore(pp.getRaceDate())) furlongs += pp.getFurlongs();
+				if (race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(30)
+						.isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) furlongs += pp.getFurlongs();
 			}
 			for (Workout workout : workouts) {
-				if (race.getDate().minusDays(30).isBefore(workout.getDateOfWorkout())) furlongs += workout.getFurlongs();
+				if (race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().minusDays(30)
+						.isBefore(workout.getDateOfWorkout().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) furlongs += workout.getFurlongs();
 			}
 			
 			return furlongs / 30;
@@ -764,12 +780,12 @@ public class Factors {
 		return shape;
 	}
 	
-	public static int CalcTotalSpeedPoints(List<Horse> horses) throws Exception {
+	public static int CalcTotalSpeedPoints(List<Entry> entries) throws Exception {
 		int total = 0;
 		try {
 			
-			for (Horse horse : horses) {
-				total += horse.getSpeedPoints();
+			for (Entry entry : entries) {
+				total += entry.getSpeedPoints();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -836,7 +852,7 @@ public class Factors {
 					notes.add("3 Year Olds and lightly raced 4 Year Olds, accept winners of a single Grade 1/Grade 2 event.");
 				}
 				if (race.getAgeRestriction() == AgeRestrictionType.THREE_YEAR_OLDS && race.getAgeRestrictionRange() == AgeRestrictionRangeType.THAT_AGE_ONLY) {
-					if (race.getDate().getMonth().getValue() <= 5) {				
+					if (race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonth().getValue() <= 5) {				
 						notes.add("Dominated by horses with Triple Crown potential");
 					} else {
 						notes.add("3 Year Old Grade 1/2 Stakes are won  by: 1) Horses who previously competed in Triple Crown races and preps, 2) Tpo 2-year olds of the previous "

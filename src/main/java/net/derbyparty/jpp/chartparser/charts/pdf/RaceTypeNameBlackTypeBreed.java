@@ -22,12 +22,12 @@ public class RaceTypeNameBlackTypeBreed {
             Pattern.compile("([A-Z ]+)( (.+) (Grade (\\d))| (.+ S\\.)( (.+))?| (.+))? - " +
                     "(Thoroughbred|Quarter Horse|Arabian|Mixed)");
         
-    private final String type;
-    private final RaceType raceType;
-    private final String name;
-    private final Integer grade;
-    private final String blackType;
-    private final Breed breed;
+    public String type;
+    public RaceType raceType;
+    public String name;
+    public Integer grade;
+    public String blackType;
+    public Breed breed;
 
     public RaceTypeNameBlackTypeBreed(String type, RaceType raceType, Breed breed) {
         this(type, raceType, null, breed);
@@ -251,4 +251,11 @@ public class RaceTypeNameBlackTypeBreed {
             super(message);
         }
     }
+
+	public RaceTypeNameBlackTypeBreed() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
+    
 }

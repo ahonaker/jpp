@@ -1,14 +1,14 @@
 package net.derbyparty.jpp.object;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.util.Date;
 import javax.annotation.Generated;
 
 public class RaceDate implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private LocalDate RaceDate;
+	private Date RaceDate;
 	private Boolean HasChartFlag;
 	private Boolean ReviewedFlag;
 	@Generated("SparkTools")
@@ -17,10 +17,10 @@ public class RaceDate implements Serializable {
 		this.HasChartFlag = builder.HasChartFlag;
 		this.ReviewedFlag = builder.ReviewedFlag;
 	}
-	public LocalDate getRaceDate() {
+	public Date getRaceDate() {
 		return RaceDate;
 	}
-	public void setRaceDate(LocalDate raceDate) {
+	public void setRaceDate(Date raceDate) {
 		RaceDate = raceDate;
 	}
 	public Boolean getHasChartFlag() {
@@ -71,7 +71,7 @@ public class RaceDate implements Serializable {
 				.append("]");
 		return builder.toString();
 	}
-	public RaceDate(LocalDate raceDate, Boolean reviewedFlag) {
+	public RaceDate(Date raceDate, Boolean reviewedFlag) {
 		super();
 		RaceDate = raceDate;
 		ReviewedFlag = reviewedFlag;
@@ -87,14 +87,14 @@ public class RaceDate implements Serializable {
 
 	@Generated("SparkTools")
 	public static final class Builder {
-		private LocalDate RaceDate;
+		private Date RaceDate;
 		private Boolean HasChartFlag;
 		private Boolean ReviewedFlag;
 
 		private Builder() {
 		}
 
-		public Builder withRaceDate(LocalDate RaceDate) {
+		public Builder withRaceDate(Date RaceDate) {
 			this.RaceDate = RaceDate;
 			return this;
 		}

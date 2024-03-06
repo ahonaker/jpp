@@ -13,9 +13,9 @@ import java.util.Optional;
  */
 public class PointsOfCall {
 
-    private final String distance;
-    private final int floor;
-    private final List<PointOfCall> calls;
+	public String distance;
+	public int floor;
+	public List<PointOfCall> calls;
 
     @JsonCreator
     public PointsOfCall(
@@ -32,10 +32,10 @@ public class PointsOfCall {
      * question
      */
     public static class PointOfCall {
-        private final int point;
-        private final String text;
-        private Integer feet;
-        private RelativePosition relativePosition;
+    	public int point;
+    	public String text;
+    	public Integer feet;
+    	public RelativePosition relativePosition;
 
         @JsonCreator
         public PointOfCall(
@@ -116,15 +116,21 @@ public class PointsOfCall {
             return result;
         }
 
-        /**
+        public PointOfCall() {
+        	super();
+			
+			// TODO Auto-generated constructor stub
+		}
+
+		/**
          * Stores the position of the {@link Starter} at this point of call, and, if applicable, the
          * details about the number of lengths ahead of the next starter, and the total number of
          * lengths behind the leader at this point.
          */
         public static class RelativePosition {
-            private final Integer position;
-            private final LengthsAhead lengthsAhead;
-            private TotalLengthsBehind totalLengthsBehind;
+        	public Integer position;
+            public LengthsAhead lengthsAhead;
+            public TotalLengthsBehind totalLengthsBehind;
 
             public RelativePosition(Integer position, LengthsAhead lengthsAhead) {
                 this.position = position;
@@ -181,12 +187,18 @@ public class PointsOfCall {
                 return result;
             }
 
-            /**
+            public RelativePosition() {
+            	super();
+				
+				// TODO Auto-generated constructor stub
+			}
+
+			/**
              * Tracks lengths as the chart's textual description and as a Double
              */
-            abstract static class Lengths {
-                protected final String text;
-                protected final Double lengths;
+            static class Lengths {
+                protected String text;
+                protected Double lengths;
 
                 public Lengths(String text, Double lengths) {
                     this.text = text;
@@ -220,6 +232,11 @@ public class PointsOfCall {
                     result = 31 * result + (lengths != null ? lengths.hashCode() : 0);
                     return result;
                 }
+
+				public Lengths() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
             }
 
             /**
@@ -230,6 +247,14 @@ public class PointsOfCall {
                 public LengthsAhead(String chart, Double lengths) {
                     super(chart, lengths);
                 }
+                
+                public Double getLengths() {
+                    return lengths;
+                }
+                
+                public String getText() {
+                    return text;
+                }
 
                 @Override
                 public String toString() {
@@ -238,6 +263,11 @@ public class PointsOfCall {
                             ", lengthsAhead=" + lengths +
                             '}';
                 }
+
+				public LengthsAhead() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
             }
 
             /**
@@ -248,6 +278,14 @@ public class PointsOfCall {
                 public TotalLengthsBehind(String chart, Double lengths) {
                     super(chart, lengths);
                 }
+                
+                public Double getLengths() {
+                    return lengths;
+                }
+                
+                public String getText() {
+                    return text;
+                }
 
                 @Override
                 public String toString() {
@@ -256,6 +294,11 @@ public class PointsOfCall {
                             ", lengthsAhead=" + lengths +
                             '}';
                 }
+
+				public TotalLengthsBehind() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
             }
         }
     }
@@ -311,4 +354,9 @@ public class PointsOfCall {
         result = 31 * result + (calls != null ? calls.hashCode() : 0);
         return result;
     }
+
+	public PointsOfCall() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 }

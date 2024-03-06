@@ -50,4 +50,10 @@ public class Footnotes {
 
         return notes;
     }
+
+	public Footnotes() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+    
 }

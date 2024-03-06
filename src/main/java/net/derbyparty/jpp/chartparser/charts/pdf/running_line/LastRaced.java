@@ -9,7 +9,10 @@ import net.derbyparty.jpp.chartparser.exceptions.ChartParserException;
 import net.derbyparty.jpp.chartparser.tracks.Track;
 import net.derbyparty.jpp.chartparser.tracks.TrackService;
 
-import java.time.LocalDate;
+import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
@@ -22,18 +25,18 @@ import static java.lang.Integer.parseInt;
 import static net.derbyparty.jpp.chartparser.charts.pdf.running_line.LastRaced.LastRacePerformance.parseFromLastRaced;
 
 /**
- * Stores the {@link LocalDate} instance of the last race date, the number of days between this race
+ * Stores the {@link Date} instance of the last race date, the number of days between this race
  * date and then, and the {@link Track}, race number, and finishing position of the {@link
  * Starter}'s last performance (if applicable and they exist)
  */
 public class LastRaced {
 
-    private final LocalDate raceDate;
-    private final Integer daysSince;
+	public Date raceDate;
+	public Integer daysSince;
     @JsonUnwrapped
-    private final LastRacePerformance lastRacePerformance;
+    public LastRacePerformance lastRacePerformance;
 
-    public LastRaced(LocalDate raceDate, Integer daysSince, LastRacePerformance
+    public LastRaced(Date raceDate, Integer daysSince, LastRacePerformance
             lastRacePerformance) {
         this.raceDate = raceDate;
         this.daysSince = daysSince;
@@ -52,28 +55,30 @@ public class LastRaced {
      * Attempt to parse a last race date, track, race number, and finishing position
      *
      * @param chartCharacters the PDF characters that may contain the last race details
-     * @param raceDate        the {@link LocalDate} of the current race result
+     * @param raceDate        the {@link Date} of the current race result
      * @param trackService    the {@link TrackService} to look up a track by code
      * @return LastRaced instance containing, if they exist, the last race date, track, race number,
      * and finishing position
-     * @throws UnknownTrackException when the track could not be identified by its code
+     * @throws Exception 
      */
     public static LastRaced parse(final List<ChartCharacter> chartCharacters,
-            final LocalDate raceDate, final TrackService trackService) throws
-            UnknownTrackException {
+            final Date raceDate, final TrackService trackService) throws
+            Exception {
         if (chartCharacters.size() == 3) {
             return noLastRace();
         }
 
-        LocalDate lastRaceDate = parseLastRaceDate(chartCharacters);
-        int daysSince = Math.toIntExact(ChronoUnit.DAYS.between(lastRaceDate, raceDate));
+        Date lastRaceDate = parseLastRaceDate(chartCharacters);
+        int daysSince = Math.toIntExact(ChronoUnit.DAYS.between(
+        		lastRaceDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        		, raceDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));
 
         LastRacePerformance lastRacePerformance = parseFromLastRaced(chartCharacters, trackService);
 
         return new LastRaced(lastRaceDate, daysSince, lastRacePerformance);
     }
 
-    private static LocalDate parseLastRaceDate(List<ChartCharacter> chartCharacters) {
+    private static Date parseLastRaceDate(List<ChartCharacter> chartCharacters) throws Exception {
         ChartCharacter lastChartCharacter = null;
         List<ChartCharacter> lastRaceDateCharacters = new ArrayList<>();
         for (ChartCharacter columnCharacter : chartCharacters) {
@@ -87,11 +92,13 @@ public class LastRaced {
         }
         String lastRaceDateText = Chart.convertToText(lastRaceDateCharacters);
         // so that 97 becomes 1997 and 03 becomes 2003
-        DateTimeFormatter dateTimeFormatter = new DateTimeFormatterBuilder()
-                .appendPattern("dMMM")
-                .appendValueReduced(ChronoField.YEAR_OF_ERA, 2, 2, LocalDate.now().minusYears(80))
-                .toFormatter();
-        LocalDate lastRaceDate = LocalDate.parse(lastRaceDateText, dateTimeFormatter);
+        SimpleDateFormat formatter = new SimpleDateFormat("dMMMYY");
+//        DateTimeFormatter dateTimeFormatter = new DateTimeFormatterBuilder()
+//                .appendPattern("dMMM")
+//                .appendValueReduced(ChronoField.YEAR_OF_ERA, 2, 2, Date.now().minusYears(80))
+//                .toFormatter();
+        Date lastRaceDate = formatter.parse(lastRaceDateText); 
+        //Date.parse(lastRaceDateText, dateTimeFormatter);
 
         chartCharacters.removeAll(lastRaceDateCharacters);
 
@@ -111,7 +118,7 @@ public class LastRaced {
         return false;
     }
 
-    public LocalDate getRaceDate() {
+    public Date getRaceDate() {
         return raceDate;
     }
 
@@ -157,14 +164,20 @@ public class LastRaced {
                 '}';
     }
 
-    /**
+    public LastRaced() {
+    	super();
+		
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
      * The {@link Track}, race number, and finishing position of the {@link Starter}'s last
      * performance (if applicable and they exist)
      */
     public static class LastRacePerformance {
-        private final Track track;
-        private final Integer raceNumber;
-        private final Integer officialPosition;
+    	public Track track;
+    	public Integer raceNumber;
+    	public Integer officialPosition;
 
         public LastRacePerformance(Integer raceNumber, Track track, Integer officialPosition) {
             this.raceNumber = raceNumber;
@@ -249,6 +262,13 @@ public class LastRaced {
                     ", officialPosition=" + officialPosition +
                     '}';
         }
+
+		public LastRacePerformance() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
+        
     }
 
     public static class UnknownTrackException extends ChartParserException {

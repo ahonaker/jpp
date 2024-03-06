@@ -29,7 +29,7 @@ import net.derbyparty.jpp.chartparser.tracks.TrackService;
 import net.derbyparty.jpp.object.PotentialKeyRace;
 import net.derbyparty.jpp.object.RaceNote;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,38 +46,38 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
         "splits", "aqha", "comments"})
 public class Starter {
 
-    private final LastRaced lastRaced;
-    private final String program;
-    private final Horse horse;
-    private final Jockey jockey;
-    private final Weight weight;
-    private final MedicationEquipment medicationEquipment;
-    private final Integer postPosition;
-    private final Double odds;
-    private final Boolean favorite;
-    private final String comments;
-    private final List<PointOfCall> pointsOfCall;
-    private Integer finishPosition;
-    private Integer officialPosition;
-    private Trainer trainer;
-    private Owner owner;
+    public LastRaced lastRaced;
+    public String program;
+    public Horse horse;
+    public Jockey jockey;
+    public Weight weight;
+    public MedicationEquipment medicationEquipment;
+    public Integer postPosition;
+    public Double odds;
+    public Boolean favorite;
+    public String comments;
+    public List<PointOfCall> pointsOfCall;
+    public Integer finishPosition;
+    public Integer officialPosition;
+    public Trainer trainer;
+    public Owner owner;
     @JsonInclude(NON_NULL)
-    private Claim claim;
-    private Boolean disqualified;
+    public Claim claim;
+    public Boolean disqualified;
     @JsonProperty("wagering")
     @JsonIgnoreProperties({"program", "horse"})
     @JsonInclude(NON_NULL)
-    private WinPlaceShowPayoff winPlaceShowPayoff;
+    public WinPlaceShowPayoff winPlaceShowPayoff;
     @JsonInclude(NON_NULL)
-    private Aqha aqha;
-    private List<Fractional> fractionals;
-    private List<Split> splits;
-    private String note;
-    private String raceFlag;
-    private String horseFlag;
-    private PotentialKeyRace lastRacedKeyRace;
-    private String footnote;
-    private RaceNote nextOutRaceNote;
+    public Aqha aqha;
+    public List<Fractional> fractionals;
+    public List<Split> splits;
+    public String note;
+    public String raceFlag;
+    public String horseFlag;
+    public PotentialKeyRace lastRacedKeyRace;
+    public String footnote;
+    public RaceNote nextOutRaceNote;
     
     private Starter(Builder builder) {
         lastRaced = builder.lastRaced;
@@ -417,11 +417,12 @@ public class Starter {
     /**
      * Parses the running line grid and associates the individual column data to the appropriate
      * fields for the {@link Starter} in question
+     * @throws Exception 
      */
     public static Starter parseRunningLineData(
             Map<String, List<ChartCharacter>> runningLineCharactersByColumn,
-            LocalDate raceDate, Breed breed, RaceDistance raceDistance, TrackService trackService,
-            PointsOfCallService pointsOfCallService) throws ChartParserException {
+            Date raceDate, Breed breed, RaceDistance raceDistance, TrackService trackService,
+            PointsOfCallService pointsOfCallService) throws Exception {
         Builder builder = new Builder();
 
         List<List<ChartCharacter>> pointsOfCall = new ArrayList<>();
@@ -638,7 +639,13 @@ public class Starter {
                 '}';
     }
 
-    /**
+    public Starter() {
+    	super();
+		
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
      * Builder pattern used to create {@link Starter} instances
      */
     public static class Builder {
@@ -712,6 +719,7 @@ public class Starter {
         public Starter build() {
             return new Starter(this);
         }
+        
     }
 
     public static class InvalidPointsOfCallException extends ChartParserException {
@@ -726,12 +734,12 @@ public class Starter {
     }
 
     public static class Claim {
-        private final int price;
-        private boolean claimed;
+    	public int price;
+    	public boolean claimed;
         @JsonInclude(NON_NULL)
-        private String newTrainerName;
+        public String newTrainerName;
         @JsonInclude(NON_NULL)
-        private String newOwnerName;
+        public String newOwnerName;
 
         public Claim(ClaimingPrice claimingPrice, ClaimedHorse claimedHorse) {
             if (claimingPrice != null) {
@@ -801,6 +809,11 @@ public class Starter {
                     ", newOwnerName='" + newOwnerName + '\'' +
                     '}';
         }
+
+		public Claim() {
+			super();
+			// TODO Auto-generated constructor stub
+		}
     }
 
 }

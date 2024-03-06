@@ -15,7 +15,7 @@
                 v-b-tooltip.hover.right :title="dayOfWeek(row.item.raceDate)"
                 :href="'https://www.twinspires.com/bet/product/download/INC/TB/' 
                     + row.item.trackCode + '/'
-                    + row.item.raceDate[0] + '-' + str_pad_left(row.item.raceDate[1],0,2) + '-' + str_pad_left(row.item.raceDate[2],0,2) 
+                    +m(row.item.raceDate).year + '-' + str_pad_left(m(row.item.raceDate).month,0,2) + '-' + str_pad_left(m(row.item.raceDate).date,0,2) 
                     + '/D/' + row.item.raceNumber" 
                 target="_blank"            
             >{{row.item.raceDateString}}<sup>{{row.item.raceNumber}}</sup>
@@ -25,14 +25,14 @@
                 v-if="hasChart(row.item)" 
                 v-b-tooltip.hover.right :title="dayOfWeek(row.item.raceDate)"
                 target="_blank"
-                :to="'/charts/'+row.item.trackCode+'/'+row.item.raceDate[0]+'/'+row.item.raceDate[1]+'/'+row.item.raceDate[2]+'/'+row.item.raceNumber"
+                :to="'/charts/'+row.item.trackCode+'/'+m(row.item.raceDate).year+'/'+m(row.item.raceDate).month+'/'+m(row.item.raceDate).date+'/'+row.item.raceNumber"
             >{{row.item.raceDateString}}<sup>{{row.item.raceNumber}}</sup>
             </b-link>
             &nbsp;
             <span v-if="row.item.keyRace != null" v-b-popover.hover.html.right="keyRaceHorsesFormat(row.item.keyRace.horses)" :title="row.item.keyRace.track + ' ' + formatDate(row.item.keyRace.raceDate) + ' Race ' + row.item.keyRace.raceNumber">
                 <a 
                     :href="'https://www.twinspires.com/bet/results/' 
-                        + row.item.keyRace.raceDate[0] + '-' + str_pad_left(row.item.keyRace.raceDate[1],0,2) + '-' + str_pad_left(row.item.keyRace.raceDate[2],0,2) + '/'
+                        + m(row.item.raceDate).year + '-' + str_pad_left(m(row.item.raceDate).month,0,2) + '-' + str_pad_left(m(row.item.raceDate).date,0,2) + '/'
                         + row.item.keyRace.track                   
                         + '/Thoroughbred/' + row.item.keyRace.raceNumber" 
                     target="_blank"            
@@ -42,7 +42,7 @@
             </span>
             <a 
                 :href="'https://www.twinspires.com/bet/video/replay/'
-                    + row.item.raceDate[0] + '-' + str_pad_left(row.item.raceDate[1],0,2) + '-' + str_pad_left(row.item.raceDate[2],0,2) 
+                    + m(row.item.raceDate).year + '-' + str_pad_left(m(row.item.raceDate).month,0,2) + '-' + str_pad_left(m(row.item.raceDate).date,0,2) 
                     + '/' + row.item.trackCode
                     + '/Thoroughbred/' + row.item.raceNumber" 
                 target="_blank"  
@@ -197,13 +197,14 @@ import { BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconC
 
 import axios from 'axios'
 import _ from 'underscore'
+import moment from 'moment'
 
 export default {
     name: 'PastPerformanceView',
     components: {
 		BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconCameraVideoFill, BIconKey, BIconCircleHalf
     },
-    props : ['horse', 'race', 'charts'],
+    props : ['horse', 'race', 'tracks'],
     data () {
 		return {
             ppFields: [
@@ -387,7 +388,8 @@ export default {
 			return formatter.format(amount);
 		},
         formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+            return new Date(date).toLocaleDateString;
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},	
 		str_pad_left(string,pad,length) {
 			return (new Array(length+1).join(pad)+string).slice(-length);
@@ -555,20 +557,15 @@ export default {
             return ret + "</span>";
         },
         hasChart(pp) {
-            var str_pad_left = this.str_pad_left;
-            var track = _.findWhere(this.charts, {code: pp.trackCode});
+            //var str_pad_left = this.str_pad_left;
+            var track = _.findWhere(this.tracks, {code: pp.trackCode});
             if (track == null) return false;
 			const chartDates = _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
                 , function (d) {
-					return d[0] + "-" 
-						+ str_pad_left(d[1],0,2)  + "-"
-						+ str_pad_left(d[2],0,2); 
+                    return moment(d,"YYYY-MM-DD").format("yyyy-MM-DD");
                 });
-            const day = pp.raceDate[0] + "-"
-				+ str_pad_left(pp.raceDate[1],0,2)   + "-"
-				+ str_pad_left(pp.raceDate[2],0,2);
-                 console.log(day);
+            const day = moment(pp.raceDate).format("YYYY-MM-DD");
 			return chartDates.indexOf(day) >  -1;
         },
         dayOfWeek(raceDate) {
@@ -584,7 +581,14 @@ export default {
 			txt += (pp.comment ? pp.comment : "");
 			txt += (pp.flag || pp.comment) ? "<br>-----------<br>" : "";
 			return txt += (pp.footnote || pp.extendedStartComment);
-		}
+		},
+        m(date) {
+            return {
+                year: moment(date).year(),
+                month: moment(date).month()+1,
+                date: moment(date).date()
+            };
+        }
     }
 }
 </script>

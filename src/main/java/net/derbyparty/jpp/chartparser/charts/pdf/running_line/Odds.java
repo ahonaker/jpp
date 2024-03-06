@@ -12,8 +12,8 @@ import java.util.List;
  */
 public class Odds {
 
-    private final Double value;
-    private final boolean favorite;
+	public Double value;
+	public boolean favorite;
 
     public Odds(final Double value, boolean favorite) {
         this.value = value;
@@ -72,4 +72,10 @@ public class Odds {
         result = 31 * result + (favorite ? 1 : 0);
         return result;
     }
+
+	public Odds() {
+		super();
+		
+		// TODO Auto-generated constructor stub
+	}
 }

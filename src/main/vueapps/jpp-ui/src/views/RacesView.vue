@@ -38,7 +38,6 @@
 				<b-nav-item :disabled="!file" @click="load"><b-icon-cloud-upload v-b-tooltip.hover.bottom title="Upload"></b-icon-cloud-upload></b-nav-item>
 				<b-nav-item :disabled="races.length == 0 || !file" @click="augment"><b-icon-cloud-plus title="Augment"></b-icon-cloud-plus></b-nav-item>
 				<b-nav-item :disabled="races.length == 0 || !file" @click="addProgramNumbers"><b-icon-file-earmark-binary title="Add Program Numbers"></b-icon-file-earmark-binary></b-nav-item>
-				<b-nav-item :disabled="races.length == 0" @click="updateHorsesToWatch"><b-icon-file-earmark-word title="Update Horses To Watch"></b-icon-file-earmark-word></b-nav-item>			
 				<b-nav-item :disabled="races.length == 0" @click="getChanges"><b-icon-triangle-fill v-b-tooltip.hover.bottom title="Get Changes"></b-icon-triangle-fill></b-nav-item>
 				<b-nav-item :disabled="races.length == 0" @click="getResults"><b-icon-currency-dollar v-b-tooltip.hover.bottom title="Results"></b-icon-currency-dollar></b-nav-item>					
 				<b-nav-item :disabled="races.length == 0" @click="calculate"><b-icon-calculator-fill v-b-tooltip.hover.bottom title="Calculate"></b-icon-calculator-fill></b-nav-item>
@@ -66,14 +65,14 @@
 							<a 
 								:href="'https://www.twinspires.com/bet/product/download/INC/TB/' 
 									+ race.track + '/'
-									+ race.date[0] + '-' + str_pad_left(race.date[1],0,2) + '-' + str_pad_left(race.date[2],0,2) 
+									+ m(race.date).year + '-' + str_pad_left(m(race.date).month,0,2) + '-' + str_pad_left(m(race.date).date,0,2) 
 									+ '/D/' + race.raceNumber" 
 								target="_blank"            
 							><b-icon-bar-chart-steps></b-icon-bar-chart-steps>
 							</a>&nbsp;
 							<a 
 								:href="'https://www.twinspires.com/bet/video/replay/'
-									+ race.date[0] + '-' + str_pad_left(race.date[1],0,2) + '-' + str_pad_left(race.date[2],0,2) 
+									+ m(race.date[0]).year + '-' + str_pad_left(m(race.date).month,0,2) + '-' + str_pad_left(m(race.date).date,0,2) 
 									+ '/' + race.track
 									+ '/Thoroughbred/' + race.raceNumber" 
 								target="_blank"  
@@ -549,7 +548,7 @@
 						</b-col>
 					</b-row>
 				</b-collapse>
-				<race-view :race="race" :hideML="hideML" :charts="charts" @selectionUpdate="tmGenerate" @togglePick="togglePick"></race-view>
+				<race-view :race="race" :hideML="hideML" :tracks="tracks" @selectionUpdate="tmGenerate" @togglePick="togglePick"></race-view>
 			</b-tab>
 		</b-tabs>	
 	</div>
@@ -557,23 +556,24 @@
 
 <script>
 //import { } from 'bootstrap-vue'
-import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill, BIconFileEarmarkWord  } from 'bootstrap-vue'
+import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill  } from 'bootstrap-vue'
 import RaceView from '@/components/RaceView'
 import NavbarView from '@/views/NavbarView'
 
 import axios from 'axios'
 import _ from 'underscore'
+import moment from 'moment'
 
 export default {
 	name: 'RacesView',
 	components: {
-		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill, BIconFileEarmarkWord
+		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill
 	},
 	data () {
 		return {
 			status: "",
 			races: [],
-			charts: [],
+			tracks: [],
 			saved: [],
 			file: null,
 			ppTrack: null,
@@ -631,23 +631,25 @@ export default {
 		}	
 	},
 	mounted() {
-		this.getCharts();
+		this.getTracks();
 		this.getSaved();
 	},
 	computed: {	
 		ppTracks() {
 			return _.uniq(_.pluck(this.saved, "track"));
 		},
-		ppDates() {          
+		ppDates() {   
 			if (!this.ppTrack) return [];			
-            return  _.pluck(_.where(this.saved, {track: this.ppTrack}), "date");
+            return  _.map(_.pluck(_.where(this.saved, {track: this.ppTrack}), "date"), function (d) {
+					return moment(d).format("yyyy-MM-DD");
+                });
 		},		
 		hasResults() {
 			var has = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				has[i] = false;
-				for (var j =0; j < this.races[i].horses.length; j++) {
-					if (this.races[i].horses[j].finishPosition == 1) has[i] = true;
+				for (var j =0; j < this.races[i].entries.length; j++) {
+					if (this.races[i].entries[j].finishPosition == 1) has[i] = true;
 				}
 			}
 			return has;
@@ -656,8 +658,8 @@ export default {
 			var payout = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				payout[i] = 0;
-				for (var j =0; j < this.races[i].horses.length; j++) {
-					if (this.races[i].horses[j].pick) payout[i] = this.races[i].horses[j].winPayout;
+				for (var j =0; j < this.races[i].entries.length; j++) {
+					if (this.races[i].entries[j].pick) payout[i] = this.races[i].entries[j].winPayout;
 				}
 			}	
 			return payout;		
@@ -666,9 +668,9 @@ export default {
 			var payout = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				payout[i] = 0;
-				for (var j =0; j < this.races[i].horses.length; j++) {
-					if (this.races[i].horses[j].pick) payout[i] = this.races[i].horses[j].winPayout
-						+ this.races[i].horses[j].placePayout;
+				for (var j =0; j < this.races[i].entries.length; j++) {
+					if (this.races[i].entries[j].pick) payout[i] = this.races[i].entries[j].winPayout
+						+ this.races[i].entries[j].placePayout;
 				}
 			}	
 			return payout;		
@@ -677,10 +679,10 @@ export default {
 			var payout = [];
 			for (var i = 0; i < this.races.length; i++ ) {
 				payout[i] = 0;
-				for (var j =0; j < this.races[i].horses.length; j++) {
-					if (this.races[i].horses[j].pick) payout[i] = this.races[i].horses[j].winPayout
-						+ this.races[i].horses[j].placePayout
-						+ this.races[i].horses[j].showPayout;
+				for (var j =0; j < this.races[i].entries.length; j++) {
+					if (this.races[i].hoentriesrses[j].pick) payout[i] = this.races[i].entries[j].winPayout
+						+ this.races[i].entries[j].placePayout
+						+ this.races[i].entries[j].showPayout;
 				}
 			}	
 			return payout;		
@@ -696,14 +698,14 @@ export default {
 		}
 	},
 	methods: {
-		async getCharts() {
+		async getTracks() {
 			try {
 				const response = await axios({
-					url: 'getCharts/',
+					url: 'getTracks/',
 					method: 'GET',
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
-				this.charts = response.data;
+				this.tracks = response.data;
 			} catch (err) {
 				console.log(err.response);
 							
@@ -856,27 +858,14 @@ export default {
                 console.log(err);
                 
             }
-		},	
-		async updateHorsesToWatch() {
-            try {
-				this.status = "Updating";
-                await axios({
-                    url: 'updateHorsesToWatchWithPPs/' + this.races[0].track + "/" + this.races[0].date[0] + "/" + this.races[0].date[1] + "/" + this.races[0].date[2],
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/',
-                });
-				this.status = "";
-            } catch (err) {
-                console.log(err);
-            }
-		},				
+		},					
 		async save(noNotify) {
             try {
 				this.status = "Saving";
 				for (var i=0; i < this.races.length; i++) {
 					this.setRaceNote(this.races[i]);
-					for (var j=0; j < this.races[i].horses.length; j++) {
-						this.setHorseNote(this.races[i].horses[j]);
+					for (var j=0; j < this.races[i].entries.length; j++) {
+						this.setHorseNote(this.races[i].entries[j]);
 					}
 				}
                 await axios({
@@ -1029,7 +1018,7 @@ export default {
             }		
 		},		
 		toggleAll(race, b) {
-			_.each(race.horses, async function(horse){		
+			_.each(race.entries, async function(horse){		
 				try {
 					horse._showDetails = b;
 					var formData = new FormData();
@@ -1131,7 +1120,8 @@ export default {
 			return formatter.format(amount);
 		},		
 		formatDate (date) {
-			return date[1] + "/" + date[2] + "/" + date[0];
+			return new Date(date).toLocaleDateString();
+			//return date[1] + "/" + date[2] + "/" + date[0];
 		},	
 		tmGenerate (results) {
 			for (var i=0; i < this.races.length; i++) {
@@ -1185,7 +1175,14 @@ export default {
 		},
 		disableDates(ymd) {
 			return this.ppDates.indexOf(ymd) ==  -1;
-		},   		
+		},   
+		m(date) {
+            return {
+                year: moment(date).year(),
+                month: moment(date).month()+1,
+                date: moment(date).date()
+            };
+        }		
 	}
 }
 </script>

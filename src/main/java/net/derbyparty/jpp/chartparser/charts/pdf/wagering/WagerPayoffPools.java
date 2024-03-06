@@ -35,9 +35,9 @@ public class WagerPayoffPools {
             "Place", "Show", "WagerType", "WinningNumbers", "Payoff", "Pool", "Carryover");
 
     @JsonProperty("winPlaceShow")
-    private final WinPlaceShowPayoffPool winPlaceShowPayoffPools;
+    public WinPlaceShowPayoffPool winPlaceShowPayoffPools;
     @JsonProperty("exotics")
-    private final List<ExoticPayoffPool> exoticPayoffPools;
+    public List<ExoticPayoffPool> exoticPayoffPools;
 
     public WagerPayoffPools(WinPlaceShowPayoffPool winPlaceShowPayoffPools,
             List<ExoticPayoffPool> exoticPayoffPools) {
@@ -313,8 +313,8 @@ public class WagerPayoffPools {
      * rightmost-edge of the last character)
      */
     public static class ColumnRange {
-        private final double left;
-        private final double right;
+    	public final double left;
+    	public final double right;
 
         public ColumnRange(double left, double right) {
             this.left = left;
@@ -360,11 +360,10 @@ public class WagerPayoffPools {
         }
     }
 
-    abstract static class Wager {
-        protected final Double unit;
-        protected final Double payoff;
-        @SuppressWarnings("unused")
-		private Double odds; // for JSON
+    static class Wager {
+        public Double unit;
+        public Double payoff;
+        public Double odds; // for JSON
 
         public Wager(Double unit, Double payoff) {
             this.unit = unit;
@@ -376,7 +375,7 @@ public class WagerPayoffPools {
             this(2.0, payoff);
         }
 
-        public Double getUnit() {
+		public Double getUnit() {
             return unit;
         }
 
@@ -393,6 +392,18 @@ public class WagerPayoffPools {
             }
             return null;
         }
+        
+        public void setUnit(Double unit) {
+			this.unit = unit;
+		}
+
+		public void setPayoff(Double payoff) {
+			this.payoff = payoff;
+		}
+
+		public void setOdds(Double odds) {
+			this.odds = odds;
+		}
 
         @Override
         public boolean equals(Object o) {
@@ -412,6 +423,12 @@ public class WagerPayoffPools {
             result = 31 * result + (payoff != null ? payoff.hashCode() : 0);
             return result;
         }
+
+		public Wager() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
     }
 
     /**
@@ -421,9 +438,9 @@ public class WagerPayoffPools {
     public static class WinPlaceShowPayoffPool {
 
         @JsonProperty("totalWPSPool")
-        private final Integer totalWinPlaceShowPool;
+        public Integer totalWinPlaceShowPool;
         @JsonProperty("payoffs")
-        private final List<WinPlaceShowPayoff> winPlaceShowPayoffs;
+        public List<WinPlaceShowPayoff> winPlaceShowPayoffs;
 
         public WinPlaceShowPayoffPool(Integer totalWinPlaceShowPool,
                 List<WinPlaceShowPayoff> winPlaceShowPayoffs) {
@@ -462,17 +479,24 @@ public class WagerPayoffPools {
         }
 
 
-        /**
+        public WinPlaceShowPayoffPool() {
+        	super();
+			
+			// TODO Auto-generated constructor stub
+		}
+
+
+		/**
          * For Win-Place-Show (WPS) wager payoffs, this stores the program number of the {@link
          * Starter}, the horse name, and, where applicable, the win, place, and tshow payoff
          * amounts. All payoffs amounts are based on a $2 unit.
          */
         public static class WinPlaceShowPayoff {
-            private final String program;
-            private final Horse horse;
-            private final Win win;
-            private final Place place;
-            private final Show show;
+        	public String program;
+        	public Horse horse;
+        	public Win win;
+        	public Place place;
+        	public Show show;
 
             WinPlaceShowPayoff(String program, HorseNameWin horseNameWin, Double placePayoff,
                     Double showPayoff) {
@@ -590,10 +614,46 @@ public class WagerPayoffPools {
                         '}';
             }
 
-            public static class Win extends Wager {
+            public WinPlaceShowPayoff() {
+            	super();
+				
+				// TODO Auto-generated constructor stub
+			}
+
+			public static class Win extends Wager {
                 public Win(Double payoff) {
                     super(payoff);
                 }
+                
+                public Double getUnit() {
+                    return unit;
+                }
+
+                public Double getPayoff() {
+                    return payoff;
+                }
+
+                public Double getOdds() {
+                    if (unit != null && payoff != null && unit > 0 && payoff > 0) {
+                        double calc = ((payoff - unit) / unit);
+                        if (!Double.isInfinite(calc)) {
+                            return Chart.round(calc).doubleValue();
+                        }
+                    }
+                    return null;
+                }
+                
+                public void setUnit(Double unit) {
+        			this.unit = unit;
+        		}
+
+        		public void setPayoff(Double payoff) {
+        			this.payoff = payoff;
+        		}
+
+        		public void setOdds(Double odds) {
+        			this.odds = odds;
+        		}
 
                 @Override
                 public String toString() {
@@ -602,12 +662,47 @@ public class WagerPayoffPools {
                             ", payoff=" + payoff +
                             '}';
                 }
+
+				public Win() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
             }
 
             public static class Place extends Wager {
                 public Place(Double payoff) {
                     super(payoff);
                 }
+                
+                public Double getUnit() {
+                    return unit;
+                }
+
+                public Double getPayoff() {
+                    return payoff;
+                }
+
+                public Double getOdds() {
+                    if (unit != null && payoff != null && unit > 0 && payoff > 0) {
+                        double calc = ((payoff - unit) / unit);
+                        if (!Double.isInfinite(calc)) {
+                            return Chart.round(calc).doubleValue();
+                        }
+                    }
+                    return null;
+                }
+                
+                public void setUnit(Double unit) {
+        			this.unit = unit;
+        		}
+
+        		public void setPayoff(Double payoff) {
+        			this.payoff = payoff;
+        		}
+
+        		public void setOdds(Double odds) {
+        			this.odds = odds;
+        		}
 
                 @Override
                 public String toString() {
@@ -616,12 +711,46 @@ public class WagerPayoffPools {
                             ", payoff=" + payoff +
                             '}';
                 }
+				public Place() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
             }
 
             public static class Show extends Wager {
                 public Show(Double payoff) {
                     super(payoff);
                 }
+                
+                public Double getUnit() {
+                    return unit;
+                }
+
+                public Double getPayoff() {
+                    return payoff;
+                }
+
+                public Double getOdds() {
+                    if (unit != null && payoff != null && unit > 0 && payoff > 0) {
+                        double calc = ((payoff - unit) / unit);
+                        if (!Double.isInfinite(calc)) {
+                            return Chart.round(calc).doubleValue();
+                        }
+                    }
+                    return null;
+                }
+                
+                public void setUnit(Double unit) {
+        			this.unit = unit;
+        		}
+
+        		public void setPayoff(Double payoff) {
+        			this.payoff = payoff;
+        		}
+
+        		public void setOdds(Double odds) {
+        			this.odds = odds;
+        		}
 
                 @Override
                 public String toString() {
@@ -630,6 +759,10 @@ public class WagerPayoffPools {
                             ", payoff=" + payoff +
                             '}';
                 }
+				public Show() {
+					super();
+					// TODO Auto-generated constructor stub
+				}
             }
         }
 
@@ -647,11 +780,11 @@ public class WagerPayoffPools {
         private final static Pattern WINNING_NUMBERS =
                 Pattern.compile("^([^\\(]+)(\\((\\d+) correct\\))?");
 
-        private final String name;
-        private final String winningNumbers;
-        private final Integer numberCorrect;
-        private final Integer pool;
-        private final Integer carryover;
+        public String name;
+        public String winningNumbers;
+        public Integer numberCorrect;
+        public Integer pool;
+        public Integer carryover;
 
         ExoticPayoffPool(WagerNameUnit wagerNameUnit,
                 WinningNumbersPayoff winningNumbersPayoff, Integer pool, Integer carryover) {
@@ -793,6 +926,36 @@ public class WagerPayoffPools {
         public Integer getCarryover() {
             return carryover;
         }
+        
+        public Double getUnit() {
+            return unit;
+        }
+
+        public Double getPayoff() {
+            return payoff;
+        }
+
+        public Double getOdds() {
+            if (unit != null && payoff != null && unit > 0 && payoff > 0) {
+                double calc = ((payoff - unit) / unit);
+                if (!Double.isInfinite(calc)) {
+                    return Chart.round(calc).doubleValue();
+                }
+            }
+            return null;
+        }
+        
+        public void setUnit(Double unit) {
+			this.unit = unit;
+		}
+
+		public void setPayoff(Double payoff) {
+			this.payoff = payoff;
+		}
+
+		public void setOdds(Double odds) {
+			this.odds = odds;
+		}
 
         @Override
         public boolean equals(Object o) {
@@ -840,6 +1003,12 @@ public class WagerPayoffPools {
                     ", carryover=" + carryover +
                     '}';
         }
+
+		public ExoticPayoffPool() {
+			super();
+			
+			// TODO Auto-generated constructor stub
+		}
     }
 
     /**
@@ -847,8 +1016,8 @@ public class WagerPayoffPools {
      * stored in this object
      */
     static class HorseNameWin {
-        private final Horse horse;
-        private final Win win;
+    	public Horse horse;
+    	public Win win;
 
         HorseNameWin(Horse horse, Double winPayoff) {
             this.horse = horse;
@@ -888,14 +1057,19 @@ public class WagerPayoffPools {
                     ", win=" + win +
                     '}';
         }
+
+		public HorseNameWin() {
+			super();
+			// TODO Auto-generated constructor stub
+		}
     }
 
     /**
      * For exotic bets, stores the name of the wager and the unit amount the payoff is based on
      */
     static class WagerNameUnit {
-        private final Double wagerUnit;
-        private final String name;
+    	public final Double wagerUnit;
+    	public final String name;
 
         public WagerNameUnit(Double wagerUnit, String name) {
             this.wagerUnit = wagerUnit;
@@ -944,9 +1118,9 @@ public class WagerPayoffPools {
      * the bet to win (e.g. 6 in a Pick 6), and the payoff
      */
     static class WinningNumbersPayoff {
-        private final String winningNumbers;
-        private final Integer numberCorrect;
-        private final Double payoff;
+    	public String winningNumbers;
+    	public Integer numberCorrect;
+    	public Double payoff;
 
         public WinningNumbersPayoff(String winningNumbers, Integer numberCorrect, Double payoff) {
             this.winningNumbers = winningNumbers;
@@ -998,6 +1172,12 @@ public class WagerPayoffPools {
                     ", payoff=" + payoff +
                     '}';
         }
+
+		public WinningNumbersPayoff() {
+			super();
+			// TODO Auto-generated constructor stub
+		}
+        
     }
 
     public WinPlaceShowPayoffPool getWinPlaceShowPayoffPools() {
@@ -1038,7 +1218,13 @@ public class WagerPayoffPools {
                 '}';
     }
 
-    public static class TotalWPSParseException extends ChartParserException {
+    public WagerPayoffPools() {
+    	super();
+		
+		// TODO Auto-generated constructor stub
+	}
+
+	public static class TotalWPSParseException extends ChartParserException {
         /**
 		 * 
 		 */

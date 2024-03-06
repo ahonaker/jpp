@@ -37,7 +37,7 @@
                 <template #title>
                     Race {{race.raceNumber}}&nbsp;
                 </template>
-                <chart-view :race="race" :starterFields="starterFields[racekey]" :charts="charts" @goToChart="goToChart"></chart-view>
+                <chart-view :race="race" :starterFields="starterFields[racekey]" :tracks="tracks" @goToChart="goToChart"></chart-view>
             </b-tab>
         </b-tabs>
     </div>			
@@ -49,6 +49,7 @@ import NavbarView from '@/views/NavbarView'
 
 import axios from 'axios'
 import _ from 'underscore'
+import moment from 'moment'
 
 export default {
 	name: 'ChartsView',
@@ -58,7 +59,6 @@ export default {
 	data () {
 		return {
 			chart: null,
-			charts: [],
 			chartDate: null,
 			chartReviewed: false,
 			chartTabIndex: 0,
@@ -68,8 +68,7 @@ export default {
 		}	
 	},
 	async mounted() {
-		await this.getCharts();
-		this.getTracks();
+		await this.getTracks();
         if (this.$route.params.track) {
 			this.track = this.$route.params.track;
 		}
@@ -100,18 +99,15 @@ export default {
     },    
 	computed: {
 		chartTracks() {
-			return _.uniq(_.pluck(this.charts, "code"));
+			return _.uniq(_.pluck(this.tracks, "code"));
 		},
 		chartDates() {
-            var str_pad_left = this.str_pad_left;
 			if (!this.track) return [];
-            var track = _.findWhere(this.charts, {code: this.track});
+            var track = _.findWhere(this.tracks, {code: this.track});
 			return _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
                 , function (d) {
-					return d[0] + "-" 
-						+ str_pad_left(d[1],0,2)  + "-"
-						+ str_pad_left(d[2],0,2); 
+					return moment(d,"YYYY-MM-DD").format("yyyy-MM-DD");
                 }); 
 		},
 		starterFields() {
@@ -144,34 +140,21 @@ export default {
 		}
 	},
 	methods: {	
-		async getCharts() {
-			try {
-                this.status = "Loading";
-				const response = await axios({
-					url: 'getCharts/',
-					method: 'GET',
-					baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});
-				this.charts = response.data;
-				this.status = "";
-			} catch (err) {
-				console.log(err.response);
-							
-			}	
-		},
 		async getTracks() {
 			try {
+                this.status = "Loading";
 				const response = await axios({
 					url: 'getTracks/',
 					method: 'GET',
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.tracks = response.data;
+				this.status = "";
 			} catch (err) {
 				console.log(err.response);
 							
 			}	
-		},	
+		},
 		async getChart() {
 			try {
 				this.status = "Loading";
@@ -181,14 +164,16 @@ export default {
 					baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.chart = response.data;
-				var chartDate = [this.chartDate.getFullYear(), this.chartDate.getMonth()+1, this.chartDate.getDate()];
-				var track = _.findWhere(this.charts, {code: this.track});
-				this.chartReviewed = _.find(track.raceDates, function(d){				
-					return (d.raceDate[0] == chartDate[0] && d.raceDate[1] == chartDate[1] && d.raceDate[2] == chartDate[2]);
+//				var chartDate = [this.chartDate.getFullYear(), this.chartDate.getMonth()+1, this.chartDate.getDate()];
+				var chartDate = this.chartDate;
+				var track = _.findWhere(this.tracks, {code: this.track});
+				this.chartReviewed = _.find(track.raceDates, function(d){	
+//					return (d.raceDate[0] == chartDate[0] && d.raceDate[1] == chartDate[1] && d.raceDate[2] == chartDate[2]);
+					return moment(chartDate).isSame(moment(d.raceDate,"YYYY-MM-DD"));
 				}).reviewedFlag;
 				this.status = "";
 			} catch (err) {
-				console.log(err.response);
+				console.log(err);
 							
 			}	
 		},

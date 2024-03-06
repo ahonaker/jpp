@@ -6,9 +6,6 @@
                 <b-button variant="primary" @click="parseCharts">Parse Charts</b-button>
             </b-col>
             <b-col>
-                <b-button variant="primary" @click="updateAllHorsesToWatchWithPPs">Update H2W</b-button>
-            </b-col>
-            <b-col>
                 <b-button variant="primary" @click="generateStats">Generate Stats</b-button>
             </b-col>						
             <b-col>
@@ -62,6 +59,7 @@
 <script>
 
 import _ from 'underscore'
+import moment from 'moment'
 import axios from 'axios'
 import NavbarView from '@/views/NavbarView'
 
@@ -76,75 +74,49 @@ export default {
 			track: null,
 			file: null,
 			pp: null,
-			charts: [],
 			tracks: []
         }
         
     },
 	mounted() {
-		this.getCharts();
 		this.getTracks();
 	},
 	computed: {
 		chartTracks() {
-			return _.uniq(_.pluck(this.charts, "code"));
+			return _.uniq(_.pluck(this.tracks, "code"));
 		},
 		chartDates() {
-            var str_pad_left = this.str_pad_left;
 			if (!this.track) return [];
-            var track = _.findWhere(this.charts, {code: this.track});
+            var track = _.findWhere(this.tracks, {code: this.track});
 			return _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
                 , function (d) {
-					return d[0] + "-" 
-						+ str_pad_left(d[1],0,2)  + "-"
-						+ str_pad_left(d[2],0,2); 
+					return moment(d).format("yyyy-MM-DD");
                 });
             
 		},
 		reviewedDates() {
-            var str_pad_left = this.str_pad_left;
 			if (!this.track) return [];
-            var track = _.findWhere(this.charts, {code: this.track});
+            var track = _.findWhere(this.tracks, {code: this.track});
 			return _.map(
                 _.pluck(_.where(track.raceDates, {reviewedFlag: true}), "raceDate")
                 , function (d) {
-					return d[0] + "-" 
-						+ str_pad_left(d[1],0,2)  + "-"
-						+ str_pad_left(d[2],0,2); 
+					return moment(d).format("yyyy-MM-DD");
                 });
             
 		},	
 		raceDates() {
-            var str_pad_left = this.str_pad_left;
 			if (!this.track) return [];
-            var track = _.findWhere(this.charts, {code: this.track});
+            var track = _.findWhere(this.tracks, {code: this.track});
 			return _.map(
                 _.pluck(track.raceDates, "raceDate")
                 , function (d) {
-					return d[0] + "-" 
-						+ str_pad_left(d[1],0,2)  + "-"
-						+ str_pad_left(d[2],0,2); 
+					return moment(d).format("yyyy-MM-DD");
                 });
             
 		}		
 	},
     methods: {
-		async getCharts() {
-			try {
-				this.status = "Loading";
-				const response = await axios({
-					url: 'getCharts/',
-					method: 'GET',
-					baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});
-				this.charts = response.data;
-				this.status = "";
-			} catch (err) {
-				console.log(err.response);
-							
-			}	
-		},
 		async getTracks() {
 			try {
 				const response = await axios({
@@ -168,21 +140,7 @@ export default {
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});
 				this.status = "";
-				this.getCharts();
-            } catch (err) {
-                console.log(err);
-                
-            }
-		},
-		async updateAllHorsesToWatchWithPPs() {
-            try {
-				this.status = "Updating";
-                await axios({
-                    url: 'updateAllHorsesToWatchWithPPs',
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});
-				this.status = "";
+				this.getTracks();
             } catch (err) {
                 console.log(err);
                 
@@ -196,7 +154,7 @@ export default {
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});				
-				this.status = "Generating Combo 2 Stats";
+/*				this.status = "Generating Combo 2 Stats";
                 await axios({
                     url: 'generateComboStats/2',
                     method: 'GET',
@@ -208,17 +166,17 @@ export default {
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});			
-/* 				this.status = "Generating Race Stats";
+ 				this.status = "Generating Race Stats";
                 await axios({
                     url: 'generateRaceStats',
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});	 */		
+				});	 *	
                 axios({
                     url: 'generateStats',
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});				
+				});		*/		
 				this.status = "";
             } catch (err) {
                 console.log(err);
@@ -278,7 +236,7 @@ export default {
 			if (this.raceDates.indexOf(ymd) > -1) return 'table-info';
 		},   
 		addRemoveRaceDate(ymd,date) {
-			const day = [date.getFullYear(), date.getMonth()+1, date.getDate()];
+			const day = moment(date).valueOf();
 
 			if (this.raceDates.indexOf(ymd) ==  -1) {
 				var found = false;
@@ -300,7 +258,7 @@ export default {
 					if (this.tracks[i].code == this.track) {
 						console.log(this.tracks[i].raceDates.length);
 						this.tracks[i].raceDates = _.reject(this.tracks[i].raceDates, function(d){
-							return (d.raceDate[0] == day[0] && d.raceDate[1] == day[1] && d.raceDate[2] == day[2]);
+							return (moment(d).valueOf = day);
 						})
 						console.log(this.tracks[i].raceDates.length);
 					}

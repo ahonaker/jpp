@@ -5,9 +5,9 @@ package net.derbyparty.jpp.chartparser.tracks;
  */
 public class Track {
 
-    private String code;
-    private String country;
-    private String name;
+	public String code;
+	public String country;
+	public String name;
 
     public String getCode() {
         return code.trim();
@@ -62,4 +62,9 @@ public class Track {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         return result;
     }
+
+	public Track() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 }
