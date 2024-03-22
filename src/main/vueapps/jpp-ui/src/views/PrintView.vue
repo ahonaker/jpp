@@ -12,15 +12,20 @@
                     right
                 >
                     <b-dropdown-item v-for="raceNumber in numRaces" :key="raceNumber" @click="generatePDF(raceNumber)">Race {{raceNumber}}</b-dropdown-item>
-                </b-nav-item-dropdown>               	
+                </b-nav-item-dropdown>    
+                <b-nav-form>
+                    <b-form-checkbox v-model="summaryOnly">Summary Only</b-form-checkbox>                    
+                </b-nav-form>        	
             </b-navbar-nav>                              
         </b-navbar>
 
         <span v-if="race">
             <span id="raceToPrint" style="width: 1400px">
                 <race-print-view :race="race" class="my-2" style="width: 1400px"></race-print-view>
-                <horses-print-view :race="race" class="my-2 page1" style="width: 1400px"></horses-print-view>
-                <horse-print-view v-for="horse in race.horses" :race="race" :key="horse.name" :horse="horse" :charts="charts" class="my-2" style="width: 1400px"></horse-print-view>
+                <entries-print-view :race="race" :class="entriesClass" style="width: 1400px"></entries-print-view>
+                <span v-if="!summaryOnly">
+                    <entry-print-view v-for="entry in race.entries" :race="race" :key="entry.name" :entry="entry" :tracks="tracks" class="my-2" style="width: 1400px"></entry-print-view>
+                </span>
             </span>
         </span>
     </span>
@@ -29,8 +34,8 @@
 <script>
 import NavbarView from '@/views/NavbarView'
 import RacePrintView from '@/components/RacePrintView'
-import HorsesPrintView from '@/components/HorsesPrintView'
-import HorsePrintView from '@/components/HorsePrintView'
+import EntriesPrintView from '@/components/EntriesPrintView'
+import EntryPrintView from '@/components/EntryPrintView'
 
 import {  BIconFilePdf  } from 'bootstrap-vue'
 import axios from 'axios'
@@ -39,13 +44,15 @@ import html2pdf from 'html2pdf.js'
 export default {
 	name: 'PrintView',
 	components: {
-        NavbarView, RacePrintView, HorsesPrintView, HorsePrintView, BIconFilePdf
+        NavbarView, RacePrintView, EntriesPrintView, EntryPrintView, BIconFilePdf
 	},    
     data () {
 		return {
+            tracks: [],
             numRaces: null,
 			race: null,
             status: "",
+            summaryOnly: false,
             options: {
                 margin: 10,
 
@@ -75,9 +82,29 @@ export default {
         }
     },
 	mounted() {
+        this.getTracks();
 		this.getNumRaces();
 	},
+    computed: {
+        entriesClass() {
+            return "my-2" + (this.summaryOnly ? "" : " page1");
+        }
+    },
     methods: {
+		async getTracks() {
+			try {
+				const response = await axios({
+					url: 'getTracks/',
+					method: 'GET',
+					baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});
+				this.tracks = response.data;
+				this.loadingTracks = false;
+			} catch (err) {
+				console.log(err.response);
+							
+			}	
+		},			
         async getNumRaces() {
             try {
 				this.status = 'Getting number of races';

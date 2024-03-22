@@ -1,7 +1,7 @@
 <template>
     <b-table
-        v-if="horse.pastPerformances.length > 0"
-        :items="horse.pastPerformances"
+        v-if="entry.pastPerformances.length > 0"
+        :items="entry.pastPerformances"
         :fields="ppFields"
         :tbody-tr-class="ppRowClass"
         @row-clicked="toggleIgnored"
@@ -204,7 +204,7 @@ export default {
     components: {
 		BIconCircleFill, BIconArrowDown, BIconArrowUp, BIconCaretUpFill, BIconCameraVideoFill, BIconKey, BIconCircleHalf
     },
-    props : ['horse', 'race', 'tracks'],
+    props : ['entry', 'race', 'tracks'],
     data () {
 		return {
             ppFields: [
@@ -255,10 +255,10 @@ export default {
 				if (!this.race) return;
                 var formData = new FormData();
                 formData.append("raceNumber", this.race.raceNumber);
-                formData.append("name", this.horse.name);
-                formData.append("year", item.raceDate[0]);
-                formData.append("month", item.raceDate[1]);
-                formData.append("day", item.raceDate[2]);
+                formData.append("name", this.entry.name);
+                formData.append("year", moment(item.raceDate).year());
+                formData.append("month", moment(item.raceDate).month()+1);
+                formData.append("day", moment(item.raceDate).date());
                 await axios({
                     url: 'toggleIgnored',
                     method: 'POST',
@@ -388,7 +388,8 @@ export default {
 			return formatter.format(amount);
 		},
         formatDate (date) {
-            return new Date(date).toLocaleDateString;
+            return moment(date).format("MM/DD/YY");
+            //return new Date(date).toLocaleDateString;
 			//return date[1] + "/" + date[2] + "/" + date[0];
 		},	
 		str_pad_left(string,pad,length) {
@@ -440,13 +441,13 @@ export default {
         },
         highlightRaceShape(value, key, item) {
             if (item.raceShapeFirstCall > 9 && item.raceShapeSecondCall > 9 &&
-                this.horse.runStyle == 'E') return 'yellowHighlight';
+                this.entry.runStyle == 'E') return 'yellowHighlight';
             if (item.raceShapeFirstCall > 9 && item.raceShapeSecondCall > 9 &&
-                (this.horse.runStyle == 'P' || this.horse.runStyle == 'S')) return 'greenHighlight';
+                (this.entry.runStyle == 'P' || this.entry.runStyle == 'S')) return 'greenHighlight';
             if (item.raceShapeFirstCall < -9 && item.raceShapeSecondCall < -9 &&
-                this.horse.runStyle == 'E') return 'greenHighlight';
+                this.entry.runStyle == 'E') return 'greenHighlight';
             if (item.raceShapeFirstCall < -9 && item.raceShapeSecondCall < -9 &&
-                (this.horse.runStyle == 'P' || this.horse.runStyle == 'S')) return 'yellowHighlight';                
+                (this.entry.runStyle == 'P' || this.entry.runStyle == 'S')) return 'yellowHighlight';                
         },
         highlightRaceShape2(value,key,item) {
             switch (item.raceShape) {
@@ -456,11 +457,11 @@ export default {
                 case "SS":
                     return "text-info strong";
                 case "SF":
-                    if (item.finishPosition == "1" && (this.horse.runStyle == "E" || this.horse.runstyle == "E/P")) return "yellowHighlight";
-                    if (item.finishPosition == "1" && (this.horse.runStyle == "P" || this.horse.runstyle == "S")) return "greenHighlight"; 
+                    if (item.finishPosition == "1" && (this.entry.runStyle == "E" || this.entry.runstyle == "E/P")) return "yellowHighlight";
+                    if (item.finishPosition == "1" && (this.entry.runStyle == "P" || this.entry.runstyle == "S")) return "greenHighlight"; 
                     return;
                 case "FS":
-                    if (item.finishPosition == "1" && (this.horse.runStyle == "P" || this.horse.runstyle == "S")) return "yellowHighlight"; 
+                    if (item.finishPosition == "1" && (this.entry.runStyle == "P" || this.entry.runstyle == "S")) return "yellowHighlight"; 
                     return;
             }
         },
@@ -521,7 +522,7 @@ export default {
 		},
 		alsoInRace(nameToMatch, row) {
 			if (!this.race) return;
-			var names = _.pluck(this.race.horses, "name");
+			var names = _.pluck(this.race.entries, "name");
 			if (names.indexOf(nameToMatch) > -1 && nameToMatch != row.name) return "alsoInRace";
 
 		},
@@ -563,15 +564,12 @@ export default {
 			const chartDates = _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
                 , function (d) {
-                    return moment(d,"YYYY-MM-DD").format("yyyy-MM-DD");
+                    return d;
                 });
-            const day = moment(pp.raceDate).format("YYYY-MM-DD");
-			return chartDates.indexOf(day) >  -1;
+			return chartDates.indexOf(pp.raceDate) >  -1;
         },
         dayOfWeek(raceDate) {
-            const weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-            var dt = new Date(raceDate[0] + "/" + this.str_pad_left(raceDate[1],0,2) + "/" + this.str_pad_left(raceDate[2],0,2));
-            return weekday[dt.getDay()];
+            return moment(raceDate).format("dddd");
         },
 		tripText(pp) {
 			//row.item.footnote ? row.item.flag + ' - ' row.item.footnote : row.item.extendedStartComment

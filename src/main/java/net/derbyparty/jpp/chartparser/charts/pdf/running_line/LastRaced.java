@@ -92,7 +92,7 @@ public class LastRaced {
         }
         String lastRaceDateText = Chart.convertToText(lastRaceDateCharacters);
         // so that 97 becomes 1997 and 03 becomes 2003
-        SimpleDateFormat formatter = new SimpleDateFormat("dMMMYY");
+        SimpleDateFormat formatter = new SimpleDateFormat("dMMMyy");
 //        DateTimeFormatter dateTimeFormatter = new DateTimeFormatterBuilder()
 //                .appendPattern("dMMM")
 //                .appendValueReduced(ChronoField.YEAR_OF_ERA, 2, 2, Date.now().minusYears(80))

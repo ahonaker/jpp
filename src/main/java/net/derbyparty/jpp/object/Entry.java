@@ -219,6 +219,8 @@ public class Entry implements Serializable {
 	private String comment;
 	
 	private List<Angle> angles;
+	
+	private String comboAlert;
 
 	@Generated("SparkTools")
 	private Entry(Builder builder) {
@@ -386,6 +388,7 @@ public class Entry implements Serializable {
 		this.flag = builder.flag;
 		this.comment = builder.comment;
 		this.angles = builder.angles;
+		this.comboAlert = builder.comboAlert;
 	}
 
 	public float getE1Avg() {
@@ -1385,6 +1388,12 @@ public class Entry implements Serializable {
 	public void setApprenticeWeightAllowed(int apprenticeWeightAllowed) {
 		ApprenticeWeightAllowed = apprenticeWeightAllowed;
 	}
+	public String getComboAlert() {
+		return comboAlert;
+	}
+	public void setComboAlert(String comboAlert) {
+		this.comboAlert = comboAlert;
+	}
 
 	@Override
 	public int hashCode() {
@@ -2100,6 +2109,19 @@ public class Entry implements Serializable {
 		super();
 	}
 
+	public void addHorse() { 				
+		Document query = new Document()
+				.append("name", Name);	
+		
+		MongoCollection<Horse> collection = database.getCollection("horses", Horse.class);
+		Horse horse = collection.find(query).first();
+		if (horse != null) {
+			this.setComment(horse.getComment());
+			this.setFlag(horse.getFlag());
+		}
+
+	}
+
 	@Generated("SparkTools")
 	public static Builder builder() {
 		return new Builder();
@@ -2270,6 +2292,7 @@ public class Entry implements Serializable {
 		private String flag;
 		private String comment;
 		private List<Angle> angles = Collections.emptyList();
+		private String comboAlert;
 
 		private Builder() {
 		}
@@ -3094,6 +3117,11 @@ public class Entry implements Serializable {
 			return this;
 		}
 
+		public Builder withComboAlert(String comboAlert) {
+			this.comboAlert = comboAlert;
+			return this;
+		}
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -3477,19 +3505,6 @@ public class Entry implements Serializable {
 		public Entry build() {
 			return new Entry(this);
 		}
-	}
-	
-	public void addHorse() { 				
-		Document query = new Document()
-				.append("name", Name);	
-		
-		MongoCollection<Horse> collection = database.getCollection("horses", Horse.class);
-		Horse horse = collection.find(query).first();
-		if (horse != null) {
-			this.setComment(horse.getComment());
-			this.setFlag(horse.getFlag());
-		}
-
 	}
 	
 }

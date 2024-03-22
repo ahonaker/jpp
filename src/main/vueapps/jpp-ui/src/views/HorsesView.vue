@@ -31,19 +31,20 @@
 						<b-link 
 							class="chart-link"
 							target="_blank"
-							:to="'/charts/'+note.track+'/'+note.raceDate[0]+'/'+note.raceDate[1]+'/'+note.raceDate[2]+'/'+note.raceNumber"
+							:to="'/charts/'+note.track+'/'+m(note.raceDate).year+'/'+m(note.raceDate).month+'/'+m(note.raceDate).date+'/'+note.raceNumber"
 						><b-icon-bar-chart-steps class="mx-1"></b-icon-bar-chart-steps>
 						</b-link>
 						<a 
 							:href="'https://www.twinspires.com/bet/video/replay/'
-								+ note.raceDate[0] + '-' + str_pad_left(note.raceDate[1],0,2) + '-' + str_pad_left(note.raceDate[2],0,2) 
+								+ m(note.raceDate).year + '-' + str_pad_left(m(note.raceDate).month,0,2) + '-' + str_pad_left(m(note.raceDate).date,0,2) 
+
 								+ '/' + note.track
 								+ '/Thoroughbred/' + note.raceNumber" 
 							target="_blank"  
 						><b-icon-camera-video-fill></b-icon-camera-video-fill>
 						</a>						
 						{{formatDate(note.raceDate)}} &nbsp;&nbsp; {{note.track}}<sup>{{note.raceNumber}}</sup> &nbsp;&nbsp; {{note.position}} <span v-if="note.beatenLengths > 0"> - {{note.beatenLengths}}BL</span>
-						&nbsp;&nbsp; {{note.type}}  &nbsp;&nbsp; {{note.raceClassification}} Purse: ${{note.purse}} <span v-if="note.claimingPrice > 0"> &nbsp;&nbsp; Claiming Price: ${{note.claimingPrice}}</span>
+						&nbsp;&nbsp; {{note.type}}  &nbsp;&nbsp; {{note.raceClassification}} Purse: {{formatCurrency(note.purse)}} <span v-if="note.claimingPrice > 0"> &nbsp;&nbsp; Claiming Price: {{formatCurrency(note.claimingPrice)}}</span>
 						<br>
 						<strong>{{note.flag}} </strong>
 						<span v-if="note.flag">/ </span>
@@ -60,7 +61,7 @@
 			<b-col>
 				<h5 class="text-center">Past Performances</h5>
 				<b-container fluid class="pp border">
-					<past-performance-view :horse="horse"></past-performance-view>
+					<past-performance-view :horse="horse" :tracks="tracks"></past-performance-view>
 				</b-container>
 			</b-col>
 		</b-row>
@@ -80,6 +81,7 @@ import { BIconStar, BIconStarFill, BIconCameraVideoFill, BIconBarChartSteps} fro
 
 import axios from 'axios'
 import _ from 'underscore'
+import moment from 'moment'
 
 export default {
 	name: 'HorsesView',
@@ -90,12 +92,14 @@ export default {
 		return {
 			horse: null,
 			horses: [],
+			tracks: [],
             search: "",
 			listStarred: false,
             status: ""
 		}	
 	},
 	async mounted() {
+		this.getTracks();
 		await this.getHorses();
 	},
     created() {
@@ -126,6 +130,19 @@ export default {
         }
     },
 	methods: {	
+		async getTracks() {
+			try {
+				const response = await axios({
+					url: 'getTracks/',
+					method: 'GET',
+					baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});
+				this.tracks = response.data;
+			} catch (err) {
+				console.log(err.response);
+							
+			}	
+		},
 		async getHorses() {
 			try {
                 this.status = "Loading";
@@ -183,7 +200,27 @@ export default {
 		formatDate (date) {
 			return new Date(date).toLocaleDateString();
 			//return date[1] + "/" + date[2] + "/" + date[0];
-		},			
+		},
+        m(date) {
+            return {
+                year: moment(date).year(),
+                month: moment(date).month()+1,
+                date: moment(date).date()
+            };
+        },
+		formatCurrency(value) {
+			const formatter = new Intl.NumberFormat('en-US', {
+				style: 'currency',
+				currency: 'USD',
+
+				// These options are needed to round to whole numbers if that's what you want.
+				minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+				maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+			});
+			return formatter.format(value);
+		}
     }
+
+    
 }
 </script>

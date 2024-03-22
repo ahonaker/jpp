@@ -154,7 +154,7 @@ export default {
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});				
-/*				this.status = "Generating Combo 2 Stats";
+				this.status = "Generating Combo 2 Stats";
                 await axios({
                     url: 'generateComboStats/2',
                     method: 'GET',
@@ -166,17 +166,18 @@ export default {
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
 				});			
- 				this.status = "Generating Race Stats";
+/* 				this.status = "Generating Race Stats";
                 await axios({
                     url: 'generateRaceStats',
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});	 *	
+				});	 */
+                this.status = "Generating Rating Stats";
                 axios({
                     url: 'generateStats',
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
-				});		*/		
+				});			
 				this.status = "";
             } catch (err) {
                 console.log(err);
@@ -258,7 +259,7 @@ export default {
 					if (this.tracks[i].code == this.track) {
 						console.log(this.tracks[i].raceDates.length);
 						this.tracks[i].raceDates = _.reject(this.tracks[i].raceDates, function(d){
-							return (moment(d).valueOf = day);
+							return (moment(d.raceDate).valueOf() == day);
 						})
 						console.log(this.tracks[i].raceDates.length);
 					}

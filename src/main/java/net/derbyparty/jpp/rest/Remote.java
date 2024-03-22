@@ -466,18 +466,18 @@ public class Remote {
 	  
 	}
 	
-	@Path("setHorseNote")
+	@Path("setEntryNote")
 	@POST
 	@Produces("application/json")
 	@Consumes("multipart/form-data")
-	public Response setHorseNote(  @FormDataParam("raceNumber") int raceNumber,
+	public Response setEntryNote(  @FormDataParam("raceNumber") int raceNumber,
 								@FormDataParam("name") String name,
 								@FormDataParam("note") String note) throws Exception {
 	
 
 	  
 	  try {
-		  Main.setHorseNote(raceNumber, name, note);
+		  Main.setEntryNote(raceNumber, name, note);
 	  
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -749,22 +749,22 @@ public class Remote {
 	  	return Response.noContent().build();
 	}
 	
-//	@Path("convertRaceDates")
-//	@GET
-//	public Response convertRaceDates() throws Exception {
-//	  
-//	  try {
-//		    
-//		    Main.convertRaceDates();
-//	  
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-//		} 
-//	  
-//	  	return Response.noContent().build();
-//	  
-//	}
+	@Path("convertRaceDates")
+	@GET
+	public Response convertRaceDates() throws Exception {
+	  
+	  try {
+		    
+		    Main.convertRaceDates();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
 	
 	
 	@Path("convertNotes")
@@ -950,39 +950,103 @@ public class Remote {
 	  
 	}
 	
-//	@Path("generateStats")
-//	@GET
-//	public Response generateStats() throws Exception {
-//	  
-//	  try {
-//		    
-//		    Analytics.generateStatsCSV();
-//	  
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-//		} 
-//	  
-//	  	return Response.noContent().build();
-//	  
-//	}
-//	
-//	@Path("generateComboStats/{n}")
-//	@GET
-//	public Response generateComboStats(@PathParam("n") int n) throws Exception {
-//	  
-//	  try {
-//		    
-//		    Analytics.generateComboStatsCSV(n);
-//	  
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
-//		} 
-//	  
-//	  	return Response.noContent().build();
-//	  
-//	}
+	@Path("generateMissingChartLinks")
+	@GET
+	public Response generateMissingChartLinks() throws Exception {
+	  
+	  try {
+		    
+		    Main.generateMissingChartLinks();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("generateStats")
+	@GET
+	public Response generateStats() throws Exception {
+	  
+	  try {
+		    
+		    Analytics.generateStats();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	
+	@Path("getStats")
+	@GET
+	public Response getStats() throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Analytics.getStats()).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	  
+	}
+	
+	@Path("getAngles")
+	@GET
+	public Response getAngles() throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Analytics.getAngles()).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	  
+	}
+	
+	@Path("generateComboStats/{n}")
+	@GET
+	public Response generateComboStats(@PathParam("n") int n) throws Exception {
+	  
+	  try {
+		    
+		    Analytics.generateComboStats(n);
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	  	return Response.noContent().build();
+	  
+	}
+	
+	@Path("getComboStats/{n}")
+	@GET
+	public Response getComboStats(@PathParam("n") int n) throws Exception {
+	  
+	  try {
+		    
+		    return Response.ok().entity(Analytics.getComboStats(n)).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	
+	}
+
 //	
 //	@Path("generateRaceStats")
 //	@GET

@@ -4,6 +4,11 @@ import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -15,6 +20,7 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -24,9 +30,13 @@ import com.mongodb.client.MongoDatabase;
 import net.derbyparty.jpp.chart.ProcessChart;
 import net.derbyparty.jpp.chartparser.charts.pdf.RaceResult;
 import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
+import net.derbyparty.jpp.factors.Angles;
 import net.derbyparty.jpp.object.AgeRestrictionRangeType;
 import net.derbyparty.jpp.object.AgeRestrictionType;
 import net.derbyparty.jpp.object.Angle;
+import net.derbyparty.jpp.object.Card;
+import net.derbyparty.jpp.object.Entry;
+import net.derbyparty.jpp.object.Race;
 import net.derbyparty.jpp.object.RaceDate;
 import net.derbyparty.jpp.object.SexRestrictionType;
 import net.derbyparty.jpp.object.Track;
@@ -295,16 +305,15 @@ public class Analytics {
 			FindIterable<Angle> iterable = collection.find();
 			
 			iterable.forEach(angle -> {
-				System.out.println("Updating " + angle.getName());
 				Document query = new Document()
 						.append("angle", angle.getName());					
 				
 				MongoCollection<Document> angleStatCollection = database.getCollection("angleStats");
 				FindIterable<Document> angleStatIterable = angleStatCollection.find(query);
 				
-				AtomicInteger total = new AtomicInteger(0);;
-				AtomicInteger winners =  new AtomicInteger(0);;
-				AtomicInteger ITM = new AtomicInteger(0);;
+				AtomicInteger total = new AtomicInteger(0);
+				AtomicInteger winners =  new AtomicInteger(0);
+				AtomicInteger ITM = new AtomicInteger(0);
 				DoubleAdder payoff = new DoubleAdder();
 				
 				
@@ -337,6 +346,20 @@ public class Analytics {
 		}	
 	}
 	
+	public static String getAngles() throws Exception {
+		
+		try {
+			List<Angle> angles = new ArrayList<Angle>();
+			MongoCollection<Angle> collection = database.getCollection("angles", Angle.class);
+			FindIterable<Angle> iterable = collection.find();
+			iterable.into(angles);
+			return mapper.writeValueAsString(angles);
+			
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
 	public static ObjectNode createStat(RaceResult result, Starter starter) {
 		
 		ObjectNode stat = mapper.createObjectNode();
@@ -356,97 +379,302 @@ public class Analytics {
 		
 	}
 	
-	public static ArrayNode generateStats() throws Exception {
+	public static void generateStats() throws Exception {
 		
 		try {
-			ArrayNode stats = mapper.createArrayNode();		
-//    		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
-//    		
-//    		List<Track> tracks = ProcessChart.getChartsArray();
-//			
-//			Files.list(new File(saveDir).toPath())
-//            .forEach(path -> {
-//            	if (path.toString().contains(".json")) {
-//            		Matcher matcher =  pattern.matcher(path.toString());
-//            		if (matcher.find()) {  
-//            			try {
-//            				LocalDate date = LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)));
-//            				String track = matcher.group(1);
-//            				Boolean hasChart = false;
-//            				for (Track chartTrack : tracks) {
-//            					if (chartTrack.getCode().equals(track)) {
-//            						for (RaceDate raceDate : chartTrack.getRaceDates()) {
-//            							if (raceDate.getRaceDate().equals(date)) {
-//            								hasChart = raceDate.getHasChartFlag();
-//            								break;
-//            							}
-//            						}
-//            						if (hasChart) break;
-//            					}
-//            				}
-//            				if (hasChart) {
-//	            				List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
-//	            				List<RaceResult> results = ProcessChart.getChart(track, date);
-//	            				for (int i = 0; i < card.size(); i++) {
-//	            					float maxARating = 0f;
-//	            					float maxPrimePower = 0f;
-//	            					float maxSpeedRating = 0f;
-//	            					float maxClassRating = 0f;
-//	            					float maxBrisAvgLast3Class = 0f;
-//	            					float maxBrisCurrentClass = 0f;
-//	            					float maxACL = 0f;
-//	            					float ARatingForm = 0f;
-//	            					float maxARatingConnections = 0f;
-//	            					float maxCombinedPaceAvg = 0f;
-//	            					
-//	            					for (Horse horse : card.get(i).getUnscratchedHorses()) {
-//	            						if (horse.getARating() > maxARating) maxARating = horse.getARating();
-//	            						if (horse.getPrimePower() > maxPrimePower) maxPrimePower = horse.getPrimePower();
-//	            						if (horse.getSpeedRating() > maxSpeedRating) maxSpeedRating = horse.getSpeedRating();
-//	            						if (horse.getClassRating() > maxClassRating) maxClassRating = horse.getClassRating();
-//	            						if (horse.getBrisAvgLast3Class() > maxBrisAvgLast3Class) maxBrisAvgLast3Class = horse.getBrisAvgLast3Class();
-//	            						if (horse.getBrisCurrentClass() > maxBrisCurrentClass) maxBrisCurrentClass = horse.getBrisCurrentClass();
-//	            						if (horse.getAverageCompetitiveLevel() > maxACL) maxACL = horse.getAverageCompetitiveLevel();
-//	            						if (horse.getARatingForm() > ARatingForm) ARatingForm = horse.getARatingForm();
-//	            						if (horse.getARatingConnections() > maxARatingConnections) maxARatingConnections = horse.getARatingConnections();
-//	            						if (horse.getCombinedPaceAvg() > maxCombinedPaceAvg) maxCombinedPaceAvg = horse.getCombinedPaceAvg();
-//	            					}
-//	            					for (Horse horse : card.get(i).getUnscratchedHorses()) {
-//	            						for (Starter starter : results.get(i).getStarters()) {
-//	            							if (starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "").toUpperCase().equals(horse.getName().toUpperCase())) {
-//	            								if (horse.getARating() == maxARating && maxARating > 0 && horse.getMLOdds() >= 4) {
-//		    										ObjectNode stat = createStat(results.get(i), starter);
-//		    										stat.put("statName", "Max ARating & ML >= 4");
-//		    										stats.add(stat);
-//	            								}
-//	            								if (horse.getARating() == maxARating && maxARating > 0 && starter.getOdds() >= 4) {
-//		    										ObjectNode stat = createStat(results.get(i), starter);
-//		    										stat.put("statName", "Max ARating & Odds >= 4");
-//		    										stats.add(stat);
-//	            								}  
-//	            								if (horse.getARating() == maxARating && maxARating > 0 && starter.getOdds() >= 8) {
-//		    										ObjectNode stat = createStat(results.get(i), starter);
-//		    										stat.put("statName", "Max ARating & Odds >= 8");
-//		    										stats.add(stat);
-//	            								}              								
-//	            							}
-//	            						}
-//	            					}
-//	            				}
-//            				}
-//						} catch (Exception e) {
-//							e.printStackTrace();
-//						}
-//            		}
-//            	}
-//            });
-//			
-			System.out.println("Done generating stats");
-			return stats;
+			System.out.println("Generating rating stats.");
+									
+			AtomicInteger total = new AtomicInteger(0);
+			AtomicInteger AMLGT4total =  new AtomicInteger(0);
+			AtomicInteger AMLGT4 =  new AtomicInteger(0);
+			AtomicInteger AOGT4total = new AtomicInteger(0);
+			AtomicInteger AOGT4 = new AtomicInteger(0);
+			AtomicInteger AOGT8total = new AtomicInteger(0);
+			AtomicInteger AOGT8 = new AtomicInteger(0);
+			AtomicInteger AOBT48total =  new AtomicInteger(0);
+			AtomicInteger AOBT48 =  new AtomicInteger(0);
+			AtomicInteger ARating = new AtomicInteger(0);
+			AtomicInteger primePower = new AtomicInteger(0);
+			AtomicInteger speedRating = new AtomicInteger(0);
+			AtomicInteger classRating = new AtomicInteger(0);
+			AtomicInteger brisAvgLast3Class = new AtomicInteger(0);
+			AtomicInteger brisCurrentClass = new AtomicInteger(0);
+			AtomicInteger ACL = new AtomicInteger(0);
+			AtomicInteger ARatingForm = new AtomicInteger(0);
+			AtomicInteger ARatingConnections = new AtomicInteger(0);
+			AtomicInteger combinedPaceAvg = new AtomicInteger(0);
 			
+			DoubleAdder AMLGT4Payoff = new DoubleAdder();
+			DoubleAdder AOGT4Payoff = new DoubleAdder();
+			DoubleAdder AOGT8Payoff = new DoubleAdder();
+			DoubleAdder AOBT48Payoff = new DoubleAdder();
+			DoubleAdder ARatingPayoff = new DoubleAdder();
+			DoubleAdder primePowerPayoff = new DoubleAdder();
+			DoubleAdder speedRatingPayoff = new DoubleAdder();
+			DoubleAdder classRatingPayoff = new DoubleAdder();
+			DoubleAdder brisAvgLast3ClassPayoff = new DoubleAdder();
+			DoubleAdder brisCurrentClassPayoff = new DoubleAdder();
+			DoubleAdder ACLPayoff = new DoubleAdder();
+			DoubleAdder ARatingFormPayoff = new DoubleAdder();
+			DoubleAdder ARatingConnectionsPayoff = new DoubleAdder();
+			DoubleAdder combinedPaceAvgPayoff = new DoubleAdder();
+			
+			MongoCollection<Card> cardCollection = database.getCollection("cards", Card.class);
+			FindIterable<Card> cardIterable = cardCollection.find();
+			cardIterable.forEach(card -> {
+				for (Race race : card.getRaces()) {
+					
+					Document resultQuery = new Document()
+						.append("raceNumber", race.getRaceNumber())
+						.append("track.code", race.getTrack())
+						.append("raceDate", race.getDate());					
+					
+					
+					MongoCollection<Document> resultsCollection = database.getCollection("raceResults");
+					Document raceResult = resultsCollection.find(resultQuery).first();
+					
+					if (raceResult != null) {
+						
+						total.getAndAdd(1);
+						
+						float maxARating = 0f;
+    					float maxPrimePower = 0f;
+    					float maxSpeedRating = 0f;
+    					float maxClassRating = 0f;
+    					float maxBrisAvgLast3Class = 0f;
+    					float maxBrisCurrentClass = 0f;
+    					float maxACL = 0f;
+    					float maxARatingForm = 0f;
+    					float maxARatingConnections = 0f;
+    					float maxCombinedPaceAvg = 0f;
+						
+						for (Entry entry : race.getEntries()) {
+							if (!entry.getScratchedFlag()) {
+								if (entry.getARating() > maxARating) maxARating = entry.getARating();
+	    						if (entry.getPrimePower() > maxPrimePower) maxPrimePower = entry.getPrimePower();
+	    						if (entry.getSpeedRating() > maxSpeedRating) maxSpeedRating = entry.getSpeedRating();
+	    						if (entry.getClassRating() > maxClassRating) maxClassRating = entry.getClassRating();
+	    						if (entry.getBrisAvgLast3Class() > maxBrisAvgLast3Class) maxBrisAvgLast3Class = entry.getBrisAvgLast3Class();
+	    						if (entry.getBrisCurrentClass() > maxBrisCurrentClass) maxBrisCurrentClass = entry.getBrisCurrentClass();
+	    						if (entry.getAverageCompetitiveLevel() > maxACL) maxACL = entry.getAverageCompetitiveLevel();
+	    						if (entry.getARatingForm() > maxARatingForm) maxARatingForm = entry.getARatingForm();
+	    						if (entry.getARatingConnections() > maxARatingConnections) maxARatingConnections = entry.getARatingConnections();
+	    						if (entry.getCombinedPaceAvg() > maxCombinedPaceAvg) maxCombinedPaceAvg = entry.getCombinedPaceAvg();
+							}
+						}
+						
+						for (Entry entry : race.getEntries()) {
+							
+							if (!entry.getScratchedFlag()) {
+							
+								Document starterQuery = new Document()
+									.append("raceNumber", race.getRaceNumber())
+									.append("track", race.getTrack())
+									.append("date", race.getDate())
+									.append("name", entry.getName())
+									;
+							
+								MongoCollection<Document> startersCollection = database.getCollection("startersResults");
+								Document starterResult = startersCollection.find(starterQuery).first();
+								
+								if (starterResult != null) {
+									if (entry.getARating() == maxARating && maxARating > 0 && entry.getMLOdds() >= 4) {
+										AMLGT4total.getAndAdd(1);
+									}
+									if (entry.getARating() == maxARating && maxARating > 0 && starterResult.getDouble("odds") >= 4.0D) {
+										AOGT4total.getAndAdd(1);
+									}
+									if (entry.getARating() == maxARating && maxARating > 0 && starterResult.getDouble("odds") >= 8.0D) {
+										AOGT8total.getAndAdd(1);
+									}
+									if (entry.getARating() == maxARating && maxARating > 0 && starterResult.getDouble("odds") >= 4.0D && starterResult.getDouble("odds") < 8.0D) {
+										AOBT48total.getAndAdd(1);
+									}
+								}
+								
+								if (starterResult != null && starterResult.getBoolean("winner")) {
+									if (entry.getARating() == maxARating && maxARating > 0) {
+										ARating.getAndAdd(1);
+										ARatingPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getARating() == maxARating && maxARating > 0 && entry.getMLOdds() >= 4) {
+										AMLGT4.getAndAdd(1);
+										AMLGT4Payoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getARating() == maxARating && maxARating > 0 && starterResult.getDouble("odds") >= 4.0D) {
+										AOGT4.getAndAdd(1);
+										AOGT4Payoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getARating() == maxARating && maxARating > 0 && starterResult.getDouble("odds") >= 8.0D) {
+										AOGT8.getAndAdd(1);
+										AOGT8Payoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getARating() == maxARating && maxARating > 0 && starterResult.getDouble("odds") >= 4.0D && starterResult.getDouble("odds") < 8.0D) {
+										AOBT48.getAndAdd(1);
+										AOBT48Payoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getPrimePower() == maxPrimePower && maxPrimePower > 0) {
+										primePower.getAndAdd(1);
+										primePowerPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getSpeedRating() == maxSpeedRating && maxSpeedRating > 0) {
+										speedRating.getAndAdd(1);
+										speedRatingPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getClassRating() == maxClassRating && maxClassRating > 0) {
+										classRating.getAndAdd(1);
+										classRatingPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getBrisAvgLast3Class() == maxBrisAvgLast3Class && maxBrisAvgLast3Class > 0) {
+										brisAvgLast3Class.getAndAdd(1);
+										brisAvgLast3ClassPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getBrisCurrentClass() == maxBrisCurrentClass && maxBrisCurrentClass > 0) {
+										brisCurrentClass.getAndAdd(1);
+										brisCurrentClassPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getAverageCompetitiveLevel() == maxACL && maxACL > 0) {
+										ACL.getAndAdd(1);
+										ACLPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getARatingForm() == maxARatingForm && maxARatingForm > 0) {
+										ARatingForm.getAndAdd(1);
+										ARatingFormPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getARatingConnections() == maxARatingConnections && maxARatingConnections > 0) {
+										ARatingConnections.getAndAdd(1);
+										ARatingConnectionsPayoff.add(starterResult.getDouble("payoff"));
+									}
+									if (entry.getCombinedPaceAvg() == maxCombinedPaceAvg && maxCombinedPaceAvg > 0) {
+										combinedPaceAvg.getAndAdd(1);
+										combinedPaceAvgPayoff.add(starterResult.getDouble("payoff"));
+									}
+								}
+							}
+							
+						}
+					}
+					
+				}
+			});
+
+			Document stats = new Document()
+				.append("date", new Date())
+				.append("total", total)
+				.append("ARating", ARating.get())
+				.append("AMLGT4total", AMLGT4total.get())
+				.append("AMLGT4", AMLGT4.get())
+				.append("AOGT4total", AOGT4total.get())
+				.append("AOGT4", AOGT4.get())
+				.append("AOGT8total", AOGT8total.get())
+				.append("AOGT8", AOGT8.get())
+				.append("AOBT48total", AOBT48total.get())
+				.append("AOBT48", AOBT48.get())
+				.append("primePower", primePower.get())
+				.append("speedRating", speedRating.get())
+				.append("classRating", classRating.get())
+				.append("brisAvgLast3Class", brisAvgLast3Class.get())
+				.append("brisCurrentClass", brisCurrentClass.get())
+				.append("ACL", ACL.get())
+				.append("ARatingForm", ARatingForm.get())
+				.append("ARatingConnections", ARatingConnections.get())
+				.append("combinedPaceAvg", combinedPaceAvg.get())
+				.append("ARatingPayoff", ARatingPayoff.doubleValue())
+				.append("AMLGT4Payoff", AMLGT4Payoff.doubleValue())
+				.append("AOGT4Payoff", AOGT4Payoff.doubleValue())
+				.append("AOGT8Payoff", AOGT8Payoff.doubleValue())
+				.append("AOBT48Payoff", AOBT48Payoff.doubleValue())
+				.append("primePowerPayoff", primePowerPayoff.doubleValue())
+				.append("speedRatingPayoff", speedRatingPayoff.doubleValue())
+				.append("classRatingPayoff", classRatingPayoff.doubleValue())
+				.append("brisAvgLast3ClassPayoff", brisAvgLast3ClassPayoff.doubleValue())
+				.append("brisCurrentClassPayoff", brisCurrentClassPayoff.doubleValue())
+				.append("ACLPayoff", ACLPayoff.doubleValue())
+				.append("ARatingFormPayoff", ARatingFormPayoff.doubleValue())
+				.append("ARatingConnectionsPayoff", ARatingConnectionsPayoff.doubleValue())
+				.append("combinedPaceAvgPayoff", combinedPaceAvgPayoff.doubleValue());
+			
+			MongoCollection<Document> statCollection = database.getCollection("stats");
+			statCollection.insertOne(stats);
+			
+			
+			System.out.println("Rating Stat Generation Done; Races: " + total.get());
+						
 		} catch (Exception e) {
 			throw e;
 		}	
+	}
+	
+	public static String getStats() throws Exception {
+		
+		try {
+			MongoDatabase database = mongoClient.getDatabase("jpp");
+			MongoCollection<Document> collection = database.getCollection("stats");
+			AggregateIterable<Document> result = collection.aggregate(Arrays.asList(new Document("$sort", 
+			    new Document("date", -1L)), 
+			    new Document("$addFields", 
+			    new Document("ARatingPct", 
+			    new Document("$divide", Arrays.asList("$ARating", "$total")))
+			            .append("AMLGT4Pct", 
+			    new Document("$divide", Arrays.asList("$AMLGT4", "$AMLGT4total")))
+			            .append("AOGT4Pct", 
+			    new Document("$divide", Arrays.asList("$AOGT4", "$AOGT4total")))
+			            .append("AOGT8Pct", 
+			    new Document("$divide", Arrays.asList("$AOGT8", "$AOGT8total")))
+			            .append("AOBT48Pct", 
+			    new Document("$divide", Arrays.asList("$AOBT48", "$AOBT48total")))
+			            .append("primePowerPct", 
+			    new Document("$divide", Arrays.asList("$primePower", "$total")))
+			            .append("speedRatingPct", 
+			    new Document("$divide", Arrays.asList("$speedRating", "$total")))
+			            .append("classRatingPct", 
+			    new Document("$divide", Arrays.asList("$classRating", "$total")))
+			            .append("brisAvgLast3ClassPct", 
+			    new Document("$divide", Arrays.asList("$brisAvgLast3Class", "$total")))
+			            .append("brisCurrentClassPct", 
+			    new Document("$divide", Arrays.asList("$brisCurrentClass", "$total")))
+			            .append("ACLPct", 
+			    new Document("$divide", Arrays.asList("$ACL", "$total")))
+			            .append("ARatingFormPct", 
+			    new Document("$divide", Arrays.asList("$ARatingForm", "$total")))
+			            .append("ARatingConnectionsPct", 
+			    new Document("$divide", Arrays.asList("$ARatingConnections", "$total")))
+			            .append("combinedPaceAvgPct", 
+			    new Document("$divide", Arrays.asList("$combinedPaceAvg", "$total")))
+			            .append("ARatingROI", 
+			    new Document("$divide", Arrays.asList("$ARatingPayoff", "$total")))
+			            .append("AMLGT4ROI", 
+			    new Document("$divide", Arrays.asList("$AMLGT4Payoff", "$AMLGT4total")))
+			            .append("AOGT4ROI", 
+			    new Document("$divide", Arrays.asList("$AOGT4Payoff", "$AOGT4total")))
+			            .append("AOGT8ROI", 
+			    new Document("$divide", Arrays.asList("$AOGT8Payoff", "$AOGT8total")))
+			            .append("AOBT48ROI", 
+			    new Document("$divide", Arrays.asList("$AOBT48Payoff", "$AOBT48total")))
+			            .append("primePowerROI", 
+			    new Document("$divide", Arrays.asList("$primePowerPayoff", "$total")))
+			            .append("speedRatingROI", 
+			    new Document("$divide", Arrays.asList("$speedRatingPayoff", "$total")))
+			            .append("classRatingROI", 
+			    new Document("$divide", Arrays.asList("$classRatingPayoff", "$total")))
+			            .append("brisAvgLast3ClassROI", 
+			    new Document("$divide", Arrays.asList("$brisAvgLast3ClassPayoff", "$total")))
+			            .append("brisCurrentClassROI", 
+			    new Document("$divide", Arrays.asList("$brisCurrentClassPayoff", "$total")))
+			            .append("ACLROI", 
+			    new Document("$divide", Arrays.asList("$ACLPayoff", "$total")))
+			            .append("ARatingFormROI", 
+			    new Document("$divide", Arrays.asList("$ARatingFormPayoff", "$total")))
+			            .append("ARatingConnectionsROI", 
+			    new Document("$divide", Arrays.asList("$ARatingConnectionsPayoff", "$total")))
+			            .append("combinedPaceAvgROI", 
+			    new Document("$divide", Arrays.asList("$combinedPaceAvgPayoff", "$total"))))));
+
+			return mapper.writeValueAsString(result.first());
+			
+		} catch (Exception e) {
+			throw e;
+		}
 	}
 	
 //	public static void generateStatsCSV() throws Exception {
@@ -550,111 +778,123 @@ public class Analytics {
 //		}	
 //	}
 //	
-//public static ArrayNode generateComboStats(int n) throws Exception {
-//		
-//		try {
-//			ArrayNode stats = mapper.createArrayNode();		
-//    		Pattern pattern = Pattern.compile("([A-Z]+)(\\d{2})(\\d{2})(\\d{4})");
-//    		
-//    		List<List<Angle>> combos = Angles.getAngleCombos(n);
-//    		List<Track> tracks = ProcessChart.getChartsArray();  		
-//			
-//			Files.list(new File(saveDir).toPath())
-//            .forEach(path -> {
-//            	if (path.toString().contains(".json")) {
-//            		Matcher matcher =  pattern.matcher(path.toString());
-//            		if (matcher.find()) {  
-//            			try {
-//            				LocalDate date = LocalDate.of(Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)));
-//            				String track = matcher.group(1);
-//            				Boolean hasChart = false;
-//            				for (Track chartTrack : tracks) {
-//            					if (chartTrack.getCode().equals(track)) {
-//            						for (RaceDate raceDate : chartTrack.getRaceDates()) {
-//            							if (raceDate.getRaceDate().equals(date)) {
-//            								hasChart = raceDate.getHasChartFlag();
-//            								break;
-//            							}
-//            						}
-//            						if (hasChart) break;
-//            					}
-//            				}
-//            				if (hasChart) {
-//            					System.out.println("Processing " + track + date.format(DateTimeFormatter.ofPattern("YYYYMMdd")));
-//	            				List<Race> card = Arrays.asList(mapper.readValue(Paths.get(saveDir + track + date.format(DateTimeFormatter.ofPattern("MMddYYYY")) + ".json").toFile(), Race[].class));
-//	            				List<RaceResult> results = ProcessChart.getChart(track, date);
-//	            				for (int i = 0; i < card.size(); i++) {
-//	            					for (Horse horse : card.get(i).getUnscratchedHorses()) {
-//	            						for (Starter starter : results.get(i).getStarters()) {
-//	            							if (starter.getHorse().getName().replaceAll("\\s\\(.+\\)", "").toUpperCase().equals(horse.getName().toUpperCase())) {
-//	            								for (List<Angle> combo : combos) {
-//	            									ObjectNode stat = mapper.createObjectNode();
-//	            									Boolean match = true;
-//	            									String comboName = "";
-//	            									for (int j = 0; j < n; j++) {
-//	            										if (!horse.getAngles().contains(combo.get(j))) {
-//	            											match = false;
-//	            											break;
-//	            										}
-//	            										stat.put("angle"+j, combo.get(j).getName());
-//	            										comboName += combo.get(j).getName();
-//	            										if (j < n-1) comboName += " & ";
-//	            									}
-//	            									if (match) {
-//	            										stat.put("angles", comboName);
-//	            										stat.put("track", results.get(i).getTrack().getCode());
-//	            										stat.put("date", results.get(i).getRaceDate().format(DateTimeFormatter.ofPattern(("MM/dd/YYYY"))));
-//	            										stat.put("raceNumber", results.get(i).getRaceNumber());
-//	            										stat.put("horse", starter.getHorse().getName());
-//	            										stat.put("trainer", starter.getTrainer().getName());
-//	            										stat.put("jockey", starter.getJockey().getName());
-//	            										stat.put("finishPosition", starter.getFinishPosition());
-//	            										stat.put("officialPosition", starter.getOfficialPosition());
-//	            										stat.put("winner", starter.getOfficialPosition() != null && starter.getOfficialPosition() == 1);
-//	            										stat.put("ITM", starter.getOfficialPosition() != null && starter.getOfficialPosition() <= 3);
-//	            										stat.put("odds", starter.getOdds());
-//	            										stat.put("win", (starter.getWinPlaceShowPayoff() == null || starter.getWinPlaceShowPayoff().getWin() == null) ? 0 : starter.getWinPlaceShowPayoff().getWin().getPayoff());
-//	            										stats.add(stat);
-//	            									}
-//	            								}
-//	            							}
-//	            						}
-//	            					}
-//	            				}
-//            				}
-//						} catch (Exception e) {
-//							//e.printStackTrace();
-//						}
-//            		}
-//            	}
-//            });
-//			
-//			System.out.println("Done generating combos (" + n + ")");
-//			return stats;
-//			
-//		} catch (Exception e) {
-//			throw e;
-//		}	
-//	}
-//		
-//	public static void generateComboStatsCSV(int n) throws Exception {
-//		
-//		try {
-//			JsonNode node = mapper.valueToTree(generateComboStats(n));
-//			
-//			Builder csvSchemaBuilder = CsvSchema.builder();
-//			JsonNode firstObject = node.elements().next();
-//			firstObject.fieldNames().forEachRemaining(fieldName -> {csvSchemaBuilder.addColumn(fieldName);} );
-//			CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
-//			
-//			CsvMapper csvMapper = new CsvMapper();
-//			csvMapper.writerFor(JsonNode.class)
-//			  .with(csvSchema)
-//			  .writeValue(new File(n == 2 ? combo2StatsFile : combo3StatsFile), node);
-//			
-//		} catch (Exception e) {
-//			throw e;
-//		}	
-//	}
-//	
+	
+public static void generateComboStats(int n) throws Exception {
+		
+		try {
+			System.out.println("Generating Combo (" + n + ") stats.");
+    		List<List<Angle>> combos = Angles.getAngleCombos(n);	
+    		
+			MongoCollection<Document> statsCollection = database.getCollection("comboStats" + n);
+			statsCollection.drop();
+			
+			MongoCollection<Card> cardCollection = database.getCollection("cards", Card.class);
+			FindIterable<Card> cardIterable = cardCollection.find();
+			cardIterable.forEach(card -> {
+				for (Race race : card.getRaces()) {
+					
+					Document resultQuery = new Document()
+							.append("raceNumber", race.getRaceNumber())
+							.append("track.code", race.getTrack())
+							.append("raceDate", race.getDate());					
+						
+						
+					MongoCollection<Document> resultsCollection = database.getCollection("raceResults");
+						Document raceResult = resultsCollection.find(resultQuery).first();
+						
+					if (raceResult != null) {
+						
+						for (Entry entry : race.getEntries()) {
+							
+							if (!entry.getScratchedFlag()) {
+							
+								Document starterQuery = new Document()
+									.append("raceNumber", race.getRaceNumber())
+									.append("track", race.getTrack())
+									.append("date", race.getDate())
+									.append("name", entry.getName())
+									;
+							
+								MongoCollection<Document> startersCollection = database.getCollection("startersResults");
+								Document starterResult = startersCollection.find(starterQuery).first();
+								
+								if (starterResult != null) {
+    								for (List<Angle> combo : combos) {
+    									Document stat = new Document();
+    									Boolean match = true;
+    									String comboName = "";
+    									for (int j = 0; j < n; j++) {
+    										if (!entry.getAngles().contains(combo.get(j))) {
+    											match = false;
+    											break;
+    										}
+    										stat.put("angle"+j, combo.get(j).getName());
+    										comboName += combo.get(j).getName();
+    										if (j < n-1) comboName += " & ";
+    									}
+    									if (match) {
+    										stat.put("angles", comboName);
+    										stat.put("track", race.getTrack());
+    										stat.put("date", race.getDate().toInstant().toEpochMilli());
+    										stat.put("raceNumber", race.getRaceNumber());
+    										stat.put("horse", entry.getName());
+    										stat.put("trainer", entry.getTrainer().getName());
+    										stat.put("jockey", entry.getJockey().getName());
+    										stat.put("finishPosition", starterResult.getInteger("finishPosition"));
+    										stat.put("officialPosition", starterResult.getInteger("officialPosition"));
+    										stat.put("winner", starterResult.getBoolean("winner"));
+    										stat.put("ITM", starterResult.getBoolean("ITM"));
+    										stat.put("odds", starterResult.getDouble("odds"));
+    										stat.put("payoff", starterResult.getDouble("payoff"));
+    										statsCollection.insertOne(stat);
+    									}
+    								}
+								}
+							}
+						}
+					}
+            	}
+            });			
+			System.out.println("Done generating combos (" + n + ")");
+			
+		} catch (Exception e) {
+			throw e;
+		}	
+	}
+
+	public static String getComboStats(int n) throws Exception {
+		
+		try {
+			List<Document> results = new ArrayList<Document>();
+			MongoDatabase database = mongoClient.getDatabase("jpp");
+			MongoCollection<Document> collection = database.getCollection("comboStats" + n + "Summary");
+			collection.find().into(results);
+			return mapper.writeValueAsString(results);
+			
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	public static List<Document> getComboAlerts(int n) throws Exception {
+		
+		try {
+			List<Document> combos = new ArrayList<Document>();
+			Document filter = new Document("$and", Arrays.asList(new Document("winPercent", 
+			        new Document("$gt", .60d)), 
+			        new Document("winners", 
+			        new Document("$gte", 10L)), 
+			        new Document("ROI", 
+			        new Document("$gt", 2L))));
+
+			MongoDatabase database = mongoClient.getDatabase("jpp");
+			MongoCollection<Document> collection = database.getCollection("comboStats" + n + "Summary");
+			FindIterable<Document> result = collection.find(filter);
+			result.into(combos);
+			return combos;
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
 }

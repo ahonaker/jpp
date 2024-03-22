@@ -107,7 +107,7 @@ export default {
 			return _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
                 , function (d) {
-					return moment(d,"YYYY-MM-DD").format("yyyy-MM-DD");
+					return moment(d).format("yyyy-MM-DD");
                 }); 
 		},
 		starterFields() {
@@ -168,8 +168,7 @@ export default {
 				var chartDate = this.chartDate;
 				var track = _.findWhere(this.tracks, {code: this.track});
 				this.chartReviewed = _.find(track.raceDates, function(d){	
-//					return (d.raceDate[0] == chartDate[0] && d.raceDate[1] == chartDate[1] && d.raceDate[2] == chartDate[2]);
-					return moment(chartDate).isSame(moment(d.raceDate,"YYYY-MM-DD"));
+					return moment(chartDate).isSame(moment(d.raceDate));
 				}).reviewedFlag;
 				this.status = "";
 			} catch (err) {

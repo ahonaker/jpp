@@ -2,7 +2,7 @@
     <b-table
         id="pps"
         :items="race.entries"
-        :fields="horseFields"
+        :fields="entryFields"
         small
         sort-icon-left
         sort-desc
@@ -535,6 +535,12 @@
                                 </span>
                             </b-col>
                         </b-row>
+                        <b-row v-for="(alert,ndx) in comboAlerts(row.item)" :key="ndx">
+                            <b-col>
+                                <b-icon-star-fill></b-icon-star-fill>
+                                <strong> {{alert.trim()}}</strong>
+                            </b-col>
+                        </b-row>
                     </b-col>
                 </b-row>     
                 <b-row class="mb-2">
@@ -549,13 +555,13 @@
                         ></b-form-textarea>
                     </b-col>
                     <b-col>
-                        <b-button size="sm" class="my-3" variant="primary" @click="setHorseNote(row.item)"><b-icon-cloud-upload-fill></b-icon-cloud-upload-fill></b-button>
+                        <b-button size="sm" class="my-3" variant="primary" @click="setEntryNote(row.item)"><b-icon-cloud-upload-fill></b-icon-cloud-upload-fill></b-button>
                     </b-col>
                 </b-row>
                 <b-collapse :id="'extra-'+race.raceNumber+'-'+row.index" class="mt-2">
-                    <horse-extra-view :horse="row.item"></horse-extra-view>
+                    <entry-extra-view :entry="row.item"></entry-extra-view>
                 </b-collapse>               
-                <past-performance-view :horse="row.item" :race="race" :tracks="tracks" @goToChart="goToChart"></past-performance-view>
+                <past-performance-view :entry="row.item" :race="race" :tracks="tracks" @goToChart="goToChart"></past-performance-view>
                 <span v-for="workout in row.item.workouts" :key="workout.date">
                     <workout-view :workout="workout"></workout-view>
                 </span>										
@@ -569,7 +575,7 @@
 import { BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill, BIconFilePdf, BIconLightbulb } from 'bootstrap-vue'
 import PastPerformanceView from '@/components/PastPerformanceView'
 import WorkoutView from '@/components/WorkoutView'
-import HorseExtraView from '@/components/HorseExtraView'
+import EntryExtraView from '@/components/EntryExtraView'
 
 import axios from 'axios'
 import _ from 'underscore'
@@ -577,7 +583,7 @@ import _ from 'underscore'
 export default {
     name: 'RaceView',
     components: {
-		PastPerformanceView, WorkoutView, HorseExtraView, BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill, BIconFilePdf, BIconLightbulb 
+		PastPerformanceView, WorkoutView, EntryExtraView, BIconTypeUnderline, BIconTypeStrikethrough, BIconInfo, BIconEyeSlashFill, BIconCloudUploadFill, BIconStarFill, BIconFilePdf, BIconLightbulb 
     },
     props : ['race', 'hideML', 'tracks'],
     data () {
@@ -585,7 +591,7 @@ export default {
             transProps: {
 				name: 'flip-list'
 			},
-			horseFields: [
+			entryFields: [
 				{key: "scratchButton", label:""},
 				{key: "programNumber", label:"#", title: "Program Number (& Post Position)", sortable:true},
                 {key: "pickButton", label:""},
@@ -761,12 +767,12 @@ export default {
                 
             }               
         },
-        async updateSelection(horse) {
+        async updateSelection(entry) {
             try {
                 var formData = new FormData();
-                formData.append("raceNumber", horse.raceNumber);
-                formData.append("name", horse.name);
-                formData.append("selection", horse.selection);
+                formData.append("raceNumber", entry.raceNumber);
+                formData.append("name", entry.name);
+                formData.append("selection", entry.selection);
                 const response = await axios({
                     url: 'setSelection',
                     method: 'POST',
@@ -782,12 +788,12 @@ export default {
                 
             }               
         },       
-        async updateBettingLine(horse) {
+        async updateBettingLine(entry) {
             try {
                 var formData = new FormData();
-                formData.append("raceNumber", horse.raceNumber);
-                formData.append("name", horse.name);
-                formData.append("bettingLine", horse.bettingLine);
+                formData.append("raceNumber", entry.raceNumber);
+                formData.append("name", entry.name);
+                formData.append("bettingLine", entry.bettingLine);
                 const response = await axios({
                     url: 'setBettingLine',
                     method: 'POST',
@@ -803,15 +809,15 @@ export default {
                 
             }  
         },
-		async setHorseNote(horse) {
+		async setEntryNote(entry) {
             try {
 				this.loading = true;
                 var formData = new FormData();
-                formData.append("raceNumber", horse.raceNumber);
-                formData.append("name", horse.name);
-                formData.append("note", horse.note);
+                formData.append("raceNumber", entry.raceNumber);
+                formData.append("name", entry.name);
+                formData.append("note", entry.note);
                 await axios({
-                    url: 'setHorseNote',
+                    url: 'setEntryNote',
                     method: 'POST',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/',
                     headers: {
@@ -1062,13 +1068,17 @@ export default {
             if (!reverse) sas.reverse();
             return sas.indexOf(value) + 1;
         },
-        payoutString(horse) {
-            return (horse.winPayout > 0 ? this.formatCurrency2(horse.winPayout) + " " : "") 
-                + (horse.placePayout > 0 ? this.formatCurrency2(horse.placePayout) + " " : "")
-                + (horse.showPayout > 0 ? this.formatCurrency2(horse.showPayout) : "")
+        payoutString(entry) {
+            return (entry.winPayout > 0 ? this.formatCurrency2(entry.winPayout) + " " : "") 
+                + (entry.placePayout > 0 ? this.formatCurrency2(entry.placePayout) + " " : "")
+                + (entry.showPayout > 0 ? this.formatCurrency2(entry.showPayout) : "")
         },
         goToChart(pp) {
             this.$emit("goToChart", pp);
+        },
+        comboAlerts(entry) {
+            if (entry.comboAlert) return entry.comboAlert.split(";");
+            return [];
         }
     }
 

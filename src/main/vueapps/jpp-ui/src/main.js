@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import RacesView from './views/RacesView.vue'
 import PrintView from './views/PrintView.vue'
 import AdminView from './views/AdminView.vue'
+import StatsView from './views/StatsView.vue'
 import ChartsView from './views/ChartsView.vue'
 import SummaryView from './views/SummaryView.vue'
 import HorsesView from './views/HorsesView.vue'
@@ -35,6 +36,11 @@ const routes = [
 		path: "/admin",
 		name: "AdminView",
 		component: AdminView
+	},
+	{
+		path: "/stats",
+		name: "StatsView",
+		component: StatsView
 	},
 	{
 		path: "/charts",

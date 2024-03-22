@@ -1,6 +1,8 @@
 package net.derbyparty.jpp.main;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -184,61 +186,6 @@ public class Main {
 		return mapper.writeValueAsString(rs);
 	}
 	
-	
-//	public static void addKeyRacesToPP() throws Exception {
-//		
-//		try {
-//			for (PotentialKeyRace keyRace : ProcessChart.getKeyRacesList()) {
-//				for (Race race : card.getRaces()) {
-//					for (Entry entry : race.getEntries()) {
-//						for (PastPerformance pp : entry.getPastPerformances()) {
-//							if (pp.getTrackCode().equals(keyRace.getTrack())
-//								&& pp.getRaceDate().equals(keyRace.getRaceDate())
-//								&& pp.getRaceNumber() == keyRace.getRaceNumber()) pp.setKeyRace(keyRace);
-//						}
-//					}
-//				}
-//			};
-//		} catch (Exception e) {
-//			throw e;
-//		}
-//	}
-	
-//	public static void addHorsesToPP() throws Exception {
-//		
-//		try {
-//			
-//			for (Race race : card.getRaces()) {
-//				for (Entry entry : race.getEntries()) {
-//					MongoCollection<Horse> horsesCollection = database.getCollection("horses", Horse.class);
-//					Bson horseQuery = eq("name", entry.getName().replaceAll("\\s\\(.+\\)", ""));
-//					
-//					Horse horse = horsesCollection.find(horseQuery).first();
-//					if (horse != null) {
-//						
-//						entry.setComment(horse.getComment());
-//						entry.setFlag(horse.getFlag());						
-//				
-//						for (PastPerformance pp : entry.getPastPerformances()) {
-//				    		for (int j = 0; j < horse.getRaceNotes().size(); j++) {
-//				    			if (horse.getRaceNotes().get(j).getTrack().equals(pp.getTrackCode())
-//				    				&& horse.getRaceNotes().get(j).getRaceDate().equals(pp.getRaceDate())
-//				    				&& horse.getRaceNotes().get(j).getRaceNumber() == pp.getRaceNumber()) {
-//				    					pp.setComment(horse.getRaceNotes().get(j).getComment());
-//				    					pp.setFlag(horse.getRaceNotes().get(j).getFlag());
-//				    					pp.setFootnote(horse.getRaceNotes().get(j).getFootnote());
-//				    			}
-//				    		}
-//						}
-//					}
-//				}
-//			}
-//			
-//		} catch (Exception e) {
-//			throw e;
-//		}
-//	}
-	
 	public static void getChanges () throws Exception {
 		
 		try {
@@ -398,6 +345,8 @@ public class Main {
 	public static String calculate() throws Exception {
 		
 		try {
+			List<Document> combos2 = Analytics.getComboAlerts(2);
+			List<Document> combos3 = Analytics.getComboAlerts(3);
 			for (Race race : card.getRaces()) {
 							
 				for (Entry entry : race.getUnscratchedEntries()) {
@@ -472,7 +421,52 @@ public class Main {
 						newAngles.add(angle);
 					}
 					entry.setAngles(newAngles);
+					
+					String comboAlert = "";
+					
+					for (Document combo : combos2) {
+						int matches = 0;
+						for (Angle angle : newAngles ) {
+							if (angle.getName() != null 
+									&& 
+									(combo.get("_id", Document.class).getString("angle0").equals(angle.getName())
+										|| combo.get("_id", Document.class).getString("angle1").equals(angle.getName())
+									)
+								)
+								matches++;
+						}
+						if (matches == 2) {
+							if (comboAlert != "") comboAlert += "; ";
+							comboAlert += combo.getString("_id.angles") + " (" +
+								combo.getInteger("winners") + "/" +
+								combo.getInteger("total") + " $" +
+								String.format("%.2f", combo.getDouble("ROI"));
+						}
+					}
+					for (Document combo : combos3) {
+						int matches = 0;
+						for (Angle angle : newAngles ) {
+							if (angle.getName() != null 
+									&& 
+									(combo.get("_id", Document.class).getString("angle0").equals(angle.getName())
+										|| combo.get("_id", Document.class).getString("angle1").equals(angle.getName())
+										|| combo.get("_id", Document.class).getString("angle2").equals(angle.getName())
+									)
+								)
+								matches++;						}
+						
+						if (matches == 3) {
+							if (comboAlert != "") comboAlert += "; ";
+							comboAlert += combo.get("_id", Document.class).getString("angles") + " (" +
+								combo.getInteger("winners") + "/" +
+								combo.getInteger("total") + " $" +
+								String.format("%.2f", combo.getDouble("ROI")) + ")";
+						}
+					}
+					entry.setComboAlert(comboAlert);
 				}
+				
+
 			}
 			
 			setARatingFairValue();
@@ -642,7 +636,7 @@ public class Main {
 		}
 	}
 	
-	public static void setHorseNote(int raceNumber, String name, String note) throws Exception {
+	public static void setEntryNote(int raceNumber, String name, String note) throws Exception {
 		
 		try {
 			for (Race race : card.getRaces()) {
@@ -1133,46 +1127,72 @@ public class Main {
 		}
 	}
 	
-//	public static void convertRaceDates() throws Exception  {
-//		try {
-//			
-//			List<JsonNode> jsonTracks = new ArrayList<JsonNode>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), JsonNode[].class)));
-//			
-//			for (JsonNode jsonTrack : jsonTracks) {
-//				
-//				Track track = Track.builder()
-//					.withCode(jsonTrack.get("code").toString().replace("\"",""))
-//					.withName(jsonTrack.get("name").toString().replace("\"",""))
-//					.build();
-//				
-//				List<RaceDate> dates = new ArrayList<RaceDate>();
-//				for (JsonNode jsonDate : jsonTrack.get("raceDates")) {
-//					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-M-d");
-//					System.out.println("" +
-//								jsonDate.get("raceDate").get(0).asInt() + "-"
-//								+ jsonDate.get("raceDate").get(1).asInt() + "-"
-//								+ jsonDate.get("raceDate").get(2).asInt());
-//					RaceDate raceDate = RaceDate.builder()
-//						.withHasChartFlag(jsonDate.get("hasChartFlag").asBoolean())
-//						.withReviewedFlag(jsonDate.get("reviewedFlag").asBoolean())
-//						.withRaceDate(
-//							sdf.parse("" +
-//								jsonDate.get("raceDate").get(0).asInt() + "-"
-//								+ jsonDate.get("raceDate").get(1).asInt() + "-"
-//								+ jsonDate.get("raceDate").get(2).asInt()
-//									)
-//						)
-//						.build();
-//					dates.add(raceDate);
-//				}
-//				
-//				track.setRaceDates(dates);	
-//				track.save();
-//			}
-//		} catch (Exception e) {
-//			throw e;
-//		}
-//	}
+	public static void generateMissingChartLinks() throws Exception {
+		
+		try {
+			String fileName = "/Users/ahonaker/Google Drive/pp/jpp/chartsToGet.txt";
+			SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/YYYY");
+			BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+			
+			for (Track track : getTracksList()) {
+				for (RaceDate raceDate : track.getRaceDates()) {
+					if (!raceDate.getHasChartFlag() && raceDate.getRaceDate().before(new Date())) {
+						writer.append("https://www.equibase.com/premium/eqbPDFChartPlus.cfm?RACE=A&BorP=P&TID=" 
+								+ track.getCode()
+								+ "&CTRY=USA&DT=" 
+								+ fmt.format(raceDate.getRaceDate())
+								+ "&DAY=D&STYLE=EQB");
+						writer.newLine();
+					}
+				}
+			}
+			writer.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void convertRaceDates() throws Exception  {
+		try {
+			
+			List<JsonNode> jsonTracks = new ArrayList<JsonNode>(Arrays.asList(mapper.readValue(Paths.get(raceDatesFile).toFile(), JsonNode[].class)));
+			
+			for (JsonNode jsonTrack : jsonTracks) {
+				
+				Track track = Track.builder()
+					.withCode(jsonTrack.get("code").toString().replace("\"",""))
+					.withName(jsonTrack.get("name").toString().replace("\"",""))
+					.build();
+				
+				List<RaceDate> dates = new ArrayList<RaceDate>();
+				for (JsonNode jsonDate : jsonTrack.get("raceDates")) {
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-M-d");
+					System.out.println("" +
+								jsonDate.get("raceDate").get(0).asInt() + "-"
+								+ jsonDate.get("raceDate").get(1).asInt() + "-"
+								+ jsonDate.get("raceDate").get(2).asInt());
+					RaceDate raceDate = RaceDate.builder()
+						.withHasChartFlag(jsonDate.get("hasChartFlag").asBoolean())
+						.withReviewedFlag(jsonDate.get("reviewedFlag").asBoolean())
+						.withRaceDate(
+							sdf.parse("" +
+								jsonDate.get("raceDate").get(0).asInt() + "-"
+								+ jsonDate.get("raceDate").get(1).asInt() + "-"
+								+ jsonDate.get("raceDate").get(2).asInt()
+									)
+						)
+						.build();
+					dates.add(raceDate);
+				}
+				
+				track.setRaceDates(dates);	
+				track.save();
+			}
+		} catch (Exception e) {
+			throw e;
+		}
+	}
 	
 	public static String getHorses() throws Exception {
 		
@@ -1219,7 +1239,7 @@ public class Main {
 			throw e;
 		}
 	}
-		
+			
 	
 	public static void markChartsReviewed() throws Exception {
 		try {

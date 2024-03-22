@@ -93,6 +93,7 @@ public class ProcessChart {
 			List<Track> raceDates = Main.getTracksList();
 			
 			List<RaceResult> results = chartParser.parse(chart);
+			if (results.size() == 0) throw new Exception("No chart found.");
 			
 			for (RaceResult result : results) {
 				if (!result.getCancellation().isCancelled()) {
@@ -294,7 +295,7 @@ public class ProcessChart {
             .forEach(path -> {
                 File file = new File(path.toString());
                 try {
-                	System.out.println(path);
+//                	System.out.println(path);
 					if (path.toString().contains(".pdf")) {
 						List<RaceResult> results = process(file);
 						String fullFileName = targetDir + results.get(0).getTrack().getCode() + formatter.format(results.get(0).getRaceDate()) + "USA.pdf";
@@ -302,7 +303,8 @@ public class ProcessChart {
 					            StandardCopyOption.REPLACE_EXISTING);
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					System.out.println(file.getName() + " - no chart found");
+					//e.printStackTrace();
 				}
             });
 		} catch (Exception e) {
@@ -401,7 +403,7 @@ public class ProcessChart {
 		
 		try {
 			System.out.println(track + date);
-			return mapper.writeValueAsString(getChart(track, date));
+			return mapper.writeValueAsString(addHorsesToChart(getChart(track, date)));
 			
 		} catch (Exception e) {
 			throw e;

@@ -865,7 +865,7 @@ export default {
 				for (var i=0; i < this.races.length; i++) {
 					this.setRaceNote(this.races[i]);
 					for (var j=0; j < this.races[i].entries.length; j++) {
-						this.setHorseNote(this.races[i].entries[j]);
+						this.setEntryNote(this.races[i].entries[j]);
 					}
 				}
                 await axios({
@@ -1063,7 +1063,7 @@ export default {
 				}
 			}
 		},	
-		async setHorseNote(horse) {
+		async setEntryNote(horse) {
 			if (horse.note) {
 				try {
 					this.status = "Updating";
@@ -1072,7 +1072,7 @@ export default {
 					formData.append("name", horse.name);
 					formData.append("note", horse.note);
 					await axios({
-						url: 'setHorseNote',
+						url: 'setEntryNote',
 						method: 'POST',
 						baseURL: 'http://localhost:8080/jpp/rest/remote/',
 						headers: {

@@ -7,10 +7,12 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import java.lang.reflect.Method;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -34,7 +36,6 @@ import net.derbyparty.jpp.object.Workout;
 
 public class Angles {
 
-	static List<Angle> angles = new ArrayList<Angle>();
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 	
 	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
@@ -132,7 +133,8 @@ public class Angles {
 	
 	public static Boolean lastYearStakesWinner(Race race, Entry entry) {
 		for (PastPerformance pp : entry.getPastPerformances()) {
-			if (pp.getRaceDate().getYear() == race.getDate().getYear() - 1 
+			if (pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() .getYear() 
+					== race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() - 1 
 				&& (pp.getRaceType().equals(RaceType.NON_GRADED)
 					|| pp.getRaceType().equals(RaceType.GRADE_1)
 					|| pp.getRaceType().equals(RaceType.GRADE_2)
@@ -278,26 +280,30 @@ public class Angles {
 		}	
 	}	
 	
-//	public static List<List<Angle>> getAngleCombos(int n) throws Exception {
-//		
-//		try {
-//			initializeCatalog();
-//			Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(angles.size(), n);
-//			List<List<Angle>> combos = new ArrayList<List<Angle>>();
-//			while (iterator.hasNext()) {
-//				int[] combination = iterator.next();
-//				List<Angle> angleCombo = new ArrayList<Angle>();
-//				for (int i = 0; i < n; i++) {
-//					angleCombo.add(angles.get(combination[i]));
-//				}
-//				combos.add(angleCombo);
-//			}
-//			return combos;
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw e;			
-//		}
-//	}
+	public static List<List<Angle>> getAngleCombos(int n) throws Exception {
+		
+		try {
+			List<Angle> angles = new ArrayList<Angle>();
+			MongoCollection<Angle> collection = database.getCollection("angles", Angle.class);
+			FindIterable<Angle> iterable = collection.find();
+			iterable.into(angles);
+			
+			Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(angles.size(), n);
+			List<List<Angle>> combos = new ArrayList<List<Angle>>();
+			while (iterator.hasNext()) {
+				int[] combination = iterator.next();
+				List<Angle> angleCombo = new ArrayList<Angle>();
+				for (int i = 0; i < n; i++) {
+					angleCombo.add(angles.get(combination[i]));
+				}
+				combos.add(angleCombo);
+			}
+			return combos;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;			
+		}
+	}
 	
 	public static Boolean angle_0001(Race race, Entry entry) throws Exception {	
 		//Most Recent Year Best Speed is equal or better than Max Speed Rating in the Race.	

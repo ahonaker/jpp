@@ -3,7 +3,7 @@
     <div class="card-body mt-2">
 		<a 
             :href="'https://www.twinspires.com/bet/video/replay/'
-                + race.raceDate[0] + '-' + str_pad_left(race.raceDate[1],0,2) + '-' + str_pad_left(race.raceDate[2],0,2) 
+                + m(race.raceDate).year + '-' + str_pad_left(m(race.raceDate).month,0,2) + '-' + str_pad_left(m(race.raceDate).date,0,2) 
                 + '/' + race.track.code
                 + '/Thoroughbred/' + race.raceNumber" 
             target="_blank"  
@@ -32,7 +32,7 @@
                     <b-link 
                         v-if="hasChart(row.item.lastRaced)" 
                         target="_blank" 
-                        :to="'/charts/'+row.item.lastRaced.track.code+'/'+row.item.lastRaced.raceDate[0]+'/'+row.item.lastRaced.raceDate[1]+'/'+row.item.lastRaced.raceDate[2]+'/'+row.item.lastRaced.raceNumber"
+                        :to="'/charts/'+row.item.lastRaced.track.code+'/'+m(row.item.lastRaced.raceDate).year+'/'+m(row.item.lastRaced.raceDate).month+'/'+m(row.item.lastRaced.raceDate).date+'/'+row.item.lastRaced.raceNumber"
                     >
                         <b-icon-bar-chart-steps></b-icon-bar-chart-steps>
                     </b-link>
@@ -48,7 +48,7 @@
                         <b-link 
                             v-if="hasChart(row.item.nextOutRaceNote)" 
                             target="_blank" 
-                            :to="'/charts/'+row.item.nextOutRaceNote.track+'/'+row.item.nextOutRaceNote.raceDate[0]+'/'+row.item.nextOutRaceNote.raceDate[1]+'/'+row.item.nextOutRaceNote.raceDate[2]+'/'+row.item.nextOutRaceNote.raceNumber"
+                            :to="'/charts/'+row.item.nextOutRaceNote.track+'/'+m(row.item.nextOutRaceNote.raceDate).year+'/'+m(row.item.nextOutRaceNote.raceDate).month+'/'+m(row.item.nextOutRaceNote.raceDate).date+'/'+row.item.nextOutRaceNote.raceNumber"
                         >
                             <b-icon-bar-chart-steps></b-icon-bar-chart-steps>
                         </b-link>
@@ -56,7 +56,7 @@
                             {{formatDate(row.item.nextOutRaceNote.raceDate)}}<sup>{{row.item.nextOutRaceNote.raceNumber}}</sup> {{row.item.nextOutRaceNote.track}}<sup :class="{'font-weight-bold': row.item.nextOutRaceNote.position == 1}">{{row.item.nextOutRaceNote.position}}</sup>
                         </span>
                         <b-tooltip :target="'next-'+row.item.horse.name">
-                            {{row.item.nextOutRaceNote.type}} {{row.item.nextOutRaceNote.raceClassification}} ${{row.item.nextOutRaceNote.purse}}
+                            {{row.item.nextOutRaceNote.type}} <span v-if="row.item.nextOutRaceNote.raceClassification != 'null'">{{row.item.nextOutRaceNote.raceClassification}}</span> {{formatCurrency(row.item.nextOutRaceNote.purse)}}
                         </b-tooltip>
                         <b-icon-arrow-up variant="success" v-if="riseInClass(row.item)"></b-icon-arrow-up>
                         <b-icon-arrow-down variant="danger" v-if="dropInClass(row.item)"></b-icon-arrow-down>
@@ -217,7 +217,7 @@ export default {
     components: {
 		BIconStar, BIconStarFill, BIconCameraVideoFill, BIconKey, BIconBarChartSteps, BIconArrowUp, BIconArrowDown
     },
-    props : ['race', 'starterFields', 'charts'],
+    props : ['race', 'starterFields', 'tracks'],
     data () {
 		return {
 			flags: ['', 'Wide', 'Trouble', 'Bad Start', 'Good Trip', 'Duel', 'Early Speed', 'Late Kick', 'No Factor']
@@ -249,8 +249,9 @@ export default {
     },
     methods: {
 		formatDate (date) {
-            return new Date(date).toLocaleDateString();
+            //return new Date(date).toLocaleDateString();
 			//return date[1] + "/" + date[2] + "/" + date[0];
+            return moment(date).format("MM/DD/YY");
 		},	
 		formatCurrency(amount) {
 			const formatter = new Intl.NumberFormat('en-US', {
@@ -300,21 +301,18 @@ export default {
             return ret + "</span>";
         },
         hasChart(race) {
-            var str_pad_left = this.str_pad_left;
+            //var str_pad_left = this.str_pad_left;
             if (race == null) return false;	
 			var trackCode = (race.track.code || race.track);
-            var track = _.findWhere(this.charts, {code: trackCode});
+            var track = _.findWhere(this.tracks, {code: trackCode});
             if (track == null) return false;
+           
 			const chartDates = _.map(
                 _.pluck(_.where(track.raceDates, {hasChartFlag: true}), "raceDate")
                 , function (d) {
-                    return moment(d,"YYYY-MM-DD").format("yyyy-MM-DD");
-                });
-
-            const day = race.raceDate[0] + "-"
-				+ str_pad_left(race.raceDate[1],0,2)   + "-"
-				+ str_pad_left(race.raceDate[2],0,2);
-			return chartDates.indexOf(day) >  -1;
+                    return d;
+                });     
+			return chartDates.indexOf(race.raceDate) >  -1;
         },
 		riseInClass(starter) {
 			if (!starter.nextOutRaceNote) return false;
@@ -347,7 +345,14 @@ export default {
 		offTrack(starter) {
 			if (!starter.nextOutRaceNote) return false;
 			return starter.nextOutRaceNote.trackCondition != 'Fast' && starter.nextOutRaceNote.trackCondition != 'Firm';
-		}					
+		},
+        m(date) {
+            return {
+                year: moment(date).year(),
+                month: moment(date).month()+1,
+                date: moment(date).date()
+            };
+        }				
     }
 }
 </script>
