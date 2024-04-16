@@ -1099,4 +1099,124 @@ public class Remote {
 	  
 	}
 	
+	@Path("createRaceCategories")
+	@GET
+	public Response createRaceCategories() throws Exception {
+	  
+	  try {
+		    
+		    Main.createRaceCategories();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	  
+	  return Response.ok().build();
+	}
+	
+	@Path("updatePars")
+	@GET
+	public Response updatePars() throws Exception {
+	  
+	  try {
+		    
+		    Main.updatePars();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	  
+	  return Response.ok().build();
+	}
+	
+	@Path("updateSpeedVariants")
+	@GET
+	public Response updateSpeedVariants() throws Exception {
+	  
+	  try {
+		    
+		    Main.updateSpeedVariants();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	  
+	  return Response.ok().build();
+	}
+	
+	@Path("updateKeyRaces")
+	@GET
+	public Response updateKeyRaces() throws Exception {
+	  
+	  try {
+		    
+		    Main.updateKeyRaces();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	  
+	  return Response.ok().build();
+	}
+	
+	@Path("updatePPs")
+	@GET
+	public Response updatePPs() throws Exception {
+	  
+	  try {
+		    
+		   return Response.ok().entity(Main.updatePPs()).build();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		} 
+	  
+	}	
+	
+	
+	
+//	@Path("script/{track}/{year}/{month}/{day}")
+//	@GET
+//	public Response script(@PathParam("track") String track ,
+//			@PathParam("year") int year,
+//			@PathParam("month") int month,
+//			@PathParam("day") int day) throws Exception {
+//	  
+//	  try {
+//		    
+//		   Main.script(track, java.util.Date.from(LocalDate.of(year, month, day)
+//					  .atStartOfDay()
+//				      .atZone(ZoneId.systemDefault())
+//				      .toInstant()));
+//	  
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+//		} 
+//	  
+//	  	return Response.ok().build();
+//	}	
+	
+	
+	@Path("script")
+	@GET
+	public Response script() throws Exception {
+	  
+	  try {
+		    
+		    Main.script();
+	  
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();		
+		}
+	  
+	  return Response.ok().build();
+	}
+	
 }

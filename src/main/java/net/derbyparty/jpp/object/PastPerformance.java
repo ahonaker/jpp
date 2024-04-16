@@ -15,7 +15,6 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
-
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -184,6 +183,9 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 	private String footnote;
 	private String flag;
 	private String comment;
+	
+	private int adjustedASpeedRating;
+	private int rawASpeedRating;
 
 	@Generated("SparkTools")
 	private PastPerformance(Builder builder) {
@@ -1844,6 +1846,22 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 		TrainerChangeROI = trainerChangeROI;
 	}
 
+	public int getAdjustedASpeedRating() {
+		return adjustedASpeedRating;
+	}
+
+	public void setAdjustedASpeedRating(int adjustedASpeedRating) {
+		this.adjustedASpeedRating = adjustedASpeedRating;
+	}
+
+	public int getRawASpeedRating() {
+		return rawASpeedRating;
+	}
+
+	public void setRawASpeedRating(int rawASpeedRating) {
+		this.rawASpeedRating = rawASpeedRating;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -2781,10 +2799,13 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 
 	}
 	
-	public void addHorse() { 				
+	public void addHorse() { 		
+		
 		MongoCollection<RaceNote> collection = database.getCollection("horses", RaceNote.class);
 		RaceNote raceNote = collection.aggregate(Arrays.asList(new Document("$match", 
-		    new Document("name", name)), 
+			new Document("name", 
+				new Document("$regex", name)
+					.append("$options", "i"))),
 		    new Document("$project", 
 		    new Document("raceNotes", 1L)
 		            .append("_id", 0L)), 
@@ -2803,6 +2824,24 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 			this.setFootnote(raceNote.getFootnote());
 		}
 
+	}
+	
+	public void addSpeedRatings () {
+		
+		MongoCollection<Document> collection = database.getCollection("raceResults");
+		Document result =  collection.aggregate(Arrays.asList(new Document("$unwind", 
+			    new Document("path", "$starters")), 
+			    new Document("$match", 
+			    	new Document("starters.horse.name", 
+						new Document("$regex", name)
+							.append("$options", "i"))
+			        .append("raceDate", RaceDate)), 
+			    new Document("$project", 
+			    new Document("adjustedSpeedRating", "$starters.adjustedSpeedRating")
+			            .append("rawSpeedRating", "$starters.rawSpeedRating")))).first();
+		if (result == null) return;
+		this.rawASpeedRating = result.getInteger("rawSpeedRating");
+		this.adjustedASpeedRating = result.getInteger("adjustedSpeedRating");
 	}
 	
 }

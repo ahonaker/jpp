@@ -45,6 +45,7 @@ export default {
             loadingCombos3: true,
             statsFields: [
                 {key: "Rating", sortable: false},
+                {key: "Races", sortable: true},
                 {key: "Wins", sortable: true},     
                 {key: "Pct", sortable: true , formatter: value => {
                     const formatter = new Intl.NumberFormat('en-US', {
@@ -179,8 +180,15 @@ export default {
         statsArray() {
             var arr = [];
             arr.push({
-                "Rating": "A Rating",
+                "Rating": "Favorite",
                 "Races": this.stats.total,
+                "Wins": this.stats.favorite,
+                "Pct": this.stats.favoritePct,
+                "ROI": this.stats.favoriteROI
+            });
+            arr.push({
+                "Rating": "A Rating",
+                "Races": this.stats.ARatingTotal,
                 "Wins": this.stats.ARating,
                 "Pct": this.stats.ARatingPct,
                 "ROI": this.stats.ARatingROI
@@ -215,63 +223,63 @@ export default {
             });     
              arr.push({
                 "Rating": "Prime Power",
-                "Races": this.stats.total,
+                "Races": this.stats.primePowerTotal,
                 "Wins": this.stats.primePower,
                 "Pct": this.stats.primePowerPct,
                 "ROI": this.stats.primePowerROI
             });   
             arr.push({
                 "Rating": "Speed Rating",
-                "Races": this.stats.total,
+                "Races": this.stats.speedRatingTotal,
                 "Wins": this.stats.speedRating,
                 "Pct": this.stats.speedRatingPct,
                 "ROI": this.stats.speedRatingROI
             });  
             arr.push({
                 "Rating": "Class Rating",
-                "Races": this.stats.total,
+                "Races": this.stats.classRatingTotal,
                 "Wins": this.stats.classRating,
                 "Pct": this.stats.classRatingPct,
                 "ROI": this.stats.classRatingROI
             });    
             arr.push({
                 "Rating": "BRIS Avg Class Last 3",
-                "Races": this.stats.total,
+                "Races": this.stats.brisAvgLast3ClassTotal,
                 "Wins": this.stats.brisAvgLast3Class,
                 "Pct": this.stats.brisAvgLast3ClassPct,
                 "ROI": this.stats.brisAvgLast3ClassROI
             });             
             arr.push({
                 "Rating": "BRIS Current Class",
-                "Races": this.stats.total,
+                "Races": this.stats.brisCurrentClassTotal,
                 "Wins": this.stats.brisCurrentClass,
                 "Pct": this.stats.brisCurrentClassPct,
                 "ROI": this.stats.brisCurrentClassROI
             }); 
             arr.push({
                 "Rating": "Avg Competitive Level",
-                "Races": this.stats.total,
+                "Races": this.stats.ACLtotal,
                 "Wins": this.stats.ACL,
                 "Pct": this.stats.ACLPct,
                 "ROI": this.stats.ACLROI
             });  
             arr.push({
                 "Rating": "A Rating Form",
-                "Races": this.stats.total,
+                "Races": this.stats.ARatingFormTotal,
                 "Wins": this.stats.ARatingForm,
                 "Pct": this.stats.ARatingFormPct,
                 "ROI": this.stats.ARatingFormROI
             });    
             arr.push({
                 "Rating": "A Rating Connections",
-                "Races": this.stats.total,
+                "Races": this.stats.ARatingConnectionsTotal,
                 "Wins": this.stats.ARatingConnections,
                 "Pct": this.stats.ARatingConnectionsPct,
                 "ROI": this.stats.ARatingConnectionsROI
             });             
             arr.push({
                 "Rating": "Combined Pace Avg",
-                "Races": this.stats.total,
+                "Races": this.stats.combinedPaceAvgTotal,
                 "Wins": this.stats.combinedPaceAvg,
                 "Pct": this.stats.combinedPaceAvgPct,
                 "ROI": this.stats.combinedPaceAvgROI

@@ -1,7 +1,6 @@
 package net.derbyparty.jpp.chartparser.charts.pdf;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -15,12 +14,12 @@ import net.derbyparty.jpp.chartparser.exceptions.ChartParserException;
 import net.derbyparty.jpp.chartparser.fractionals.FractionalPoint;
 import net.derbyparty.jpp.chartparser.fractionals.FractionalPoint.Fractional;
 import net.derbyparty.jpp.chartparser.fractionals.FractionalPoint.Split;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition.LengthsAhead;
+import net.derbyparty.jpp.chartparser.points_of_call.PointOfCall;
+import net.derbyparty.jpp.chartparser.points_of_call.RelativePosition;
+import net.derbyparty.jpp.chartparser.points_of_call.TotalLengthsBehind;
+import net.derbyparty.jpp.chartparser.points_of_call.LengthsAhead;
 import net.derbyparty.jpp.chartparser.tracks.Track;
 import net.derbyparty.jpp.object.PotentialKeyRace;
-
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -182,7 +181,7 @@ public class RaceResult {
         return (starters != null ? starters.size() : 0);
     }
 
-    public PotentialKeyRace getKeyRace() {
+    public PotentialKeyRace getKeyRace() {  	
 		return keyRace;
 	}
 
@@ -190,7 +189,7 @@ public class RaceResult {
 		this.keyRace = keyRace;
 	}
 
-	@JsonIgnore
+	//@JsonIgnore
     public List<Starter> getWinners() {
         if (starters != null) {
             return starters.stream().filter(Starter::isWinner).collect(toList());
@@ -198,7 +197,7 @@ public class RaceResult {
         return new ArrayList<>();
     }
 
-	@BsonIgnore
+	//@BsonIgnore
     public String getWinningTime() {
         if (getWinners() != null && !getWinners().isEmpty()) {
             return getWinners().get(0).getFinishFractional().getTime();
@@ -540,7 +539,7 @@ public class RaceResult {
 
         Fractional calculateIndividualFractionals(Fractional fractional, PointOfCall pointOfCall) {
             RelativePosition relativePosition = pointOfCall.getRelativePosition();
-            RelativePosition.TotalLengthsBehind totalLengthsBehind = relativePosition
+            TotalLengthsBehind totalLengthsBehind = relativePosition
                     .getTotalLengthsBehind();
             LengthsAhead lengthsAhead = relativePosition.getLengthsAhead();
 

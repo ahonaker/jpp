@@ -927,7 +927,27 @@ public class WagerPayoffPools {
             return carryover;
         }
         
-        public Double getUnit() {
+        public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setWinningNumbers(String winningNumbers) {
+			this.winningNumbers = winningNumbers;
+		}
+
+		public void setNumberCorrect(Integer numberCorrect) {
+			this.numberCorrect = numberCorrect;
+		}
+
+		public void setPool(Integer pool) {
+			this.pool = pool;
+		}
+
+		public void setCarryover(Integer carryover) {
+			this.carryover = carryover;
+		}
+
+		public Double getUnit() {
             return unit;
         }
 

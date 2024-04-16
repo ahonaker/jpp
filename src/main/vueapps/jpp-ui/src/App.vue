@@ -108,6 +108,10 @@ table#pps .flip-list-move {
 	border-top: solid purple;
 }
 
+.thisRace {
+	border-top: solid blue;
+}
+
 .workout {
 	white-space: pre;
 }

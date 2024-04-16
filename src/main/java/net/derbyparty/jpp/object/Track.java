@@ -35,6 +35,9 @@ public class Track implements Serializable {
 	private String Code;
 	private String Name;
 	private List<RaceDate> raceDates;
+	private int twoTurnBreak;
+	private int twoTurnTurfBreak;	
+	private List<RaceCategory> raceCategories;
 
 
 	@Generated("SparkTools")
@@ -42,8 +45,12 @@ public class Track implements Serializable {
 		this.Code = builder.Code;
 		this.Name = builder.Name;
 		this.raceDates = builder.raceDates;
+		this.twoTurnBreak = builder.twoTurnBreak;
+		this.twoTurnTurfBreak = builder.twoTurnTurfBreak;
+		this.raceCategories = builder.raceCategories;
 	}
-	
+
+
 	public String getCode() {
 		return Code;
 	}
@@ -62,15 +69,54 @@ public class Track implements Serializable {
 	public void setRaceDates(List<RaceDate> raceDates) {
 		this.raceDates = raceDates;
 	}
+	public int getTwoTurnBreak() {
+		return twoTurnBreak;
+	}
+
+	public void setTwoTurnBreak(int twoTurnBreak) {
+		this.twoTurnBreak = twoTurnBreak;
+	}
+
+	public int getTwoTurnTurfBreak() {
+		return twoTurnTurfBreak;
+	}
+
+	public void setTwoTurnTurfBreak(int twoTurnTurfBreak) {
+		this.twoTurnTurfBreak = twoTurnTurfBreak;
+	}
+
+	public List<RaceCategory> getRaceCategories() {
+		return raceCategories;
+	}
+
+
+	public void setRaceCategories(List<RaceCategory> raceCategories) {
+		this.raceCategories = raceCategories;
+	}
+
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((Code == null) ? 0 : Code.hashCode());
 		result = prime * result + ((Name == null) ? 0 : Name.hashCode());
+		result = prime * result + ((raceCategories == null) ? 0 : raceCategories.hashCode());
 		result = prime * result + ((raceDates == null) ? 0 : raceDates.hashCode());
+		result = prime * result + twoTurnBreak;
+		result = prime * result + twoTurnTurfBreak;
 		return result;
 	}
+	@Override
+	public String toString() {
+		StringBuilder builder2 = new StringBuilder();
+		builder2.append("Track [Code=").append(Code).append(", Name=").append(Name).append(", raceDates=")
+				.append(raceDates).append(", twoTurnBreak=").append(twoTurnBreak).append(", twoTurnTurfBreak=")
+				.append(twoTurnTurfBreak).append(", raceCategories=").append(raceCategories).append("]");
+		return builder2.toString();
+	}
+
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -90,57 +136,39 @@ public class Track implements Serializable {
 				return false;
 		} else if (!Name.equals(other.Name))
 			return false;
+		if (raceCategories == null) {
+			if (other.raceCategories != null)
+				return false;
+		} else if (!raceCategories.equals(other.raceCategories))
+			return false;
 		if (raceDates == null) {
 			if (other.raceDates != null)
 				return false;
 		} else if (!raceDates.equals(other.raceDates))
 			return false;
+		if (twoTurnBreak != other.twoTurnBreak)
+			return false;
+		if (twoTurnTurfBreak != other.twoTurnTurfBreak)
+			return false;
 		return true;
 	}
-	public Track(String code, String name, List<RaceDate> raceDates) {
+
+	public Track(String code, String name, List<RaceDate> raceDates, int twoTurnBreak, int twoTurnTurfBreak,
+			List<RaceCategory> raceCategories) {
 		super();
 		Code = code;
 		Name = name;
 		this.raceDates = raceDates;
+		this.twoTurnBreak = twoTurnBreak;
+		this.twoTurnTurfBreak = twoTurnTurfBreak;
+		this.raceCategories = raceCategories;
+	}
+
+
+	public Track() {
+		super();
 	}
 	
-	public Track() {
-		
-	}
-	@Generated("SparkTools")
-	public static Builder builder() {
-		return new Builder();
-	}
-
-	@Generated("SparkTools")
-	public static final class Builder {
-		private String Code;
-		private String Name;
-		private List<RaceDate> raceDates = Collections.emptyList();
-
-		private Builder() {
-		}
-
-		public Builder withCode(String Code) {
-			this.Code = Code;
-			return this;
-		}
-
-		public Builder withName(String Name) {
-			this.Name = Name;
-			return this;
-		}
-
-		public Builder withRaceDates(List<RaceDate> raceDates) {
-			this.raceDates = raceDates;
-			return this;
-		}
-
-		public Track build() {
-			return new Track(this);
-		}
-	}
-
 	public void save() {
 		
 		ReplaceOptions opts = new ReplaceOptions().upsert(true);
@@ -165,6 +193,58 @@ public class Track implements Serializable {
 		
 		MongoCollection<Horse> collection = database.getCollection("tracks", Horse.class);
 		collection.findOneAndDelete(query);
+	}
+
+	@Generated("SparkTools")
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	@Generated("SparkTools")
+	public static final class Builder {
+		private String Code;
+		private String Name;
+		private List<RaceDate> raceDates = Collections.emptyList();
+		private int twoTurnBreak;
+		private int twoTurnTurfBreak;
+		private List<RaceCategory> raceCategories = Collections.emptyList();
+
+		private Builder() {
+		}
+
+		public Builder withCode(String Code) {
+			this.Code = Code;
+			return this;
+		}
+
+		public Builder withName(String Name) {
+			this.Name = Name;
+			return this;
+		}
+
+		public Builder withRaceDates(List<RaceDate> raceDates) {
+			this.raceDates = raceDates;
+			return this;
+		}
+
+		public Builder withTwoTurnBreak(int twoTurnBreak) {
+			this.twoTurnBreak = twoTurnBreak;
+			return this;
+		}
+
+		public Builder withTwoTurnTurfBreak(int twoTurnTurfBreak) {
+			this.twoTurnTurfBreak = twoTurnTurfBreak;
+			return this;
+		}
+
+		public Builder withRaceCategories(List<RaceCategory> raceCategories) {
+			this.raceCategories = raceCategories;
+			return this;
+		}
+
+		public Track build() {
+			return new Track(this);
+		}
 	}
 	
 }

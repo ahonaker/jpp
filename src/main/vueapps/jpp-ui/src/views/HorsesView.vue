@@ -61,7 +61,7 @@
 			<b-col>
 				<h5 class="text-center">Past Performances</h5>
 				<b-container fluid class="pp border">
-					<past-performance-view :horse="horse" :tracks="tracks"></past-performance-view>
+					<past-performance-view :entry="horse" :tracks="tracks"></past-performance-view>
 				</b-container>
 			</b-col>
 		</b-row>

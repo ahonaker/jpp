@@ -359,7 +359,19 @@ public class DistanceSurfaceTrackRecord {
             return text;
         }
 
-        public boolean isExact() {
+        public void setText(String text) {
+			this.text = text;
+		}
+
+		public void setExact(boolean exact) {
+			this.exact = exact;
+		}
+
+		public void setValue(int value) {
+			this.value = value;
+		}
+
+		public boolean isExact() {
             return exact;
         }
 

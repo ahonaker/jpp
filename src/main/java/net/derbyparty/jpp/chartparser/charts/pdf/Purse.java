@@ -206,7 +206,15 @@ public class Purse {
             return text;
         }
 
-        @Override
+        public void setType(EnhancementType type) {
+			this.type = type;
+		}
+
+		public void setText(String text) {
+			this.text = text;
+		}
+
+		@Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;

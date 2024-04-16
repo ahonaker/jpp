@@ -35,16 +35,17 @@
 				</b-nav-form>
 			</b-navbar-nav>				
 			<b-navbar-nav small>
-				<b-nav-item :disabled="!file" @click="load"><b-icon-cloud-upload v-b-tooltip.hover.bottom title="Upload"></b-icon-cloud-upload></b-nav-item>
-				<b-nav-item :disabled="races.length == 0 || !file" @click="augment"><b-icon-cloud-plus title="Augment"></b-icon-cloud-plus></b-nav-item>
-				<b-nav-item :disabled="races.length == 0 || !file" @click="addProgramNumbers"><b-icon-file-earmark-binary title="Add Program Numbers"></b-icon-file-earmark-binary></b-nav-item>
-				<b-nav-item :disabled="races.length == 0" @click="getChanges"><b-icon-triangle-fill v-b-tooltip.hover.bottom title="Get Changes"></b-icon-triangle-fill></b-nav-item>
-				<b-nav-item :disabled="races.length == 0" @click="getResults"><b-icon-currency-dollar v-b-tooltip.hover.bottom title="Results"></b-icon-currency-dollar></b-nav-item>					
-				<b-nav-item :disabled="races.length == 0" @click="calculate"><b-icon-calculator-fill v-b-tooltip.hover.bottom title="Calculate"></b-icon-calculator-fill></b-nav-item>
-				<b-nav-item :disabled="races.length == 0" @click="save(false)"><b-icon-file-earmark-arrow-up v-b-tooltip.hover.bottom title="Save"></b-icon-file-earmark-arrow-up></b-nav-item>			
-				<b-nav-item :disabled="!ppTrack && !ppDate" @click="retrieve"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
-				<b-nav-item @click="getAll"><b-icon-cloud-download v-b-tooltip.hover.bottom title="Download"></b-icon-cloud-download></b-nav-item>
-				<b-nav-item :disabled="races.length == 0" @click="clearRaces"><b-icon-eraser-fill v-b-tooltip.hover.bottom title="Clear Races"></b-icon-eraser-fill></b-nav-item>	
+				<b-nav-item :disabled="!file" @click="handle('load')"><b-icon-cloud-upload v-b-tooltip.hover.bottom title="Upload"></b-icon-cloud-upload></b-nav-item>
+				<b-nav-item :disabled="races.length == 0 || !file" @click="handle('augment')"><b-icon-cloud-plus title="Augment"></b-icon-cloud-plus></b-nav-item>
+				<b-nav-item :disabled="races.length == 0 || !file" @click="handle('addProgramNumbers')"><b-icon-file-earmark-binary title="Add Program Numbers"></b-icon-file-earmark-binary></b-nav-item>
+				<b-nav-item :disabled="races.length == 0" @click="handle('getChanges')"><b-icon-triangle-fill v-b-tooltip.hover.bottom title="Get Changes"></b-icon-triangle-fill></b-nav-item>
+				<b-nav-item :disabled="races.length == 0" @click="handle('getResults')"><b-icon-currency-dollar v-b-tooltip.hover.bottom title="Results"></b-icon-currency-dollar></b-nav-item>					
+				<b-nav-item :disabled="races.length == 0" @click="handle('calculate')"><b-icon-calculator-fill v-b-tooltip.hover.bottom title="Calculate"></b-icon-calculator-fill></b-nav-item>
+				<b-nav-item :disabled="races.length == 0" @click="handle('updatePPs')"><b-icon-arrow-clockwise v-b-tooltip.hover.bottom title="Update PPs"></b-icon-arrow-clockwise></b-nav-item>
+				<b-nav-item :disabled="races.length == 0" @click="handle('save')"><b-icon-file-earmark-arrow-up v-b-tooltip.hover.bottom title="Save"></b-icon-file-earmark-arrow-up></b-nav-item>			
+				<b-nav-item :disabled="!ppTrack && !ppDate" @click="handle('retrieve')"><b-icon-file-earmark-arrow-down v-b-tooltip.hover.bottom title="Retrieve"></b-icon-file-earmark-arrow-down></b-nav-item>
+				<b-nav-item @click="handle('getAll')"><b-icon-cloud-download v-b-tooltip.hover.bottom title="Download"></b-icon-cloud-download></b-nav-item>
+				<b-nav-item :disabled="races.length == 0" @click="handle('clearRaces')"><b-icon-eraser-fill v-b-tooltip.hover.bottom title="Clear Races"></b-icon-eraser-fill></b-nav-item>	
 			</b-navbar-nav>
 		</b-navbar>
 
@@ -447,7 +448,7 @@
 					<b-navbar-nav>
 						<b-nav-form>
 							<b-form-select v-model="race.trackCondition" :options="trackConditions" @change="updateCondition(race)"></b-form-select>		
-							<b-form-checkbox switch class="m-2" v-if="race.surface.indexOf('TURF') > -1" v-model="race.offTheTurfFlag" @change="toggleOffTheTurf(race)">Off</b-form-checkbox>
+							<b-form-checkbox switch class="m-2" v-if="race.surface &&  race.surface.indexOf('TURF') > -1" v-model="race.offTheTurfFlag" @change="toggleOffTheTurf(race)">Off</b-form-checkbox>
 							<b-form-checkbox switch class="m-2" v-if="race.offTheTurfFlag" v-model="race.ontoAllWeatherFlag" @change="toggleOntoAllWeather(race)">Onto AW</b-form-checkbox>
 							<b-form-select class="m-2" v-model="options.distance" :options="distanceOptions" @change="calculate"></b-form-select>
 							<b-form-select class="m-2" v-model="options.surface" :options="surfaceOptions" @change="calculate"></b-form-select>
@@ -556,7 +557,7 @@
 
 <script>
 //import { } from 'bootstrap-vue'
-import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill  } from 'bootstrap-vue'
+import { BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill, BIconArrowClockwise  } from 'bootstrap-vue'
 import RaceView from '@/components/RaceView'
 import NavbarView from '@/views/NavbarView'
 
@@ -567,7 +568,7 @@ import moment from 'moment'
 export default {
 	name: 'RacesView',
 	components: {
-		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill
+		RaceView, NavbarView, BIconPlus, BIconDash, BIconCashStack, BIconCloudUploadFill, BIconBarChartSteps, BIconCameraVideoFill, BIconCloudUpload, BIconCloudDownload, BIconCloudPlus, BIconTriangleFill, BIconCurrencyDollar, BIconCalculatorFill, BIconFileEarmarkArrowUp, BIconFileEarmarkArrowDown, BIconFileEarmarkBinary, BIconEraserFill, BIconArrowClockwise
 	},
 	data () {
 		return {
@@ -680,7 +681,7 @@ export default {
 			for (var i = 0; i < this.races.length; i++ ) {
 				payout[i] = 0;
 				for (var j =0; j < this.races[i].entries.length; j++) {
-					if (this.races[i].hoentriesrses[j].pick) payout[i] = this.races[i].entries[j].winPayout
+					if (this.races[i].entries[j].pick) payout[i] = this.races[i].entries[j].winPayout
 						+ this.races[i].entries[j].placePayout
 						+ this.races[i].entries[j].showPayout;
 				}
@@ -723,7 +724,46 @@ export default {
 				console.log(err.response);
 							
 			}	
-		},				
+		},
+		handle(action) { 
+			this.status = action + " started";
+			switch (action) {
+				case "load":
+					this.load();
+					break;
+				case "augment": 
+					this.augment();
+					break;
+				case "addProgramNumbers":
+					this.addProgramNumbers();
+					break;
+				case "getChanges":
+					this.getChanges();
+					break;
+				case "getResults": 
+					this.getResults();
+					break;
+				case "calculate":
+					this.calculate();
+					break;
+				case "updatePPs":
+					this.updatePPs();
+					break;
+				case "save":
+					this.save(false);
+					break;
+				case "retrieve":
+					this.retrieve();
+					break;
+				case "getAll":
+					this.getAll();
+					break;
+				case "clearRaces":
+					this.clearRaces();
+					break;
+
+			} 
+		},			
 		load() {
 			if (this.races.length == 0) {
 				this.uploadAndCalculate();
@@ -752,22 +792,21 @@ export default {
 		},	
 		async getAllRaces() {
             try {
-				this.status = "Fetching";
                 const response = await axios({
                     url: 'getAll',
                     method: 'GET',
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
-                //console.log(response);
 				this.races = response.data;
-				this.postGetActions();
-				this.status = "";
+				this.status = "races downloaded...cleaning up"
+				Promise.all(this.postGetActions()).then(()=>{this.status = "";});	
             } catch (err) {
                 console.log(err);
                 
             }
 		},
 		postGetActions() {
+			var promises = []
 			for (var i=0; i < this.races.length; i++) {
 				this.combinations[i] = [];
 				this.combinationsText[i] = []; 
@@ -775,12 +814,12 @@ export default {
 					this.combinations[i][j] = {a: [], b:[], c:[]};
 					this.combinationsText[i][j] = {tmA: "", tmAB: "", tmB1: "", tmB2: "", tmC1: ""};
 				}
-				this.toggleAll(this.races[i], false);
+				promises.push(Promise.all(this.toggleAll(this.races[i], false)));
 			}
+			return promises;
 		},
 		async uploadAndCalculate() {
             try {
-				this.status = "Loading";
                 var formData = new FormData();
                 formData.append("data", this.file);
                 formData.append("filename", this.file.name);
@@ -798,8 +837,8 @@ export default {
                 });
                 //console.log(response);
 				this.races = response.data;
-				this.postGetActions();
-				this.status = "";
+				this.status = "races downloaded...cleaning up"
+				Promise.all(this.postGetActions()).then(()=>{this.status = "";});	
             } catch (err) {
                 console.log(err);
                 
@@ -807,6 +846,7 @@ export default {
 		},
 		async augment() {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Augmenting";
                 var formData = new FormData();
@@ -823,10 +863,12 @@ export default {
                 });
                 //console.log(response.data);
 				this.races = response.data;
+				this.status = "races downloaded...cleaning up";
+				var promises = [];
 				for (var i=0; i < this.races.length; i++) {
-					this.toggleAll(this.races[i], false);
+					promises.push(Promise.all(this.toggleAll(this.races[i], false)));
 				}
-				this.status = "";
+				Promise.all(promises).then(()=>{this.status = ""});
             } catch (err) {
                 console.log(err);
                 
@@ -834,6 +876,7 @@ export default {
 		},
 		async addProgramNumbers() {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Updating";
                 var formData = new FormData();
@@ -850,10 +893,12 @@ export default {
                 });
                 //console.log(response.data);
 				this.races = response.data;
+				this.status = "races downloaded...cleaning up"
+				var promises = [];
 				for (var i=0; i < this.races.length; i++) {
-					this.toggleAll(this.races[i], false);
+					promises.push(Promise.all(this.toggleAll(this.races[i], false)));
 				}
-				this.status = "";
+				Promise.all(promises).then(()=>{this.status = ""});
             } catch (err) {
                 console.log(err);
                 
@@ -861,21 +906,30 @@ export default {
 		},					
 		async save(noNotify) {
             try {
-				this.status = "Saving";
+				var promises = [];
+				this.status = "Updating Notes";
+				await this.$nextTick();
 				for (var i=0; i < this.races.length; i++) {
-					this.setRaceNote(this.races[i]);
+					promises.push(this.setRaceNote(this.races[i]));
 					for (var j=0; j < this.races[i].entries.length; j++) {
-						this.setEntryNote(this.races[i].entries[j]);
+						promises.push(this.setEntryNote(this.races[i].entries[j]));
 					}
 				}
-                await axios({
-                    url: 'save', 
-                    method: 'GET',
-                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
-                });
-				this.status = "";
-				this.getSaved();
-				if (!noNotify) this.$bvModal.msgBoxOk('Races saved.');									
+				
+				Promise.all(promises).then(async () => {
+					this.status = "Saving";
+					await axios({
+						url: 'save', 
+						method: 'GET',
+						baseURL: 'http://localhost:8080/jpp/rest/remote/'
+					});
+					this.status = "";
+					this.getSaved();
+					if (!noNotify) this.$bvModal.msgBoxOk('Races saved.');	
+				})
+
+				
+								
             } catch (err) {
                 console.log(err.response);
                 
@@ -893,10 +947,12 @@ export default {
 									baseURL: 'http://localhost:8080/jpp/rest/remote/'
 								});
 								this.races = response.data;
+								this.status = "races downloaded...cleaning up";
+								var promises = [];
 								for (var i=0; i < this.races.length; i++) {
-									this.toggleAll(this.races[i], false);
-								}								
-								this.status = "";
+									promises.push(Promise.all(this.toggleAll(this.races[i], false)));
+								}
+								Promise.all(promises).then(()=>{this.status = ""});
 						}
 					});	
 			} catch (err) {
@@ -906,6 +962,7 @@ export default {
 		},
 		async getChanges() {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Getting Changes";
                 const response = await axios({
@@ -914,10 +971,12 @@ export default {
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
                 this.races = response.data;
+				var promises = [];
 				for (var i=0; i < this.races.length; i++) {
-					this.toggleAll(this.races[i], false);
-				}				
-				this.status = "";
+					promises.push(Promise.all(this.toggleAll(this.races[i], false)));
+				}
+				Promise.all(promises).then(()=>{this.status = ""});
+
             } catch (err) {
                 console.log(err.response);
                 
@@ -925,6 +984,7 @@ export default {
 		},	
 		async getResults() {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Getting Results";
                 const response = await axios({
@@ -933,10 +993,12 @@ export default {
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
                 this.races = response.data;
+				var promises = [];
 				for (var i=0; i < this.races.length; i++) {
-					this.toggleAll(this.races[i], false);
-				}				
-				this.status = "";
+					promises.push(Promise.all(this.toggleAll(this.races[i], false)));
+				}
+				Promise.all(promises).then(()=>{this.status = ""});
+
             } catch (err) {
                 console.log(err.response);
                 
@@ -944,6 +1006,7 @@ export default {
 		},			
 		async calculate() {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Recalculating";
                 const response = await axios({
@@ -952,15 +1015,39 @@ export default {
                     baseURL: 'http://localhost:8080/jpp/rest/remote/'
                 });
                 this.races = response.data;
+				var promises = [];
 				for (var i=0; i < this.races.length; i++) {
-					this.toggleAll(this.races[i], false);
-				}				
-				this.status = "";
+					promises.push(Promise.all(this.toggleAll(this.races[i], false)));
+				}
+				Promise.all(promises).then(()=>{this.status = ""});
+
             } catch (err) {
                 console.log(err.response);
                 
             }
 		},
+		async updatePPs() {
+            try {
+				this.status = "Saving";
+				await this.save(true);
+				this.status = "Updating";
+                const response = await axios({
+                    url: 'updatePPs',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+                });
+                this.races = response.data;
+				var promises = [];
+				for (var i=0; i < this.races.length; i++) {
+					promises.push(Promise.all(this.toggleAll(this.races[i], false)));
+				}
+				Promise.all(promises).then(()=>{this.status = ""});
+
+            } catch (err) {
+                console.log(err);
+                
+            }
+		},		
 		clearRaces() {
 			this.$bvModal.msgBoxConfirm("Clear Races?")
 				.then(confirmed => {
@@ -968,9 +1055,11 @@ export default {
 						this.races = [];
 					}
 				});		
+				this.status="";
 		},
 		async updateCondition(race) {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Updating";
                 const response = await axios({
@@ -987,6 +1076,7 @@ export default {
 		},
 		async toggleOffTheTurf(race) {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Updating";
                 const response = await axios({
@@ -1003,6 +1093,7 @@ export default {
 		},
 		async toggleOntoAllWeather(race) {
             try {
+				this.status = "Saving";
 				await this.save(true);
 				this.status = "Updating";
                 const response = await axios({
@@ -1018,13 +1109,14 @@ export default {
             }		
 		},		
 		toggleAll(race, b) {
+			var promises = [];
 			_.each(race.entries, async function(horse){		
 				try {
 					horse._showDetails = b;
 					var formData = new FormData();
 					formData.append("raceNumber", race.raceNumber);
 					formData.append("name", horse.name);
-					await axios({
+					promises.push(axios({
 						url: 'toggleShowDetail',
 						method: 'POST',
 						baseURL: 'http://localhost:8080/jpp/rest/remote/',
@@ -1032,21 +1124,21 @@ export default {
 							'Content-Type': 'multipart/form-data'
 						},
 						data: formData
-					});					
+					}));					
 				} catch (err) {
 					console.log(err);
 					
 				}           
 			});
+			return promises;
 		},
 		async setRaceNote(race) {
 			if (race.note) {
 				try {
-					this.status = "Updating";
 					var formData = new FormData();
 					formData.append("raceNumber", race.raceNumber);
 					formData.append("note", race.note);
-					await axios({
+					return axios({
 						url: 'setRaceNote',
 						method: 'POST',
 						baseURL: 'http://localhost:8080/jpp/rest/remote/',
@@ -1055,8 +1147,7 @@ export default {
 						},
 						data: formData
 					});
-					//console.log(response);
-					this.status = "";
+
 				} catch (err) {
 					console.log(err);
 					
@@ -1066,12 +1157,11 @@ export default {
 		async setEntryNote(horse) {
 			if (horse.note) {
 				try {
-					this.status = "Updating";
 					var formData = new FormData();
 					formData.append("raceNumber", horse.raceNumber);
 					formData.append("name", horse.name);
 					formData.append("note", horse.note);
-					await axios({
+					return axios({
 						url: 'setEntryNote',
 						method: 'POST',
 						baseURL: 'http://localhost:8080/jpp/rest/remote/',
@@ -1080,8 +1170,7 @@ export default {
 						},
 						data: formData
 					});
-					//console.log(response);
-					this.status = "";
+
 				} catch (err) {
 					console.log(err);
 				}

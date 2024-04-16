@@ -666,6 +666,10 @@ public class Loader {
 			    					.withThisRaceNumber(raceNum)
 			    					.build();
 			    			
+			    			pp.addHorse();
+			    			pp.addKeyRace();
+			    			pp.addSpeedRatings();
+			    			
 			    			if (!over90Flagged && 
 			    				pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
 			    					.plusDays(90).isBefore(pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())

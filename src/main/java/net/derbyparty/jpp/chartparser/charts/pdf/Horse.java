@@ -23,7 +23,7 @@ public class Horse {
 	public Breeder breeder;
 
     public Horse(String name) {
-        this.name = name;
+        this.name = name.replaceAll("\\s\\(.+\\)", "");
     }
 
     public String getName() {

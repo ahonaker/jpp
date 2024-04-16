@@ -73,7 +73,19 @@ public class FractionalPoint {
             return text;
         }
 
-        public int getFeet() {
+        public void setPoint(int point) {
+			this.point = point;
+		}
+
+		public void setText(String text) {
+			this.text = text;
+		}
+
+		public void setFeet(int feet) {
+			this.feet = feet;
+		}
+
+		public int getFeet() {
             return feet;
         }
 

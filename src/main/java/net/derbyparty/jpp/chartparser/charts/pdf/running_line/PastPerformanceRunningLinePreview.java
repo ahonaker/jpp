@@ -4,7 +4,7 @@ import net.derbyparty.jpp.chartparser.charts.pdf.Chart;
 import net.derbyparty.jpp.chartparser.charts.pdf.ChartCharacter;
 import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
 import net.derbyparty.jpp.chartparser.exceptions.ChartParserException;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition;
+import net.derbyparty.jpp.chartparser.points_of_call.RelativePosition;
 
 import java.util.ArrayList;
 import java.util.Arrays;

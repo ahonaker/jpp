@@ -4,14 +4,14 @@ import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.DoubleAdder;
+import java.util.regex.Pattern;
+
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -44,16 +44,6 @@ import net.derbyparty.jpp.object.Track;
 public class Analytics {
 
 	static ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-//	final static String saveDir = "/Users/ahonaker/Google Drive/pp/jpp/saveDir/";
-//	final static String anglesFile = "/Users/ahonaker/Google Drive/pp/jpp/angles.json";
-//	final static String raceTimesFile = "/Users/ahonaker/Google Drive/pp/jpp/raceTimes.csv";
-//	final static String rawTimesFile = "/Users/ahonaker/Google Drive/pp/jpp/rawTimes.csv";
-//	final static String statsFile = "/Users/ahonaker/Google Drive/pp/jpp/stats.csv";
-//	final static String raceStatsFile = "/Users/ahonaker/Google Drive/pp/jpp/raceStats.csv";
-//	final static String angleStatsFile = "/Users/ahonaker/Google Drive/pp/jpp/angleStats.csv";
-//	final static String combo2StatsFile = "/Users/ahonaker/Google Drive/pp/jpp/combo2Stats.csv";
-//	final static String combo3StatsFile = "/Users/ahonaker/Google Drive/pp/jpp/combo3Stats.csv";
-//	final static String anglesUpateFile = "/Users/ahonaker/Google Drive/pp/jpp/anglesUpdate.csv";
 	
 	static CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
 	static CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
@@ -393,21 +383,33 @@ public class Analytics {
 			AtomicInteger AOGT8 = new AtomicInteger(0);
 			AtomicInteger AOBT48total =  new AtomicInteger(0);
 			AtomicInteger AOBT48 =  new AtomicInteger(0);
+			AtomicInteger favorite = new AtomicInteger(0);
 			AtomicInteger ARating = new AtomicInteger(0);
+			AtomicInteger ARatingTotal = new AtomicInteger(0);
 			AtomicInteger primePower = new AtomicInteger(0);
+			AtomicInteger primePowerTotal = new AtomicInteger(0);
 			AtomicInteger speedRating = new AtomicInteger(0);
+			AtomicInteger speedRatingTotal = new AtomicInteger(0);
 			AtomicInteger classRating = new AtomicInteger(0);
+			AtomicInteger classRatingTotal = new AtomicInteger(0);
 			AtomicInteger brisAvgLast3Class = new AtomicInteger(0);
+			AtomicInteger brisAvgLast3ClassTotal = new AtomicInteger(0);
 			AtomicInteger brisCurrentClass = new AtomicInteger(0);
+			AtomicInteger brisCurrentClassTotal = new AtomicInteger(0);
 			AtomicInteger ACL = new AtomicInteger(0);
+			AtomicInteger ACLtotal = new AtomicInteger(0);
 			AtomicInteger ARatingForm = new AtomicInteger(0);
+			AtomicInteger ARatingFormTotal = new AtomicInteger(0);
 			AtomicInteger ARatingConnections = new AtomicInteger(0);
+			AtomicInteger ARatingConnectionsTotal = new AtomicInteger(0);
 			AtomicInteger combinedPaceAvg = new AtomicInteger(0);
+			AtomicInteger combinedPaceAvgTotal = new AtomicInteger(0);
 			
 			DoubleAdder AMLGT4Payoff = new DoubleAdder();
 			DoubleAdder AOGT4Payoff = new DoubleAdder();
 			DoubleAdder AOGT8Payoff = new DoubleAdder();
 			DoubleAdder AOBT48Payoff = new DoubleAdder();
+			DoubleAdder favoritePayoff = new DoubleAdder();
 			DoubleAdder ARatingPayoff = new DoubleAdder();
 			DoubleAdder primePowerPayoff = new DoubleAdder();
 			DoubleAdder speedRatingPayoff = new DoubleAdder();
@@ -418,6 +420,8 @@ public class Analytics {
 			DoubleAdder ARatingFormPayoff = new DoubleAdder();
 			DoubleAdder ARatingConnectionsPayoff = new DoubleAdder();
 			DoubleAdder combinedPaceAvgPayoff = new DoubleAdder();
+			
+			List<Entry> ARatingWinners = new ArrayList<Entry>();
 			
 			MongoCollection<Card> cardCollection = database.getCollection("cards", Card.class);
 			FindIterable<Card> cardIterable = cardCollection.find();
@@ -463,6 +467,17 @@ public class Analytics {
 							}
 						}
 						
+						if (maxARating > 0) ARatingTotal.getAndAdd(1);
+						if (maxPrimePower > 0) primePowerTotal.getAndAdd(1);
+						if (maxSpeedRating > 0) speedRatingTotal.getAndAdd(1);
+						if (maxClassRating > 0) classRatingTotal.getAndAdd(1);
+						if (maxBrisAvgLast3Class > 0) brisAvgLast3ClassTotal.getAndAdd(1);
+						if (maxBrisCurrentClass > 0) brisCurrentClassTotal.getAndAdd(1);
+						if (maxACL > 0) ACLtotal.getAndAdd(1);
+						if (maxARatingForm > 0) ARatingFormTotal.getAndAdd(1);
+						if (maxARatingConnections > 0) ARatingConnectionsTotal.getAndAdd(1);
+						if (maxCombinedPaceAvg > 0) combinedPaceAvgTotal.getAndAdd(1);
+						
 						for (Entry entry : race.getEntries()) {
 							
 							if (!entry.getScratchedFlag()) {
@@ -471,13 +486,14 @@ public class Analytics {
 									.append("raceNumber", race.getRaceNumber())
 									.append("track", race.getTrack())
 									.append("date", race.getDate())
-									.append("name", entry.getName())
+									.append("name", new Document("$regex", Pattern.compile(entry.getName() + "(?i)")))
 									;
 							
 								MongoCollection<Document> startersCollection = database.getCollection("startersResults");
 								Document starterResult = startersCollection.find(starterQuery).first();
 								
 								if (starterResult != null) {
+									
 									if (entry.getARating() == maxARating && maxARating > 0 && entry.getMLOdds() >= 4) {
 										AMLGT4total.getAndAdd(1);
 									}
@@ -493,9 +509,14 @@ public class Analytics {
 								}
 								
 								if (starterResult != null && starterResult.getBoolean("winner")) {
+									if (starterResult.getBoolean("favorite")) {
+										favorite.getAndAdd(1);
+										favoritePayoff.add(starterResult.getDouble("payoff"));
+									}
 									if (entry.getARating() == maxARating && maxARating > 0) {
 										ARating.getAndAdd(1);
 										ARatingPayoff.add(starterResult.getDouble("payoff"));
+										ARatingWinners.add(entry);
 									}
 									if (entry.getARating() == maxARating && maxARating > 0 && entry.getMLOdds() >= 4) {
 										AMLGT4.getAndAdd(1);
@@ -561,7 +582,9 @@ public class Analytics {
 			Document stats = new Document()
 				.append("date", new Date())
 				.append("total", total)
+				.append("favorite", favorite.get())
 				.append("ARating", ARating.get())
+				.append("ARatingTotal", ARatingTotal.get())
 				.append("AMLGT4total", AMLGT4total.get())
 				.append("AMLGT4", AMLGT4.get())
 				.append("AOGT4total", AOGT4total.get())
@@ -571,14 +594,24 @@ public class Analytics {
 				.append("AOBT48total", AOBT48total.get())
 				.append("AOBT48", AOBT48.get())
 				.append("primePower", primePower.get())
+				.append("primePowerTotal", primePowerTotal.get())
 				.append("speedRating", speedRating.get())
+				.append("speedRatingTotal", speedRatingTotal.get())
 				.append("classRating", classRating.get())
+				.append("classRatingTotal", classRatingTotal.get())
 				.append("brisAvgLast3Class", brisAvgLast3Class.get())
+				.append("brisAvgLast3ClassTotal", brisAvgLast3ClassTotal.get())
 				.append("brisCurrentClass", brisCurrentClass.get())
+				.append("brisCurrentClassTotal", brisCurrentClassTotal.get())
 				.append("ACL", ACL.get())
+				.append("ACLtotal", ACLtotal.get())
 				.append("ARatingForm", ARatingForm.get())
+				.append("ARatingFormTotal", ARatingFormTotal.get())
 				.append("ARatingConnections", ARatingConnections.get())
+				.append("ARatingConnectionsTotal", ARatingConnectionsTotal.get())
 				.append("combinedPaceAvg", combinedPaceAvg.get())
+				.append("combinedPaceAvgTotal", combinedPaceAvgTotal.get())
+				.append("favoritePayoff", favoritePayoff.doubleValue())
 				.append("ARatingPayoff", ARatingPayoff.doubleValue())
 				.append("AMLGT4Payoff", AMLGT4Payoff.doubleValue())
 				.append("AOGT4Payoff", AOGT4Payoff.doubleValue())
@@ -597,6 +630,9 @@ public class Analytics {
 			MongoCollection<Document> statCollection = database.getCollection("stats");
 			statCollection.insertOne(stats);
 			
+			MongoCollection<Entry> winnersCollection = database.getCollection("ARatingWiners", Entry.class);
+			winnersCollection.drop();
+			winnersCollection.insertMany(ARatingWinners);
 			
 			System.out.println("Rating Stat Generation Done; Races: " + total.get());
 						
@@ -613,8 +649,10 @@ public class Analytics {
 			AggregateIterable<Document> result = collection.aggregate(Arrays.asList(new Document("$sort", 
 			    new Document("date", -1L)), 
 			    new Document("$addFields", 
-			    new Document("ARatingPct", 
-			    new Document("$divide", Arrays.asList("$ARating", "$total")))
+			    new Document("favoritePct", 
+			    new Document("$divide", Arrays.asList("$favorite", "$total")))
+	            		.append("ARatingPct", 
+	            new Document("$divide", Arrays.asList("$ARating", "$ARatingTotal")))	    
 			            .append("AMLGT4Pct", 
 			    new Document("$divide", Arrays.asList("$AMLGT4", "$AMLGT4total")))
 			            .append("AOGT4Pct", 
@@ -624,25 +662,27 @@ public class Analytics {
 			            .append("AOBT48Pct", 
 			    new Document("$divide", Arrays.asList("$AOBT48", "$AOBT48total")))
 			            .append("primePowerPct", 
-			    new Document("$divide", Arrays.asList("$primePower", "$total")))
+			    new Document("$divide", Arrays.asList("$primePower", "$primePowerTotal")))
 			            .append("speedRatingPct", 
-			    new Document("$divide", Arrays.asList("$speedRating", "$total")))
+			    new Document("$divide", Arrays.asList("$speedRating", "$speedRatingTotal")))
 			            .append("classRatingPct", 
-			    new Document("$divide", Arrays.asList("$classRating", "$total")))
+			    new Document("$divide", Arrays.asList("$classRating", "$classRatingTotal")))
 			            .append("brisAvgLast3ClassPct", 
-			    new Document("$divide", Arrays.asList("$brisAvgLast3Class", "$total")))
+			    new Document("$divide", Arrays.asList("$brisAvgLast3Class", "$brisAvgLast3ClassTotal")))
 			            .append("brisCurrentClassPct", 
-			    new Document("$divide", Arrays.asList("$brisCurrentClass", "$total")))
+			    new Document("$divide", Arrays.asList("$brisCurrentClass", "$brisCurrentClassTotal")))
 			            .append("ACLPct", 
-			    new Document("$divide", Arrays.asList("$ACL", "$total")))
+			    new Document("$divide", Arrays.asList("$ACL", "$ACLtotal")))
 			            .append("ARatingFormPct", 
-			    new Document("$divide", Arrays.asList("$ARatingForm", "$total")))
+			    new Document("$divide", Arrays.asList("$ARatingForm", "$ARatingFormTotal")))
 			            .append("ARatingConnectionsPct", 
-			    new Document("$divide", Arrays.asList("$ARatingConnections", "$total")))
+			    new Document("$divide", Arrays.asList("$ARatingConnections", "$ARatingConnectionsTotal")))
 			            .append("combinedPaceAvgPct", 
-			    new Document("$divide", Arrays.asList("$combinedPaceAvg", "$total")))
+			    new Document("$divide", Arrays.asList("$combinedPaceAvg", "$combinedPaceAvgTotal")))
+			            .append("favoriteROI", 
+			    new Document("$divide", Arrays.asList("$favoritePayoff", "$total")))  
 			            .append("ARatingROI", 
-			    new Document("$divide", Arrays.asList("$ARatingPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$ARatingPayoff", "$ARatingTotal")))
 			            .append("AMLGT4ROI", 
 			    new Document("$divide", Arrays.asList("$AMLGT4Payoff", "$AMLGT4total")))
 			            .append("AOGT4ROI", 
@@ -652,23 +692,24 @@ public class Analytics {
 			            .append("AOBT48ROI", 
 			    new Document("$divide", Arrays.asList("$AOBT48Payoff", "$AOBT48total")))
 			            .append("primePowerROI", 
-			    new Document("$divide", Arrays.asList("$primePowerPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$primePowerPayoff", "$primePowerTotal")))
 			            .append("speedRatingROI", 
-			    new Document("$divide", Arrays.asList("$speedRatingPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$speedRatingPayoff", "$speedRatingTotal")))
 			            .append("classRatingROI", 
-			    new Document("$divide", Arrays.asList("$classRatingPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$classRatingPayoff", "$classRatingTotal")))
 			            .append("brisAvgLast3ClassROI", 
-			    new Document("$divide", Arrays.asList("$brisAvgLast3ClassPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$brisAvgLast3ClassPayoff", "$brisAvgLast3ClassTotal")))
 			            .append("brisCurrentClassROI", 
-			    new Document("$divide", Arrays.asList("$brisCurrentClassPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$brisCurrentClassPayoff", "$brisCurrentClassTotal")))
 			            .append("ACLROI", 
-			    new Document("$divide", Arrays.asList("$ACLPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$ACLPayoff", "$ACLtotal")))
 			            .append("ARatingFormROI", 
-			    new Document("$divide", Arrays.asList("$ARatingFormPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$ARatingFormPayoff", "$ARatingFormTotal")))
 			            .append("ARatingConnectionsROI", 
-			    new Document("$divide", Arrays.asList("$ARatingConnectionsPayoff", "$total")))
+			    new Document("$divide", Arrays.asList("$ARatingConnectionsPayoff", "$ARatingConnectionsTotal")))
 			            .append("combinedPaceAvgROI", 
-			    new Document("$divide", Arrays.asList("$combinedPaceAvgPayoff", "$total"))))));
+			    new Document("$divide", Arrays.asList("$combinedPaceAvgPayoff", "$combinedPaceAvgTotal")))
+			            )));
 
 			return mapper.writeValueAsString(result.first());
 			

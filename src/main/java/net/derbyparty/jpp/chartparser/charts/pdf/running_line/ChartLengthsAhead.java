@@ -2,7 +2,7 @@ package net.derbyparty.jpp.chartparser.charts.pdf.running_line;
 
 import net.derbyparty.jpp.chartparser.charts.pdf.ChartCharacter;
 import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition.LengthsAhead;
+import net.derbyparty.jpp.chartparser.points_of_call.LengthsAhead;
 
 import static net.derbyparty.jpp.chartparser.charts.pdf.Chart.convertToText;
 

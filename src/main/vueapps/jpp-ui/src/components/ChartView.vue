@@ -9,7 +9,7 @@
             target="_blank"  
 			><b-icon-camera-video-fill></b-icon-camera-video-fill>
 		</a>&nbsp;
-        <strong>{{race.track.name}} {{formatDate(race.raceDate)}} Race {{race.raceNumber}} <b-icon-key v-if="race.keyRace != null" variant="success" font-scale="1.5" rotate="90"></b-icon-key></strong><br>
+        <strong>{{race.track.name}} {{formatDate(race.raceDate)}} Race {{race.raceNumber}} <span v-if="race.conditions.name">- {{race.conditions.name}}</span> <b-icon-key v-if="race.keyRace != null" variant="success" font-scale="1.5" rotate="90"></b-icon-key></strong><br>
         <b-alert variant="danger" :show="race.cancelled">Race Canceled</b-alert>
         <div v-if="!race.cancelled">
             {{race.conditions.type}}<br>
@@ -89,20 +89,26 @@
                     <sup v-else class="text-danger"><em>{{(row.item.pointsOfCall[2].relativePosition.totalLengthsBehind != null) ? row.item.pointsOfCall[2].relativePosition.totalLengthsBehind.text : ""}}</em></sup>
                 </template> 
                 <template #cell(pointsOfCall3)="row">
-                    {{row.item.pointsOfCall[3].relativePosition.position}}
+                    <span v-if="row.item.pointsOfCall[3].text == 'Fin'"  v-b-tooltip.hover :title="finishFractional(row.item)">{{row.item.pointsOfCall[3].relativePosition.position}}</span>
+                    <span v-else>{{row.item.pointsOfCall[3].relativePosition.position}}</span>
                     <sup v-if="row.item.pointsOfCall[3].relativePosition.lengthsAhead" v-b-tooltip.hover :title="(row.item.pointsOfCall[3].relativePosition.totalLengthsBehind != null) ? row.item.pointsOfCall[3].relativePosition.totalLengthsBehind.text + ' Total LB' : ''">{{row.item.pointsOfCall[3].relativePosition.lengthsAhead.text}}</sup>
                     <sup v-else class="text-danger"><em>{{(row.item.pointsOfCall[3].relativePosition.totalLengthsBehind != null) ? row.item.pointsOfCall[3].relativePosition.totalLengthsBehind.text : ""}}</em></sup>
                 </template> 
                 <template #cell(pointsOfCall4)="row">
-                    {{row.item.pointsOfCall[4].relativePosition.position}}
+                    <span v-if="row.item.pointsOfCall[4].text == 'Fin'"  v-b-tooltip.hover :title="finishFractional(row.item)">{{row.item.pointsOfCall[4].relativePosition.position}}</span>
+                    <span v-else>{{row.item.pointsOfCall[4].relativePosition.position}}</span>
                     <sup v-if="row.item.pointsOfCall[4].relativePosition.lengthsAhead" v-b-tooltip.hover :title="(row.item.pointsOfCall[4].relativePosition.totalLengthsBehind != null) ? row.item.pointsOfCall[4].relativePosition.totalLengthsBehind.text + ' Total LB' : ''">{{row.item.pointsOfCall[4].relativePosition.lengthsAhead.text}}</sup>
                     <sup v-else class="text-danger"><em>{{(row.item.pointsOfCall[4].relativePosition.totalLengthsBehind != null) ? row.item.pointsOfCall[4].relativePosition.totalLengthsBehind.text : ""}}</em></sup>
                 </template> 
                 <template #cell(pointsOfCall5)="row">
-                    {{row.item.pointsOfCall[5].relativePosition.position}}
+                    <span v-if="row.item.pointsOfCall[5].text == 'Fin'"  v-b-tooltip.hover :title="finishFractional(row.item)">{{row.item.pointsOfCall[5].relativePosition.position}}</span>
+                    <span v-else>{{row.item.pointsOfCall[5].relativePosition.position}}</span>
                     <sup v-if="row.item.pointsOfCall[5].relativePosition.lengthsAhead" v-b-tooltip.hover :title="(row.item.pointsOfCall[5].relativePosition.totalLengthsBehind != null) ? row.item.pointsOfCall[5].relativePosition.totalLengthsBehind.text + ' Total LB' : ''">{{row.item.pointsOfCall[5].relativePosition.lengthsAhead.text}}</sup>
                     <sup v-else class="text-danger"><em>{{(row.item.pointsOfCall[5].relativePosition.totalLengthsBehind != null) ? row.item.pointsOfCall[5].relativePosition.totalLengthsBehind.text : ""}}</em></sup>
                 </template>    
+                <template #cell(adjustedSpeedRating)="row">
+                    <span v-if="row.value > 0" v-b-tooltip.hover :title="'Raw ' + row.item.rawSpeedRating">{{row.value}}</span>
+                </template>                    
                 <template #cell(odds)="row">
                     {{row.value}}<span v-if="row.item.favorite">*</span>
                 </template> 
@@ -121,7 +127,7 @@
             </b-table>     
             <strong>Fractional Times: </strong>&nbsp;&nbsp;<span v-for="(fractional, findex) in race.fractionals" :key="'f' + findex">{{fractional.time}}&nbsp;&nbsp;&nbsp;</span><br>
             <strong>Split Times: </strong>&nbsp;&nbsp;<span v-for="(split, sindex) in race.splits" :key="'s' + sindex">({{split.time}})&nbsp;&nbsp;&nbsp;</span><br><br>
-            <strong>Winner: </strong>{{winner.horse.program}} - {{winner.horse.name}}, {{winner.horse.color}} {{winner.horse.sex}}, by {{winner.horse.sire.name}} out of {{winner.horse.dam.name}} by {{winner.horse.damSire.name}}. Foaled {{formatDate(winner.horse.foalingDate)}} in {{winner.horse.foalingLocation}}<br>
+            <strong>Winner: </strong>{{winner.program}} - {{winner.horse.name}}{{winnerText}}<br>
             <span v-if="race.starters[0].owner">
                 <strong >Winning Owner: </strong>{{race.starters[0].owner.name}}<br>
             </span>
@@ -166,8 +172,8 @@
                 <br>
             </span>
             <span v-if="race.scratches.length > 0"><strong>Scratched Horses: </strong><span v-for="(scratch, scrindex) in race.scratches" :key="scratch.horse.name">{{scratch.horse.name}} ({{scratch.reason}})<span v-if="scrindex < race.scratches.length - 1"></span>;&nbsp;</span></span><br>
-            <strong>Total WPS Pool: </strong>{{formatCurrency(race.wagering.winPlaceShow.totalWPSPool)}}
-            <b-row>
+            <span v-if="race.wagering"><strong>Total WPS Pool: </strong>{{formatCurrency(race.wagering.winPlaceShow.totalWPSPool)}}</span>
+            <b-row v-if="race.wagering">
                 <b-col cols="5">
                     <b-row>
                         <b-col cols="1"><strong>Pgm</strong></b-col>
@@ -191,7 +197,7 @@
                         <b-col><strong>Payoff</strong></b-col>
                         <b-col><strong>Pool</strong></b-col>
                     </b-row>
-                    <b-row v-for="exotic in race.wagering.exotics" :key="'ex'  + race.raceNumber + 'r' + exotic.unit + exotic.name + exotic.numberCorrect + exotic.exoticwinningNumbers">
+                    <b-row v-for="exotic in race.wagering.exotics" :key="'ex'  + race.raceNumber + 'r' + exotic.unit + exotic.name + exotic.numberCorrect + exotic.winningNumbers">
                         <b-col cols="4">{{format2PlacesCurrency(exotic.unit)}} {{exotic.name}}</b-col>
                         <b-col cols="4">{{exotic.winningNumbers}} <span v-if="exotic.numberCorrect">({{exotic.numberCorrect}} correct)</span></b-col>
                         <b-col>{{format2PlacesCurrency(exotic.payoff)}}</b-col>
@@ -245,6 +251,16 @@ export default {
         },
         winner() {
             return _.findWhere(this.race.starters, {winner: true});
+        },
+        winnerText() {
+            if (this.winner.horse.color != null) {
+                return ", " + this.winner.horse.color + " " + this.winner.horse.sex + ", by " +
+                    this.winner.horse.sire.name + " out of " + this.winner.horse.dam.name +
+                    " by " + this.winner.horse.damSire.name + ". Foaled " + this.formatDate(this.winner.horse.foalingDate) + 
+                    " in " + this.winner.horse.foalingLocation;
+            } else {
+                return "";
+            }
         }
     },
     methods: {
@@ -352,7 +368,12 @@ export default {
                 month: moment(date).month()+1,
                 date: moment(date).date()
             };
-        }				
+        },
+        finishFractional(starter) {
+            return _.find(starter.fractionals, function(f){
+                return f.text == 'Fin'
+            }).time;
+        }		
     }
 }
 </script>

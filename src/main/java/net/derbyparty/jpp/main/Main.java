@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.regex.Pattern;
+
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -34,6 +36,12 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.UpdateResult;
+
+import net.derbyparty.jpp.chart.ProcessChart;
+import net.derbyparty.jpp.chartparser.charts.pdf.RaceResult;
+import net.derbyparty.jpp.chartparser.charts.pdf.Starter;
 import net.derbyparty.jpp.factors.Angles;
 import net.derbyparty.jpp.factors.Factors;
 import net.derbyparty.jpp.factors.Ratings;
@@ -45,6 +53,7 @@ import net.derbyparty.jpp.object.Horse;
 import net.derbyparty.jpp.object.MultiRaceWager;
 import net.derbyparty.jpp.object.PastPerformance;
 import net.derbyparty.jpp.object.Race;
+import net.derbyparty.jpp.object.RaceCategory;
 import net.derbyparty.jpp.object.RaceDate;
 import net.derbyparty.jpp.object.RaceNote;
 import net.derbyparty.jpp.object.Track;
@@ -1131,17 +1140,28 @@ public class Main {
 		
 		try {
 			String fileName = "/Users/ahonaker/Google Drive/pp/jpp/chartsToGet.txt";
-			SimpleDateFormat fmt = new SimpleDateFormat("MM/dd/YYYY");
+			SimpleDateFormat fmtA = new SimpleDateFormat("MM/dd/YYYY");
+			SimpleDateFormat fmtB = new SimpleDateFormat("MMddYY");
+			
 			BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
 			
 			for (Track track : getTracksList()) {
 				for (RaceDate raceDate : track.getRaceDates()) {
-					if (!raceDate.getHasChartFlag() && raceDate.getRaceDate().before(new Date())) {
-						writer.append("https://www.equibase.com/premium/eqbPDFChartPlus.cfm?RACE=A&BorP=P&TID=" 
+					LocalDate date = raceDate.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+					if (!raceDate.getHasChartFlag() && date.isBefore(LocalDate.now())) {							 
+						if (raceDate.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(
+							LocalDate.now().minusDays(7))) {
+							writer.append("https://www.equibase.com/static/chart/pdf/"
 								+ track.getCode()
-								+ "&CTRY=USA&DT=" 
-								+ fmt.format(raceDate.getRaceDate())
-								+ "&DAY=D&STYLE=EQB");
+								+ fmtB.format(raceDate.getRaceDate())
+								+ "USA.pdf");
+						} else {					
+							writer.append("https://www.equibase.com/premium/eqbPDFChartPlus.cfm?RACE=A&BorP=P&TID=" 
+									+ track.getCode()
+									+ "&CTRY=USA&DT=" 
+									+ fmtA.format(raceDate.getRaceDate())
+									+ "&DAY=D&STYLE=EQB");
+						}					
 						writer.newLine();
 					}
 				}
@@ -1304,5 +1324,272 @@ public class Main {
 		}
 		
 		System.out.println("retrieveCalculateAndSaveAll finished.");
+	}
+	
+//	 //Script to update hasChartFlags based on presence of results
+//	public static void script() throws Exception {
+//		
+//		try {
+//			List<Track> tracks = getTracksList();
+//			
+//			for (Track track : tracks) {
+//				for (RaceDate raceDate : track.getRaceDates()) {
+//					List<RaceResult> raceResults =  ProcessChart.getChart(track.getCode(), raceDate.getRaceDate());
+//					if (raceResults.size() == 0 && raceDate.getHasChartFlag()) {
+//						raceDate.setHasChartFlag(false);
+//						raceDate.setReviewedFlag(false);
+//						System.out.println(track.getCode() + " " + raceDate.getRaceDate());
+//					}
+//				}
+//				track.save();
+//			}
+//			
+//			System.out.println("Done");
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
+	
+	// Script to reset race Categories for each track
+	public static void createRaceCategories() throws Exception {
+		
+		try {			
+			List<Track> tracks = getTracksList();
+			for (Track track : tracks) {
+				track.setRaceCategories(new ArrayList<RaceCategory>());
+				for (RaceDate raceDate : track.getRaceDates()) {
+					if (raceDate.getHasChartFlag()) {
+						System.out.println(track.getCode() + " " + raceDate.getRaceDate());
+						List<RaceResult> raceResults = ProcessChart.getChart(track.getCode(), raceDate.getRaceDate());
+						for (RaceResult raceResult : raceResults) {
+							if (raceResult.getWinners().get(0).getRawSpeedRating() > 0) {
+								Boolean found = false;
+								String surface = 
+									(raceResult.getDistanceSurfaceTrackRecord().getSurface().toUpperCase().contains("TURF")) ? "Turf" :
+										raceResult.getDistanceSurfaceTrackRecord().getSurface();
+								Boolean isRoute =
+									raceResult.getDistanceSurfaceTrackRecord().getRaceDistance().getValue() < 5280;
+								if (track.getRaceCategories() != null)
+									for (RaceCategory rc : track.getRaceCategories()) {			
+										if (rc.getCategory().equals(raceResult.getRaceConditions().getRaceCategory())
+												&& rc.getSurface().equals(surface)
+												&& rc.getIsRoute().equals(isRoute)
+												&& (raceResult.getRaceConditions().getClaimingPriceRange() != null
+													&& raceResult.getRaceConditions().getClaimingPriceRange().getMin() >= rc.getClaimingMin()
+													&& raceResult.getRaceConditions().getClaimingPriceRange().getMin() < rc.getClaimingMax()
+													|| (raceResult.getPurse().getValue() >= rc.getPurseMin()
+															&& raceResult.getPurse().getValue() < rc.getPurseMax()))
+											) {
+											rc.setRaceCount(rc.getRaceCount() + 1);
+											found = true;
+										}
+									}
+								if (!found) {
+									RaceCategory raceCategory = RaceCategory.builder()
+											.withRaceCategory(raceResult.getRaceConditions().getRaceCategory())
+											.withSurface(surface)
+											.withIsRoute(isRoute)
+											.withRaceCount(1)
+											.build();
+									
+									if (raceResult.getRaceConditions().getClaimingPriceRange() != null) {
+										Document query = new Document("claimingMin", new Document("$lte", raceResult.getRaceConditions().getClaimingPriceRange().getMin()))
+											.append("claimingMax", new Document("$gt", raceResult.getRaceConditions().getClaimingPriceRange().getMin()));
+										try {
+										MongoCollection<Document> collection = database.getCollection("claimingRaceLevels");
+										Document level = collection.find(query).first();
+										raceCategory.setClaimingMin(level.getInteger("claimingMin"));
+										raceCategory.setClaimingMax(level.getInteger("claimingMax"));
+										} catch (Exception e) {
+											System.out.println(query);
+											throw(e);
+										}
+										
+									} else {
+										Document query = new Document("purseMin", new Document("$lte", raceResult.getPurse().getValue()))
+											    .append("purseMax", new Document("$gt", raceResult.getPurse().getValue()));
+	
+										MongoCollection<Document> collection = database.getCollection("nonClaimingRaceLevels");
+										Document level = collection.find(query).first();
+										raceCategory.setPurseMin(level.getInteger("purseMin"));
+										raceCategory.setPurseMax(level.getInteger("purseMax"));
+									}
+									
+									List<RaceCategory> categories = 
+										(track.getRaceCategories() == null) ?
+											new ArrayList<RaceCategory>() :
+											track.getRaceCategories();
+									
+									categories.add(raceCategory);
+									track.setRaceCategories(categories);
+								}
+							}
+						}
+					}
+				}
+				track.save();
+			}
+			
+			
+			System.out.println("Done.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updatePars() {
+		
+		try {
+			List<Track> tracks = getTracksList();
+			for (Track track : tracks) {
+				for (RaceCategory raceCategory : track.getRaceCategories()) {
+					System.out.println(track.getCode() + " " + raceCategory.getCategory());
+					List<RaceResult> raceResults = new ArrayList<RaceResult>();
+					
+					Document query = new Document("track.code", track.getCode());
+					if (raceCategory.getClaimingMax() > 0) {
+						query.append("raceConditions.claimingPriceRange.min", new Document("$gte", raceCategory.getClaimingMin())
+						    .append("$lt", raceCategory.getClaimingMax()))
+							.append("raceConditions.raceTypeNameBlackTypeBreed.raceType", raceCategory.getCategory().split(" ")[0]);	
+					} else {
+						query.append("purse.value", new Document("$gte", raceCategory.getPurseMin())
+						.append("$lt", raceCategory.getPurseMax()))
+						.append("raceConditions.raceTypeNameBlackTypeBreed.raceType", raceCategory.getCategory().split(" ")[0]);						
+					}
+					
+					if (raceCategory.getSurface().equals("Turf"))
+						 query.append("distanceSurfaceTrackRecord.surface", Pattern.compile("turf(?i)"));
+					else query.append("distanceSurfaceTrackRecord.surface", raceCategory.getSurface());
+					
+					if (raceCategory.getIsRoute()) 
+						query.append("distanceSurfaceTrackRecord.raceDistance.value", new Document("$lt", 5280));
+					else query.append("distanceSurfaceTrackRecord.raceDistance.value", new Document("$gte", 5280));
+					
+					MongoCollection<RaceResult> collection = database.getCollection("raceResults", RaceResult.class);
+					FindIterable<RaceResult> iterable = collection.find(query);
+					iterable.into(raceResults);
+					if (raceResults.size() == 0) {
+						System.out.println(query.toString());
+						//throw(new Exception("No result found."));
+					}
+					if (raceResults.size() > 0) {
+						int count = 0;
+						int total = 0;
+						int min = 999;
+						int max = 0;
+						for (RaceResult raceResult : raceResults) {
+							if (raceResult.getRaceConditions().getRaceCategory().equals(raceCategory.getCategory()) 
+									&& raceResult.getWinners().get(0).getRawSpeedRating() > 0) {
+								count++;
+								total += raceResult.getWinners().get(0).getRawSpeedRating();
+								if (raceResult.getWinners().get(0).getRawSpeedRating() > max) max = raceResult.getWinners().get(0).getRawSpeedRating();
+								if (raceResult.getWinners().get(0).getRawSpeedRating() < min) min = raceResult.getWinners().get(0).getRawSpeedRating();
+							}
+						}
+						raceCategory.setRaceCount(count);
+						raceCategory.setMaxSpeedRating(max);
+						raceCategory.setMinSpeedRating(min);
+						raceCategory.setParSpeedRating((int) Math.ceil((double)total / count));
+					}
+				}
+				track.save();
+			}
+			
+			System.out.println("Done");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public static void updateSpeedVariants() throws Exception {
+			
+		try {
+			System.out.println("Updating Variants");
+			List<Track> tracks = getTracksList();
+			
+			for (Track track : tracks) {
+				for (RaceDate raceDate : track.getRaceDates()) {
+					if (raceDate.getHasChartFlag()) {
+						System.out.println(track.getCode() + " " + raceDate.getRaceDate().toString());
+						List<RaceResult> raceResults =  ProcessChart.getChart(track.getCode(), raceDate.getRaceDate());
+						raceDate.setSpeedVariantDirt(ProcessChart.calculateSpeedVariant(raceResults, "Dirt"));
+						raceDate.setSpeedVariantTurf(ProcessChart.calculateSpeedVariant(raceResults, "Turf"));
+						raceDate.setSpeedVariantAllWeather(ProcessChart.calculateSpeedVariant(raceResults, "All Weather Track"));
+					}
+				}
+				track.save();
+			}
+						
+			System.out.println("Done");
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateKeyRaces() throws Exception {
+		
+		try {
+			System.out.println("Updating Key Races");
+			List<Track> tracks = getTracksList();
+			
+			for (Track track : tracks) {
+				for (RaceDate raceDate : track.getRaceDates()) {
+					if (raceDate.getHasChartFlag()) {
+						System.out.println(track.getCode() + " " + raceDate.getRaceDate().toString());
+						List<RaceResult> raceResults =  ProcessChart.getChart(track.getCode(), raceDate.getRaceDate());
+						ProcessChart.updateKeyRaces(raceResults);
+					}
+				}
+				track.save();
+			}
+						
+			System.out.println("Done");
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static String updatePPs () throws Exception {
+		
+		try {
+			for (Race race : card.getRaces()) {
+				for (Entry entry : race.getEntries()) {
+					for (PastPerformance pp : entry.getPastPerformances()) {
+						System.out.println(pp.getTrackCode() + " " + pp.getName() + " " + pp.getRaceDateString());
+						pp.addHorse();
+						pp.addKeyRace();
+						pp.addSpeedRatings();
+						pp.save();
+					}
+				}
+			};		
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return mapper.writeValueAsString(card);
+	}
+	
+	public static void script () throws Exception {
+		
+		try {
+			
+			MongoCollection<PastPerformance> ppcollection = database.getCollection("pastPerformances", PastPerformance.class);
+			FindIterable<PastPerformance> iterable = ppcollection.find();
+			iterable.forEach(pp -> {
+				System.out.println(pp.getTrackCode() + " " + pp.getName() + " " + pp.getRaceDateString());
+				pp.addHorse();
+				pp.addKeyRace();
+				pp.save();
+			});		
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

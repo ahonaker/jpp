@@ -151,7 +151,11 @@
                 <b-icon-arrow-down v-if="row.item.trackVariant>19"></b-icon-arrow-down>
             </span>
         </template>	   
-         <template #cell(postPosition)="row">
+         <template #cell(adjustedASpeedRating)="row">
+             <span v-if="row.value > 0" v-b-tooltip.hover :title="'Raw ' + row.item.rawASpeedRating">{{row.value}}</span>
+             <span v-else-if="row.item.rawASpeedRating > 0">*{{row.item.rawASpeedRating}}</span>
+        </template>         
+        <template #cell(postPosition)="row">
             <span v-if="row.item.postPosition != 0">{{row.item.postPosition}}</span>
         </template>            			
         <template #cell(firstCallPosition)="row">
@@ -229,6 +233,7 @@ export default {
 				{key: "raceShapeFirstCall", title: "1st Call Race Shape (leader's pace compared to average)", label: "1c", tdClass: this.highlightRaceShape},
 				{key: "raceShapeSecondCall", title: "2nd Call Race Shape (leader's pace compared to average)", label: "2c", tdClass: this.highlightRaceShape},
 				{key: "brisspeedRating", label: "SPD", title: "BRIS Speed Rating and Race Par", class: "strong", tdClass: this.highlightSpeedInRange},
+                {key: "adjustedASpeedRating", label: "ASpd", title: "A Speed Rating"},
                 {key: "raceShape", label: "Shp", title: "Race Shape (1st Call Pace and Final Speed - e.g., FF is Fast/Fast, AS is Average/Slow)", tdClass: this.highlightRaceShape2},
 //                {key: "speedRating", title: "DRF Speed Rating and Track Variant", label: "SR-TV"},
                 {key: "postPosition", title: "Post Position", label: "PP"},
@@ -277,9 +282,14 @@ export default {
 		ppRowClass(item, type) {
 			if (!item || type !== 'row') return;
 			var c = "";
-			
-			if (item.over365Days) c += "diff365";
-			if (item.over90Days && !item.over365Days) c += "diff90";
+
+            if (moment(item.raceDate).isSame(moment(this.race.date), "day")) {
+                c += "thisRace";
+            } else if (moment(item.raceDate).isBefore(moment(this.race.date), "day")) {
+                if (item.over365Days) c += "diff365";
+                if (item.over90Days && !item.over365Days) c += "diff90";
+            }
+
 			
 			if (item.ignore) c += " table-dark ignored";
 			
@@ -428,6 +438,7 @@ export default {
 		},
         highlightRaceStrength(value,key,item) {
 			if (!this.race) return;
+            if (this.race.parSpeed == 0) return;
             if (item.raceStrength >= this.race.parSpeed - 2) return "greenHighlight";
         },
         highlightPace(value,key,item) {

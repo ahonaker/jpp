@@ -128,6 +128,7 @@ export default {
 						});
 					}
 				}
+				fields.push({key: "adjustedSpeedRating", title: "Speed", label: "Speed"});
 				fields.push({key: "odds", title: "Odds", label: "Odds"});
 				fields.push({key: "comments", title: "Comments", label: "Comments"});
 				fields.push({key: "note", title: "Note", label: "Note"});

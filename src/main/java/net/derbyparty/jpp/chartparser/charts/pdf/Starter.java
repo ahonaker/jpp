@@ -20,11 +20,12 @@ import net.derbyparty.jpp.chartparser.charts.pdf.wagering.WagerPayoffPools.WinPl
 import net.derbyparty.jpp.chartparser.exceptions.ChartParserException;
 import net.derbyparty.jpp.chartparser.fractionals.FractionalPoint.Fractional;
 import net.derbyparty.jpp.chartparser.fractionals.FractionalPoint.Split;
+import net.derbyparty.jpp.chartparser.points_of_call.LengthsAhead;
+import net.derbyparty.jpp.chartparser.points_of_call.PointOfCall;
 import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall;
 import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCallService;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition;
-import net.derbyparty.jpp.chartparser.points_of_call.PointsOfCall.PointOfCall.RelativePosition.TotalLengthsBehind;
+import net.derbyparty.jpp.chartparser.points_of_call.RelativePosition;
+import net.derbyparty.jpp.chartparser.points_of_call.TotalLengthsBehind;
 import net.derbyparty.jpp.chartparser.tracks.TrackService;
 import net.derbyparty.jpp.object.PotentialKeyRace;
 import net.derbyparty.jpp.object.RaceNote;
@@ -78,6 +79,8 @@ public class Starter {
     public PotentialKeyRace lastRacedKeyRace;
     public String footnote;
     public RaceNote nextOutRaceNote;
+    public int rawSpeedRating;
+    public int adjustedSpeedRating;
     
     private Starter(Builder builder) {
         lastRaced = builder.lastRaced;
@@ -171,7 +174,59 @@ public class Starter {
         return pointsOfCall;
     }
 
-    public Trainer getTrainer() {
+    public void setLastRaced(LastRaced lastRaced) {
+		this.lastRaced = lastRaced;
+	}
+
+	public void setProgram(String program) {
+		this.program = program;
+	}
+
+	public void setHorse(Horse horse) {
+		this.horse = horse;
+	}
+
+	public void setJockey(Jockey jockey) {
+		this.jockey = jockey;
+	}
+
+	public void setWeight(Weight weight) {
+		this.weight = weight;
+	}
+
+	public void setMedicationEquipment(MedicationEquipment medicationEquipment) {
+		this.medicationEquipment = medicationEquipment;
+	}
+
+	public void setPostPosition(Integer postPosition) {
+		this.postPosition = postPosition;
+	}
+
+	public void setOdds(Double odds) {
+		this.odds = odds;
+	}
+
+	public void setFavorite(Boolean favorite) {
+		this.favorite = favorite;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+
+	public void setPointsOfCall(List<PointOfCall> pointsOfCall) {
+		this.pointsOfCall = pointsOfCall;
+	}
+
+	public void setFinishPosition(Integer finishPosition) {
+		this.finishPosition = finishPosition;
+	}
+
+	public void setDisqualified(Boolean disqualified) {
+		this.disqualified = disqualified;
+	}
+
+	public Trainer getTrainer() {
         return trainer;
     }
 
@@ -261,6 +316,22 @@ public class Starter {
 		this.nextOutRaceNote = nextOutRaceNote;
 	}
 
+	public int getRawSpeedRating() {
+		return rawSpeedRating;
+	}
+
+	public void setRawSpeedRating(int rawSpeedRating) {
+		this.rawSpeedRating = rawSpeedRating;
+	}
+
+	public int getAdjustedSpeedRating() {
+		return adjustedSpeedRating;
+	}
+
+	public void setAdjustedSpeedRating(int adjustedSpeedRating) {
+		this.adjustedSpeedRating = adjustedSpeedRating;
+	}
+
 	/**
      * Return the position at the last point of call (which should always be the finish)
      */
@@ -348,7 +419,7 @@ public class Starter {
     private TotalLengthsBehind createTotalLengthsBehind(RelativePosition relativePosition) {
         Integer position = relativePosition.getPosition();
         if (position != null && position != 1) {
-            RelativePosition.LengthsAhead runningLinePreviewLengths =
+            LengthsAhead runningLinePreviewLengths =
                     relativePosition.getLengthsAhead();
             if (runningLinePreviewLengths != null) {
                 String chart = runningLinePreviewLengths.getText();

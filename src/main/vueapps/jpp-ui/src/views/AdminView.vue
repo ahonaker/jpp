@@ -3,6 +3,9 @@
 		<navbar-view :status="status"></navbar-view>
         <b-row>
             <b-col>
+                <b-button variant="primary" @click="generateMissingChartLinks">Generate Links</b-button>
+            </b-col>            
+            <b-col>
                 <b-button variant="primary" @click="parseCharts">Parse Charts</b-button>
             </b-col>
             <b-col>
@@ -146,6 +149,19 @@ export default {
                 
             }
 		},
+		async generateMissingChartLinks() {
+            try {
+				this.status = "Parsing";
+                await axios({
+                    url: 'generateMissingChartLinks',
+                    method: 'GET',
+                    baseURL: 'http://localhost:8080/jpp/rest/remote/'
+				});
+				this.status = "";
+            } catch (err) {
+                console.log(err);             
+            }
+		},        
 		async generateStats() {
             try {
 				this.status = "Generating Angle Stats";

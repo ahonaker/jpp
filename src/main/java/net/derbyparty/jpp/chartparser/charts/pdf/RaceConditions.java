@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bson.codecs.pojo.annotations.BsonIgnore;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static java.util.Locale.US;
 import static net.derbyparty.jpp.chartparser.charts.pdf.DistanceSurfaceTrackRecord.DIST_SURF_RECORD_PATTERN;
@@ -39,6 +41,8 @@ public class RaceConditions {
     public SexRestrictionType sexRestrictionType;
     public AgeRestrictionType ageRestrictionType;
     public AgeRestrictionRangeType ageRestrictionRangeType;
+    @BsonIgnore
+    public String raceCategory;
 
     public RaceConditions(String text,
             ClaimingPriceRange claimingPriceRange,
@@ -105,7 +109,31 @@ public class RaceConditions {
         return claimingPriceRange;
     }
 
-    public RaceTypeNameBlackTypeBreed getRaceTypeNameBlackTypeBreed() {
+    public void setText(String text) {
+		this.text = text;
+	}
+
+	public void setClaimingPriceRange(ClaimingPriceRange claimingPriceRange) {
+		this.claimingPriceRange = claimingPriceRange;
+	}
+
+	public void setRaceClassification(String raceClassification) {
+		this.raceClassification = raceClassification;
+	}
+
+	public void setSexRestrictionType(SexRestrictionType sexRestrictionType) {
+		this.sexRestrictionType = sexRestrictionType;
+	}
+
+	public void setAgeRestrictionType(AgeRestrictionType ageRestrictionType) {
+		this.ageRestrictionType = ageRestrictionType;
+	}
+
+	public void setAgeRestrictionRangeType(AgeRestrictionRangeType ageRestrictionRangeType) {
+		this.ageRestrictionRangeType = ageRestrictionRangeType;
+	}
+
+	public RaceTypeNameBlackTypeBreed getRaceTypeNameBlackTypeBreed() {
         return raceTypeNameBlackTypeBreed;
     }
 
@@ -116,6 +144,39 @@ public class RaceConditions {
     
     public String getRaceClassification() {
 		return raceClassification;
+	}
+    
+    //@BsonIgnore
+	public String getRaceCategory () {
+		
+		String raceCategory = "";
+
+		raceCategory += this.getRaceTypeNameBlackTypeBreed().getRaceType().toString();
+		
+		if (this.getAgeRestrictionRangeType().equals(AgeRestrictionRangeType.THAT_AGE_ONLY)) {
+			if (this.getAgeRestrictionType().equals(AgeRestrictionType.TWO_YEAR_OLDS))
+				raceCategory += " 2YO";
+			if (this.getAgeRestrictionType().equals(AgeRestrictionType.THREE_YEAR_OLDS))
+				raceCategory += " 3YO";				
+		}
+		
+		
+		String raceClassification = this.getRaceClassification();
+		if (raceClassification != null) 
+			if (raceClassification.equals("NW1 X")) raceCategory += " NW1X";
+				else if (raceClassification.equals("NW1 B")) raceCategory += " NW1X S";
+				else if (raceClassification.equals("SNW1 X")) raceCategory += " NW1X S";
+				else if (raceClassification.equals("NW2 L")) raceCategory += " NW2";
+				else if (raceClassification.equals("NW2 L X")) raceCategory += " NW2";
+				else if (raceClassification.equals("SNW2 L")) raceCategory += " NW2 S";
+				else if (raceClassification.equals("NW2 X")) raceCategory += " NW2X";
+				else if (raceClassification.equals("SNW2 X")) raceCategory += " NW2X S";
+				else if (raceClassification.equals("NW3 L")) raceCategory += " NW3";
+				else if (raceClassification.equals("NW3 L X")) raceCategory += " NW3";
+				else if (raceClassification.equals("SNW3 L")) raceCategory += " NW3 S";
+				else if (raceClassification.contains("S")) raceCategory += " S";
+			
+		return raceCategory;
 	}
 
 	public static String parseRaceClassification(String raceConditions) {
@@ -243,7 +304,15 @@ public class RaceConditions {
             return max;
         }
 
-        @Override
+        public void setMin(int min) {
+			this.min = min;
+		}
+
+		public void setMax(int max) {
+			this.max = max;
+		}
+
+		@Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;

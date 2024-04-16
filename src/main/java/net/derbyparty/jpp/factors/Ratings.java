@@ -97,6 +97,7 @@ public class Ratings {
 					if (advantagedHorses.size() == 0) {
 						for (Entry entry : race.getUnscratchedEntries()) {
 							if ((entry.getRunStyle().equals("E/P"))
+									&& race.getUnscratchedEntries().size() >= 4
 									&& entry.getSpeedRating() > SpeedRatingSorted[race.getUnscratchedEntries().size()-4]) {
 								advantagedHorses.add(entry.getName());
 							}

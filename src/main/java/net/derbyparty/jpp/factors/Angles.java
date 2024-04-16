@@ -84,14 +84,14 @@ public class Angles {
 	
 	public static Boolean GoodRace(PastPerformance pp) {
 		return (pp.getFinishPosition().equals("1") || pp.getFinishPosition().equals("2") || pp.getFinishPosition().equals("3")
-				|| (pp.getFurlongs() < 8 && pp.getFinishBeatenLengthsOnly() <= 2) 
-				|| (pp.getFurlongs() >= 8 && pp.getFinishBeatenLengthsOnly() <= 3));
+				|| (Math.abs(pp.getFurlongs()) < 8 && pp.getFinishBeatenLengthsOnly() <= 2) 
+				|| (Math.abs(pp.getFurlongs()) >= 8 && pp.getFinishBeatenLengthsOnly() <= 3));
 	}
 	
 	public static Boolean OKRace(PastPerformance pp) {
 		return (pp.getFinishPosition().equals("1") || pp.getFinishPosition().equals("2") || pp.getFinishPosition().equals("3")
-				|| (pp.getFurlongs() < 8 && pp.getFinishBeatenLengthsOnly() <= 9) 
-				|| (pp.getFurlongs() >= 8 && pp.getFinishBeatenLengthsOnly() <= 8));
+				|| (Math.abs(pp.getFurlongs()) < 8 && pp.getFinishBeatenLengthsOnly() <= 9) 
+				|| (Math.abs(pp.getFurlongs()) >= 8 && pp.getFinishBeatenLengthsOnly() <= 8));
 	}
 	
 	public static Boolean isPaired(int Speed1, int Speed2) {
@@ -103,18 +103,18 @@ public class Angles {
 		float finish = 0;
 		float target = 0;
 		
-		if (Math.abs(pp.getFurlongs()) == 8 
+		if (Math.abs(Math.abs(pp.getFurlongs())) == 8 
 			|| (Math.abs(pp.getDistance()) >= 1800 && Math.abs(pp.getDistance()) <= 1830)
-			|| Math.abs(pp.getFurlongs()) == 10
-			|| Math.abs(pp.getFurlongs()) == 12) {
+			|| Math.abs(Math.abs(pp.getFurlongs())) == 10
+			|| Math.abs(Math.abs(pp.getFurlongs())) == 12) {
 			finish = pp.getSplit3();
 			target = 23.5f;
-		} else if (Math.abs(pp.getFurlongs()) == 8.5) {
+		} else if (Math.abs(Math.abs(pp.getFurlongs())) == 8.5) {
 			finish = pp.getSplit3();
 			target = 29.5f;
-		} else if (Math.abs(pp.getFurlongs()) == 9
-				|| Math.abs(pp.getFurlongs()) == 9.5
-				|| Math.abs(pp.getFurlongs()) == 11) {
+		} else if (Math.abs(Math.abs(pp.getFurlongs())) == 9
+				|| Math.abs(Math.abs(pp.getFurlongs())) == 9.5
+				|| Math.abs(Math.abs(pp.getFurlongs())) == 11) {
 			finish = pp.getSplit2() + pp.getSplit3();
 			target = 35.5f;
 		}
@@ -124,7 +124,7 @@ public class Angles {
 	
 	public static Boolean firstTimeAtDistanceType(Race race, Entry entry) {
 		for (PastPerformance pp : entry.getPastPerformances()) {
-			if ((race.getFurlongs() < 8 && pp.getFurlongs() < 8) || (race.getFurlongs() >= 8 && pp.getFurlongs() >= 8)){
+			if ((race.getFurlongs() < 8 && Math.abs(pp.getFurlongs()) < 8) || (race.getFurlongs() >= 8 && Math.abs(pp.getFurlongs()) >= 8)){				
 				return false;
 			}	
 		}
@@ -168,7 +168,7 @@ public class Angles {
 	public static int racesCloseToPar(Race race, Entry entry) {
 		int racesCloseToPar = 0;
 		for (PastPerformance pp : entry.getPastPerformances()) {
-			if (pp.getBRISSpeedRating() >= race.getParSpeed() - (pp.getFurlongs() < 8 ? 2 : 3)
+			if (pp.getBRISSpeedRating() >= race.getParSpeed() - (Math.abs(pp.getFurlongs()) < 8 ? 2 : 3)
 					 && pp.getRaceDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(270)
 					 .isAfter(race.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) {
 				racesCloseToPar++;
@@ -199,7 +199,7 @@ public class Angles {
 	public static Boolean impressiveMaidenWinner(Race race, Entry entry) {
 		for (PastPerformance pp : entry.getPastPerformances()) {
 			if (pp.getRaceType().equals(RaceType.MAIDEN_SPECIAL_WEIGHT)
-				&& pp.getBRISSpeedRating() > pp.getSpeedPar() + (pp.getFurlongs() < 8 ? 3 : 2)) return true;
+				&& pp.getBRISSpeedRating() > pp.getSpeedPar() + (Math.abs(pp.getFurlongs()) < 8 ? 3 : 2)) return true;
 		}
 		return false;
 	}
@@ -389,7 +389,7 @@ public class Angles {
 				&& entry.getPastPerformances().get(0).getTurfFlag() 
 				&& !entry.getPastPerformances().get(0).getOffTheTurfFlag()
 				&& race.getFurlongs() < 8 
-				&& entry.getPastPerformances().get(0).getFurlongs() >= 8 
+				&& Math.abs(entry.getPastPerformances().get(0).getFurlongs()) >= 8 
 				&& entry.getPastPerformances().get(0).getFirstCallBeatenLengthsOnly() > 1 
 				&& entry.getPastPerformances().get(0).getSecondCallBeatenLengthsOnly() > 1
 				&& entry.getPastPerformances().get(0).getStretchBeatenLengthsOnly() > 1 
@@ -407,7 +407,7 @@ public class Angles {
 				&& !race.getOffTheTurfFlag()
 				&& entry.getPastPerformances().size() > 0
 				&& entry.getPastPerformances().get(0).getRaceType().equals(RaceType.MAIDEN_SPECIAL_WEIGHT)
-				&& entry.getPastPerformances().get(0).getFurlongs() >= 8
+				&& Math.abs(entry.getPastPerformances().get(0).getFurlongs()) >= 8
 				&& entry.getPastPerformances().get(0).getFinishPosition().equals("1") 
 				&& entry.getPedigreeRatingTurf().charAt(0) != '?'
 				&& !entry.getPedigreeRatingTurf().contains("?") 
@@ -799,7 +799,7 @@ public class Angles {
 					&& pp.getTurfFlag() 
 					&& !pp.getOffTheTurfFlag()
 					&& GoodRace(pp) 
-					&& Math.abs(pp.getFurlongs()) - race.getFurlongs() <= 0.5) goodTurfRaceWithinHalfFurlong = true;
+					&& Math.abs(Math.abs(pp.getFurlongs())) - race.getFurlongs() <= 0.5) goodTurfRaceWithinHalfFurlong = true;
 			}
 		
 			return (entry.getAge() >= 4 
@@ -911,7 +911,7 @@ public class Angles {
 	}
 	
 	public static Boolean angle_0041(Race race, Entry entry) throws Exception {	
-		//First Time Start with Trainer 1st time stat < 11% - NO PLAY Favorites/Low Price.
+		//First Time Start with Trainer 1st time start < 11% - NO PLAY Favorites/Low Price.
 		try {		
 			return (!angle_0037(race,entry)
 				&& !angle_0038(race,entry)
@@ -979,7 +979,7 @@ public class Angles {
 		//Second Start projected to par with normal improvement.
 		try {		
 			return (entry.getPastPerformances().size() == 1 
-				&& entry.getPastPerformances().get(0).getBRISSpeedRating() + (entry.getPastPerformances().get(0).getFurlongs() < 8 ? .3 : .2) * 5 >= race.getParSpeed());
+				&& entry.getPastPerformances().get(0).getBRISSpeedRating() + (Math.abs(entry.getPastPerformances().get(0).getFurlongs()) < 8 ? .3 : .2) * 5 >= race.getParSpeed());
 				
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1453,10 +1453,11 @@ public class Angles {
 	
 	public static Boolean angle_0075(Race race, Entry entry) throws Exception {	
 		//Failed as Favorite last out.
-		try {	
+		try {
+			
 			return (entry.getPastPerformances().size() > 0
 				&& entry.getPastPerformances().get(0).getFavoriteFlag() > 0
-				&& entry.getPastPerformances().get(0).getFinishPosition() != "!");		
+				&& !entry.getPastPerformances().get(0).getFinishPosition().equals("1"));		
 		
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1653,7 +1654,7 @@ public class Angles {
 			for (Entry runner : race.getUnscratchedEntries()) {
 				if (runner.getMLOdds() < min) min = runner.getCombinedPaceAvg();
 			}
-			return (entry.getCombinedPaceAvg()  == min);	
+			return (entry.getMLOdds()  == min);	
 		
 		} catch (Exception e) {
 			e.printStackTrace();

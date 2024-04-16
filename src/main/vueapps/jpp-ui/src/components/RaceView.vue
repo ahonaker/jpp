@@ -527,11 +527,11 @@
                         </b-row>                                               
                         <b-row v-for="(angle,ndx) in row.item.angles" :key="ndx">
                             <b-col>
-                                <span v-if="angle.source != 'Summary'" :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">
+                                <span :class="'font-weight-bold ' + (angle.type == '+' ? 'text-success' : (angle.type == '-' ? 'text-danger' : 'text-warning'))">
                                     <b-icon-file-pdf v-if="angle.source == 'Augmented'"></b-icon-file-pdf>
                                     <b-icon-lightbulb v-if="angle.source == 'Generated'"></b-icon-lightbulb>
                                     {{angle.text}} 
-                                    <span v-if="angle.source=='Generated'">({{angle.total}} {{angle.winPercent}}% {{angle.itmPercent}}% ${{angle.roi}})</span>
+                                    <span v-if="angle.source=='Generated'">({{angle.total}} {{formatPercent(angle.winPercent)}}% {{formatPercent(angle.itmPercent)}}% ${{format2Places(angle.roi)}})</span>
                                 </span>
                             </b-col>
                         </b-row>
@@ -874,6 +874,16 @@ export default {
         },
 		shortenJockeyName(value) {
 			return value.split(" ")[0] + value.split(" ")[1].charAt(0);
+		},
+        formatPercent(amount) {
+			const formatter = new Intl.NumberFormat('en-US', {
+
+
+				// These options are needed to round to whole numbers if that's what you want.
+				minimumFractionDigits: 2, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+				maximumFractionDigits: 2, // (causes 2500.99 to be printed as $2,501)
+			});
+			return formatter.format(amount*100);
 		},
 		format2Places(amount) {
 			const formatter = new Intl.NumberFormat('en-US', {
