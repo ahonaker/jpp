@@ -39,9 +39,7 @@ public class DistanceSurfaceTrackRecord {
 	}
 
 	static final Pattern DIST_SURF_RECORD_PATTERN =
-            Pattern.compile("^((About )?(One|Two|Three|Four|Five|Six|Seven|Eight|Nine)[\\w\\s]+) " +
-                    "On The ([A-Za-z\\s]+)(\\s?- Originally Scheduled For " +
-                    "([A-Za-z0-9\\-\\/\\s]+))?(\\|Current Track Record: \\((.+) - ([\\d:\\.]+) - (.+)\\))?");
+            Pattern.compile("(^Distance:[\\s]+)?((About )?(One|Two|Three|Four|Five|Six|Seven|Eight|Nine)[\\w\\s]+) On The ([A-Za-z\\s]+)(\\s?- Originally Scheduled For ([A-Za-z0-9\\-\\/\\s]+))?(\\|(Current )?Track Record: \\((.+) - ([\\d:\\.]+) - (.+)\\))?");
 
     private static final List<String> NUMERATORS = Arrays.asList("zero", "one", "two", "three",
             "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen",
@@ -124,7 +122,8 @@ public class DistanceSurfaceTrackRecord {
         return !((text.toLowerCase().contains("claiming price") ||
                 text.toLowerCase().contains("allowed") ||
                 text.toLowerCase().contains("non winners") ||
-                text.toLowerCase().contains("other than"))
+                text.toLowerCase().contains("other than") ||
+                text.toLowerCase().contains("lbs."))
                 && !text.toLowerCase().contains("track record"));
     }
 
@@ -133,28 +132,28 @@ public class DistanceSurfaceTrackRecord {
     	//System.out.println(text);
         Matcher matcher = DIST_SURF_RECORD_PATTERN.matcher(text.replace("Current Track Record", "|Current Track Record"));
         if (matcher.find()) {
-            String distanceDescription = matcher.group(1);
-            String surface = matcher.group(4).trim();
+            String distanceDescription = matcher.group(2);
+            String surface = matcher.group(5).trim();
             String scheduledSurface = null;
 
             // detect off-turf races
-            String scheduledSurfaceFlag = matcher.group(5);
+            String scheduledSurfaceFlag = matcher.group(6);
             if (scheduledSurfaceFlag != null) {
-                scheduledSurface = matcher.group(6).trim();
+                scheduledSurface = matcher.group(7).trim();
             }
 
             TrackRecord trackRecord = null;
             if (matcher.group(7) != null) {
-                String holder = matcher.group(8);
-                String time = matcher.group(9);
-                Optional<Long> recordTime =
-                        FractionalService.calculateMillisecondsForFraction(time);
+                String holder = matcher.group(9);
+                String time = matcher.group(11);
+                Optional<Long> recordTime = (time != null) ?
+                        FractionalService.calculateMillisecondsForFraction(time) : null;
 
-                String raceDateText = matcher.group(10);
-                Date raceDate = TrackRaceDateRaceNumber.parseRaceDate(raceDateText);
+                String raceDateText = matcher.group(12);
+                Date raceDate = (raceDateText != null) ? TrackRaceDateRaceNumber.parseRaceDate(raceDateText) : null;
 
-                trackRecord = new TrackRecord(holder, time,
-                        (recordTime.isPresent() ? recordTime.get() : null), raceDate);
+                trackRecord = (recordTime != null) ? new TrackRecord(holder, time,
+                        (recordTime.isPresent() ? recordTime.get() : null), raceDate) : null;
             }
 
             return Optional.of(new DistanceSurfaceTrackRecord(distanceDescription, surface,

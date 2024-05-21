@@ -420,7 +420,8 @@ public class Loader {
 			    				case "DMR" :
 			    				case "GP":
 			    				case "SA" :
-			    					multiStrings = values[values[0].trim().equals("GP") ? 240 : 241].split("\\/");
+			    				case "PIM" :
+			    					multiStrings = values[values[0].trim().equals("GP") || values[0].trim().equals("PIM")  ? 240 : 241].split("\\/");
 						    		index = 0;
 						    		for (String multi : multiStrings) {
 						    			if (multi.contains("PICK SIX")) {

@@ -182,6 +182,9 @@ public class Card implements Serializable {
 				iterable.into(pps);
 				Collections.sort(pps);
 				Collections.reverse(pps);
+				for (PastPerformance pp : pps) {
+					pp.addHorse();
+				}
 				entry.setPastPerformances(pps);
 				entry.addHorse();
 			}

@@ -179,9 +179,9 @@ public class Track implements Serializable {
 		MongoCollection<Track> collection = database.getCollection("tracks", Track.class);
 		UpdateResult result = collection.replaceOne(query, this, opts);
 		if (result.getModifiedCount() == 1) {
-			System.out.println(this.getCode() + " updated.");
+			//System.out.println(this.getCode() + " updated.");
 		} else {
-			System.out.println(this.getCode() + " inserted. (ID = " + result.getUpsertedId());
+			//System.out.println(this.getCode() + " inserted. (ID = " + result.getUpsertedId());
 
 		}
 	}

@@ -143,6 +143,11 @@ public class ChartParser {
             RaceResult.Builder raceResultBuilder = new RaceResult.Builder();
 
             try {
+//            	for (List<ChartCharacter> line : lines) {
+//                    String text = Chart.convertToText(line);
+//                    System.out.println(text);
+//            	}
+            	
                 TrackRaceDateRaceNumber trackRaceDateRaceNumber =
                         TrackRaceDateRaceNumber.parse(lines);
 
@@ -425,6 +430,9 @@ public class ChartParser {
             } catch (ChartParserException e) {
             	e.printStackTrace();
                 continue;
+            } catch (Exception e) {
+            	e.printStackTrace();
+            	throw e;
             }
         }
 

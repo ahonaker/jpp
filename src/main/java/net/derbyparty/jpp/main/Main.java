@@ -268,6 +268,7 @@ public class Main {
 		
 		try {
 			PastPerformanceParser.extractPastPerformance(card.getRaces(), ppFile);
+			calculate();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -285,12 +286,14 @@ public class Main {
 				for (Race updatedRace : updatedRaces) {
 					if (race.getRaceNumber() == updatedRace.getRaceNumber()) {
 						race.setWagerTypes(updatedRace.getWagerTypes());
+						race.setMultiRaceWagers(updatedRace.getMultiRaceWagers());
 						for (Entry entry : race.getEntries()) {
 							Boolean found = false;
 							for (Entry updatedHorse : updatedRace.getEntries()) {
 								if (entry.getName().equals(updatedHorse.getName())) {
 									entry.setProgramNumber(updatedHorse.getProgramNumber());
 									entry.setMLOdds(updatedHorse.getMLOdds());
+									entry.setJockey(updatedHorse.getJockey());
 									found = true;
 								}
 							}
@@ -446,10 +449,10 @@ public class Main {
 						}
 						if (matches == 2) {
 							if (comboAlert != "") comboAlert += "; ";
-							comboAlert += combo.getString("_id.angles") + " (" +
+							comboAlert += combo.get("_id", Document.class).getString("angles") + " (" +
 								combo.getInteger("winners") + "/" +
 								combo.getInteger("total") + " $" +
-								String.format("%.2f", combo.getDouble("ROI"));
+								String.format("%.2f", combo.getDouble("ROI")) + ")";
 						}
 					}
 					for (Document combo : combos3) {
@@ -1028,12 +1031,17 @@ public class Main {
 	public static void saveNotes(JsonNode data) throws Exception {
 		
 		try {
-			for (JsonNode race :data) {
-				Date raceDate = formatter.parse(race.get("raceDate").toString());
+			System.out.println(mapper.writeValueAsString(data));
+			for (JsonNode race : data) {
+				System.out.println(race.get("raceDate").asLong());
+				Date raceDate = new Date(race.get("raceDate").asLong());
+				System.out.println(raceDate.toString());
 				for (JsonNode starter : race.get("starters")) {
-					File horseFile = new File(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json");
-					if (horseFile.exists()) {
-						Horse horse = mapper.readValue(Paths.get(horsesToWatchDir + starter.get("name").asText().replaceAll("\\s\\(.+\\)", "") + ".json").toFile(), Horse.class);
+					MongoCollection<Horse> horsesCollection = database.getCollection("horses", Horse.class);
+					Bson horseQuery = eq("name", starter.get("name").asText().replaceAll("\\s\\(.+\\)", ""));
+
+					Horse horse = horsesCollection.find(horseQuery).first();
+					if (horse != null) {
 						if (!starter.get("horseFlag").isNull()) horse.setFlag(starter.get("horseFlag").asText());
 						Boolean raceFound = false;
 						for (RaceNote raceNote : horse.getRaceNotes()) {
@@ -1047,54 +1055,12 @@ public class Main {
 							}
 						}
 						if (!raceFound) {
-							List<RaceNote> raceNotes = new ArrayList<RaceNote>(horse.getRaceNotes());
-							raceNotes.add(RaceNote.builder()
-								.withTrack(race.get("track").asText())
-								.withRaceDate(raceDate)
-								.withRaceNumber(race.get("raceNumber").asInt())
-								.withType(race.get("type").asText())
-								.withRaceClassification(race.get("raceClassification").asText())
-								.withPurse(race.get("purse").asInt())
-								.withClaimingPrice(starter.has("claimingPrice") ? starter.get("claimingPrice").asInt() : 0)								
-								.withDistance(race.get("distance").asInt())
-								.withExactDistance(race.get("exactDistanceFlag").asBoolean())
-								.withSurface(race.get("surface").asText())
-								.withOffTurf(race.get("offTurfFlag").asBoolean())
-								.withTrackCondition(race.get("trackCondition").asText())
-								.withPosition(starter.get("position").asInt())
-								.withBeatenLengths(starter.get("beatenLengths").floatValue())
-								.withComment(!starter.get("note").isNull()? starter.get("note").asText() : "")
-								.withFlag(!starter.get("raceFlag").isNull() ? starter.get("raceFlag").asText() : "")
-								.build());
-							horse.setRaceNotes(raceNotes);
+							
+							throw new Exception("Race not found.");
 						}
 						horse.save();
 					} else {
-						List<RaceNote> raceNotes = new ArrayList<RaceNote>();
-						raceNotes.add(RaceNote.builder()
-							.withTrack(race.get("track").asText())
-							.withRaceDate(raceDate)
-							.withRaceNumber(race.get("raceNumber").asInt())
-							.withType(race.get("type").asText())
-							.withRaceClassification(race.get("raceClassification").asText())
-							.withPurse(race.get("purse").asInt())
-							.withClaimingPrice(race.has("claimingPrice") ? race.get("claimingPrice").asInt() : 0)								
-							.withDistance(race.get("distance").asInt())
-							.withExactDistance(race.get("exactDistanceFlag").asBoolean())
-							.withSurface(race.get("surface").asText())
-							.withOffTurf(race.get("offTurfFlag").asBoolean())
-							.withTrackCondition(race.get("trackCondition").asText())							
-							.withPosition(starter.get("position").asInt())
-							.withBeatenLengths(starter.get("beatenLengths").floatValue())
-							.withComment(!starter.get("note").isNull() ? starter.get("note").asText() : "")
-							.withFlag(!starter.get("raceFlag").isNull() ? starter.get("raceFlag").asText() : "")
-							.build());
-						Horse horse = Horse.builder()
-							.withName(starter.get("name").asText())
-							.withFlag(!starter.get("horseFlag").isNull() ? starter.get("horseFlag").asText() : "")
-							.withRaceNotes(raceNotes)
-							.build();
-						horse.save();
+						throw new Exception("Horse not found.");
 					}
 				}
 			}

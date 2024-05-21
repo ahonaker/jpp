@@ -110,13 +110,13 @@ public class ProcessChart {
 			return collection.find(query).first().getInteger("rawSpeedRating");
 
 		} catch (Exception e) {
-			System.out.println( new Document("time", new Document("$lte", starter.getFinishFractional().getMillis() / 1000.0d))
-				    .append("time2", new Document("$gt", starter.getFinishFractional().getMillis() / 1000.0d))
-				    .append("turns", 
-				    		(distSurf.getRaceDistance().getValue() >= 
-				    			(distSurf.getSurface().equals("Dirt") ? track.getTwoTurnBreak() : track.getTwoTurnTurfBreak()))
-				    		? 2 : 1)
-				    .append("distance",  distSurf.getRaceDistance().getValue() / 5280.0d));
+//			System.out.println( new Document("time", new Document("$lte", starter.getFinishFractional().getMillis() / 1000.0d))
+//				    .append("time2", new Document("$gt", starter.getFinishFractional().getMillis() / 1000.0d))
+//				    .append("turns", 
+//				    		(distSurf.getRaceDistance().getValue() >= 
+//				    			(distSurf.getSurface().equals("Dirt") ? track.getTwoTurnBreak() : track.getTwoTurnTurfBreak()))
+//				    		? 2 : 1)
+//				    .append("distance",  distSurf.getRaceDistance().getValue() / 5280.0d));
 			//System.out.println("No Raw Speed Rating Calculated for " + distSurf.getRaceDistance().getText());
 		}
 		
@@ -193,13 +193,13 @@ public class ProcessChart {
 		int variant = 0;
 		
 		try {
+			if (raceResults.size() == 0) {
+				throw new Exception("No results found.");
+			}
 			int count = 0;
 			int sumDiff = 0;
 			List<Track> tracks = Main.getTracksList();
 			for (Track track : tracks) {
-				if (raceResults.size() == 0) {
-					throw new Exception("No results found.");
-				}
 				if (track.getCode().equals(raceResults.get(0).getTrack().getCode())) {
 					for (RaceResult raceResult : raceResults) {
 						if (!raceResult.getCancellation().cancelled) {
@@ -224,6 +224,7 @@ public class ProcessChart {
 			//System.out.println(sumDiff + " / " + count + " " + variant);
 			
 		} catch (Exception e) {
+			System.out.println("calculateSpeedVariant - " + e.getMessage());
 			throw e;
 		}
 		return variant;
@@ -231,72 +232,74 @@ public class ProcessChart {
 	
 	public static void updateKeyRaces(List<RaceResult> results) throws Exception {
 		for (RaceResult raceResult : results) {
-			for (Starter starter : raceResult.getStarters()) {
-				if (starter.getLastRaced() != null && starter.getLastRaced().getLastRacePerformance() != null && starter.getLastRaced().getLastRacePerformance().getRaceNumber() != null
-						&& starter.getFinishPosition() != null  && (starter.getFinishPosition() == 1 || starter.getFinishPosition() == 2 ||
-						(starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").isPresent() 
-								&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
-								&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() < 2))) {
-						
-						PotentialKeyRace keyRace = PotentialKeyRace.builder()
-								.withTrack(starter.getLastRaced().getLastRacePerformance().getTrack().getCode())
-								.withRaceDate(starter.getLastRaced().getRaceDate())
-								.withRaceNumber(starter.getLastRaced().getLastRacePerformance().getRaceNumber())
-								.build();
-						
-						MongoCollection<PotentialKeyRace> keyRacesCollection = database.getCollection("keyRaces", PotentialKeyRace.class);
-						Bson raceQuery = and(
-							eq("track", starter.getLastRaced().getLastRacePerformance().getTrack().getCode()),
-							eq("raceDate",starter.getLastRaced().getRaceDate()),
-							eq("raceNumber", starter.getLastRaced().getLastRacePerformance().getRaceNumber())
-						);
-						
-						PotentialKeyRace keyRaceFound = keyRacesCollection.find(raceQuery).first();
-						if (keyRaceFound != null) {
-							Boolean horseFound = false;
-							for (PotentialKeyRaceHorse keyRaceHorse : keyRaceFound.getHorses()) {
-								if (starter.getHorse().getName().equals(keyRaceHorse.getName())) {
-									horseFound = true;
+			if (!raceResult.getCancellation().isCancelled()) {
+				for (Starter starter : raceResult.getStarters()) {
+					if (starter.getLastRaced() != null && starter.getLastRaced().getLastRacePerformance() != null && starter.getLastRaced().getLastRacePerformance().getRaceNumber() != null
+							&& starter.getFinishPosition() != null  && (starter.getFinishPosition() == 1 || starter.getFinishPosition() == 2 ||
+							(starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").isPresent() 
+									&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
+									&& starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() < 2))) {
+							
+							PotentialKeyRace keyRace = PotentialKeyRace.builder()
+									.withTrack(starter.getLastRaced().getLastRacePerformance().getTrack().getCode())
+									.withRaceDate(starter.getLastRaced().getRaceDate())
+									.withRaceNumber(starter.getLastRaced().getLastRacePerformance().getRaceNumber())
+									.build();
+							
+							MongoCollection<PotentialKeyRace> keyRacesCollection = database.getCollection("keyRaces", PotentialKeyRace.class);
+							Bson raceQuery = and(
+								eq("track", starter.getLastRaced().getLastRacePerformance().getTrack().getCode()),
+								eq("raceDate",starter.getLastRaced().getRaceDate()),
+								eq("raceNumber", starter.getLastRaced().getLastRacePerformance().getRaceNumber())
+							);
+							
+							PotentialKeyRace keyRaceFound = keyRacesCollection.find(raceQuery).first();
+							if (keyRaceFound != null) {
+								Boolean horseFound = false;
+								for (PotentialKeyRaceHorse keyRaceHorse : keyRaceFound.getHorses()) {
+									if (starter.getHorse().getName().equals(keyRaceHorse.getName())) {
+										horseFound = true;
+									}
+	
+								}	
+								if (!horseFound) {
+									List<PotentialKeyRaceHorse> newKeyRaceHorses = new ArrayList<PotentialKeyRaceHorse>();
+									PotentialKeyRaceHorse keyRaceHorse = PotentialKeyRaceHorse.builder()
+											.withName(starter.getHorse().getName())
+											.withPosition(starter.getFinishPosition())
+											.withBeatenLengths(
+													starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
+													? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
+													: 0)										
+											.withTrack(raceResult.getTrack().getCode())
+											.withRaceDate(raceResult.getRaceDate())
+											.withRaceNumber(raceResult.getRaceNumber())
+											.build();
+									newKeyRaceHorses.add(keyRaceHorse);
+									newKeyRaceHorses.addAll(keyRaceFound.getHorses());
+	
+									keyRaceFound.setHorses(newKeyRaceHorses);
+									keyRaceFound.save();
 								}
-
-							}	
-							if (!horseFound) {
+							} else {
 								List<PotentialKeyRaceHorse> newKeyRaceHorses = new ArrayList<PotentialKeyRaceHorse>();
-								PotentialKeyRaceHorse keyRaceHorse = PotentialKeyRaceHorse.builder()
-										.withName(starter.getHorse().getName())
-										.withPosition(starter.getFinishPosition())
-										.withBeatenLengths(
-												starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
-												? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
-												: 0)										
-										.withTrack(raceResult.getTrack().getCode())
-										.withRaceDate(raceResult.getRaceDate())
-										.withRaceNumber(raceResult.getRaceNumber())
-										.build();
-								newKeyRaceHorses.add(keyRaceHorse);
-								newKeyRaceHorses.addAll(keyRaceFound.getHorses());
-
-								keyRaceFound.setHorses(newKeyRaceHorses);
-								keyRaceFound.save();
+								newKeyRaceHorses.add(PotentialKeyRaceHorse.builder()
+									.withName(starter.getHorse().getName())
+									.withPosition(starter.getFinishPosition())
+									.withBeatenLengths(
+											starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
+											? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
+											: 0)
+									.withTrack(raceResult.getTrack().getCode())
+									.withRaceDate(raceResult.getRaceDate())
+									.withRaceNumber(raceResult.getRaceNumber())
+									.build()			
+								);	
+								keyRace.setHorses(newKeyRaceHorses);				
+								keyRace.save();
 							}
-						} else {
-							List<PotentialKeyRaceHorse> newKeyRaceHorses = new ArrayList<PotentialKeyRaceHorse>();
-							newKeyRaceHorses.add(PotentialKeyRaceHorse.builder()
-								.withName(starter.getHorse().getName())
-								.withPosition(starter.getFinishPosition())
-								.withBeatenLengths(
-										starter.getFinishPosition() > 1 && starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind() != null
-										? starter.getPointOfCall("Fin").get().getRelativePosition().getTotalLengthsBehind().getLengths() 
-										: 0)
-								.withTrack(raceResult.getTrack().getCode())
-								.withRaceDate(raceResult.getRaceDate())
-								.withRaceNumber(raceResult.getRaceNumber())
-								.build()			
-							);	
-							keyRace.setHorses(newKeyRaceHorses);				
-							keyRace.save();
 						}
-					}
+				}
 			}
 		}
 	}
@@ -386,19 +389,19 @@ public class ProcessChart {
 					
 					MongoCollection<RaceResult> collection = database.getCollection("raceResults", RaceResult.class);
 					UpdateResult updateResult = collection.replaceOne(query, result, opts);
-//					if (updateResult.getModifiedCount() == 1) {
-//						System.out.println("raceResult "
-//								+ result.getTrack().getCode() 
-//								+ " - " + result.getRaceDate() 
-//								+ " - Race " + result.getRaceNumber()
-//								+ " updated.");
-//					} else {
-//						System.out.println("raceResult "
-//								+ result.getTrack().getCode() 
-//								+ " - " + result.getRaceDate() 
-//								+ " - Race " + result.getRaceNumber()
-//								+ " saved. (ID = " + updateResult.getUpsertedId());
-//					}	
+					if (updateResult.getModifiedCount() == 1) {
+						System.out.println("raceResult "
+								+ result.getTrack().getCode() 
+								+ " - " + result.getRaceDate() 
+								+ " - Race " + result.getRaceNumber()
+								+ " updated.");
+					} else {
+						System.out.println("raceResult "
+								+ result.getTrack().getCode() 
+								+ " - " + result.getRaceDate() 
+								+ " - Race " + result.getRaceNumber()
+								+ " saved. (ID = " + updateResult.getUpsertedId());
+					}	
 				}
 			}
 			
@@ -455,6 +458,7 @@ public class ProcessChart {
 			return results;
 			
 		} catch (Exception e) {
+			System.out.println("process - " + e.getMessage());
 			throw e;
 		
 		}
@@ -479,7 +483,7 @@ public class ProcessChart {
 					            StandardCopyOption.REPLACE_EXISTING);
 					}
 				} catch (Exception e) {
-					System.out.println(file.getName() + " - no chart found");
+					System.out.println(file.getName() + " - " + e.getMessage());
 					e.printStackTrace();
 				}
             });

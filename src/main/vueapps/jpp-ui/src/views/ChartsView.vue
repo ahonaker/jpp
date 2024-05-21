@@ -204,6 +204,7 @@ export default {
 							raceDate: this.chart[i].raceDate,
 							raceNumber: this.chart[i].raceNumber,
                             raceClassification: this.chart[i].conditions.raceClassification,
+							type: this.chart[i].conditions.type,
                             purse: this.chart[i].purse.value,
                             distance: this.chart[i].distance.value,
                             exactDistanceFlag: this.chart[i].distance.exact,

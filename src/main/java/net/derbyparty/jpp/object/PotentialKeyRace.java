@@ -188,19 +188,19 @@ public class PotentialKeyRace implements Serializable {
 		MongoCollection<PotentialKeyRace> collection = database.getCollection("keyRaces", PotentialKeyRace.class);
 		UpdateResult result = collection.replaceOne(query, this, opts);
 		if (result.getModifiedCount() == 1) {
-			System.out.println("potentialKeyRace " 
-					+ this.getTrack() + ":" 
-					+ this.getRaceDate() 
-					+ " - Race " + 
-					this.getRaceNumber() 
-					+ " updated.");
+//			System.out.println("potentialKeyRace " 
+//					+ this.getTrack() + ":" 
+//					+ this.getRaceDate() 
+//					+ " - Race " + 
+//					this.getRaceNumber() 
+//					+ " updated.");
 		} else {
-			System.out.println("potentialKeyRace " 
-					+ this.getTrack() + ":" 
-					+ this.getRaceDate() 
-					+ " - Race " 
-					+ this.getRaceNumber() 
-					+ " inserted. (ID = " + result.getUpsertedId());
+//			System.out.println("potentialKeyRace " 
+//					+ this.getTrack() + ":" 
+//					+ this.getRaceDate() 
+//					+ " - Race " 
+//					+ this.getRaceNumber() 
+//					+ " inserted. (ID = " + result.getUpsertedId());
 		}
 
 	}

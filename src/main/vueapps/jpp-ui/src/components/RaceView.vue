@@ -6,6 +6,7 @@
         small
         sort-icon-left
         sort-desc
+        :sort-compare="sortCompare"
         :tbody-tr-class="rowClass"
         primary-key="programNumber"
         :tbody-transition-props="transProps"
@@ -601,21 +602,21 @@ export default {
 				{key: "mlodds", "label": "ML", title: "Morning Line Odds", sortable:true, tdClass: this.formatOdds, rank: true, reverse: true},
 				{key: "name", tdClass: this.highlightName},
 				{key: "daysSinceLastRace", label:"l/r", title: "Days Since Last Race", tdClass: this.highlightDaysSince},
-				{key: "style", label: "Style", title: "Run Style and Speed Points", tdClass: this.highlightPaceAdvantage, rank: false },
-				{key: "classRating", label:"Class", title: "Weighted Average Speed Par", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "averageCompetitiveLevel", title: "Average Competitive Level (Weighted Average Speed Par where finish in the money or within 3 lengths)", label:"ACL", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "speedRating", label:"Speed", title: "Weighted Average BRIS Speed Figure", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true},
-                {key: "primePower", label:"PP", title: "Prime Power", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true},
-                {key: "arating", label: "AR", title: "A Rating", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "aratingForm", label:"AR F", title: "A Form Rating", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true}, 
-				{key: "aratingConnections", label:"AR Co", title: "A Connections Rating", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "e1Avg", label:"E1", title: "Average E1 Pace", formatter: this.formatInt, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "e2Avg", label:"E2", title: "Average E2 Pace", formatter: this.formatInt, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "turnTime", label:"TT", title: "Average Turn Time (E2-E1)", formatter: this.formatInt, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "latePaceAvg", label:"Late", title: "Average Late Pace", formatter: this.formatInt, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "combinedPaceAvg", label:"Comb", title: "Average Combined Pace (E2+Late)", formatter: this.format2Places, sortable: true, tdClass: this.highlightMax, rank: true},
-				{key: "classShift", label:"cSh", title: "Class Rating Shift (Par change from previous race)", formatter: this.format2Places, sortable: true, tdClass: this.highlightShift, reverse: true, rank: true},
-				{key: "purseShift", label:"pSh", title: "Purse Shift (change from previous race)", formatter: this.formatInt, sortable: true, tdClass: this.highlightShift, reverse: true, rank: true},
+				{key: "style", label: "Style", title: "Run Style and Speed Points", tdClass: this.highlightPaceAdvantage, sortable: true, rank: false },
+				{key: "classRating", label:"Class", title: "Weighted Average Speed Par", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "averageCompetitiveLevel", title: "Average Competitive Level (Weighted Average Speed Par where finish in the money or within 3 lengths)", label:"ACL", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "speedRating", label:"Speed", title: "Weighted Average BRIS Speed Figure", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+                {key: "primePower", label:"PP", title: "Prime Power", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+                {key: "arating", label: "AR", title: "A Rating", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "aratingForm", label:"AR F", title: "A Form Rating", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true}, 
+				{key: "aratingConnections", label:"AR Co", title: "A Connections Rating", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "e1Avg", label:"E1", title: "Average E1 Pace", formatter: this.formatInt, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "e2Avg", label:"E2", title: "Average E2 Pace", formatter: this.formatInt, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "turnTime", label:"TT", title: "Average Turn Time (E2-E1)", formatter: this.formatInt, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "latePaceAvg", label:"Late", title: "Average Late Pace", formatter: this.formatInt, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "combinedPaceAvg", label:"Comb", title: "Average Combined Pace (E2+Late)", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightMax, rank: true},
+				{key: "classShift", label:"cSh", title: "Class Rating Shift (Par change from previous race)", formatter: this.format2Places, sortable: true, sortDirection: "desc", tdClass: this.highlightShift, reverse: true, rank: true},
+				{key: "purseShift", label:"pSh", title: "Purse Shift (change from previous race)", formatter: this.formatInt, sortable: true, sortDirection: "desc", tdClass: this.highlightShift, reverse: true, rank: true},
                 {key: "detailsButton", label:""},
 				{key: "_showDetails", thClass: 'd-none', tdClass: 'd-none' }
 
@@ -1089,7 +1090,29 @@ export default {
         comboAlerts(entry) {
             if (entry.comboAlert) return entry.comboAlert.split(";");
             return [];
-        }
+        },
+        sortCompare(aRow, bRow, key) {
+            var a,b;
+            if (key != "style") return false;
+            if (aRow.runStyle == bRow.runStyle) {
+                a = aRow.speedPoints;
+                b = bRow.speedPoints;
+                return a > b ? -1 : a < b ? 1 : 0;
+            } else {
+                a = this.numberForStyle(aRow.runStyle);
+                b = this.numberForStyle(bRow.runStyle);
+                return a < b ? -1 : a > b ? 1 : 0;
+            }
+        },
+        numberForStyle(style) {
+            switch (style) {
+                case "E": return 1;
+                case "E/P": return 2;
+                case "P": return 3;
+                case "S": return 4;
+                default: return 5;
+            }
+        },
     }
 
 }

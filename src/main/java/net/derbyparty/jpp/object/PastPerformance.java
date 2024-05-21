@@ -2821,7 +2821,7 @@ public class PastPerformance implements Serializable, Comparable<PastPerformance
 		if (raceNote != null) {
 			this.setComment(raceNote.getComment());
 			this.setFlag(raceNote.getFlag());
-			this.setFootnote(raceNote.getFootnote());
+			this.setFootnote(raceNote.getFootnote()); 
 		}
 
 	}
