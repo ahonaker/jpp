@@ -468,7 +468,7 @@
 						<b-col v-for="wager in race.multiRaceWagers" :key="wager.name">
 							<b-row>
 								<b-col cols="" class="text-center">	
-									<h6>{{wager.name}} ({{formatCurrency2(wager.min)}}) ({{wager.firstRace}}-{{wager.firstRace + wager.numRaces - 1}})</h6>
+									<h6>{{wager.name}} ({{formatCurrency2(wager.min)}}) ({{wager.races}})</h6>
 								</b-col>
 							</b-row>
 							<b-row class="my-2">

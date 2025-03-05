@@ -17,6 +17,7 @@ public class MultiRaceWager implements Serializable {
 	private float min;
 	private int numRaces;
 	private int firstRace;
+	private String races; 
 	private String tmA;
 	private float tmACost;
 	private String tmAB;
@@ -30,6 +31,27 @@ public class MultiRaceWager implements Serializable {
 	
 	private Boolean tmAchecked = false;
 	private Boolean tmABchecked = false;
+	@Generated("SparkTools")
+	private MultiRaceWager(Builder builder) {
+		this.Name = builder.Name;
+		this.index = builder.index;
+		this.min = builder.min;
+		this.numRaces = builder.numRaces;
+		this.firstRace = builder.firstRace;
+		this.races = builder.races;
+		this.tmA = builder.tmA;
+		this.tmACost = builder.tmACost;
+		this.tmAB = builder.tmAB;
+		this.tmABCost = builder.tmABCost;
+		this.tmB1 = builder.tmB1;
+		this.tmB1Cost = builder.tmB1Cost;
+		this.tmB2 = builder.tmB2;
+		this.tmB2Cost = builder.tmB2Cost;
+		this.tmC1 = builder.tmC1;
+		this.tmC1Cost = builder.tmC1Cost;
+		this.tmAchecked = builder.tmAchecked;
+		this.tmABchecked = builder.tmABchecked;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -39,10 +61,13 @@ public class MultiRaceWager implements Serializable {
 		result = prime * result + index;
 		result = prime * result + Float.floatToIntBits(min);
 		result = prime * result + numRaces;
+		result = prime * result + ((races == null) ? 0 : races.hashCode());
 		result = prime * result + ((tmA == null) ? 0 : tmA.hashCode());
 		result = prime * result + ((tmAB == null) ? 0 : tmAB.hashCode());
 		result = prime * result + Float.floatToIntBits(tmABCost);
+		result = prime * result + ((tmABchecked == null) ? 0 : tmABchecked.hashCode());
 		result = prime * result + Float.floatToIntBits(tmACost);
+		result = prime * result + ((tmAchecked == null) ? 0 : tmAchecked.hashCode());
 		result = prime * result + ((tmB1 == null) ? 0 : tmB1.hashCode());
 		result = prime * result + Float.floatToIntBits(tmB1Cost);
 		result = prime * result + ((tmB2 == null) ? 0 : tmB2.hashCode());
@@ -73,6 +98,11 @@ public class MultiRaceWager implements Serializable {
 			return false;
 		if (numRaces != other.numRaces)
 			return false;
+		if (races == null) {
+			if (other.races != null)
+				return false;
+		} else if (!races.equals(other.races))
+			return false;
 		if (tmA == null) {
 			if (other.tmA != null)
 				return false;
@@ -85,7 +115,17 @@ public class MultiRaceWager implements Serializable {
 			return false;
 		if (Float.floatToIntBits(tmABCost) != Float.floatToIntBits(other.tmABCost))
 			return false;
+		if (tmABchecked == null) {
+			if (other.tmABchecked != null)
+				return false;
+		} else if (!tmABchecked.equals(other.tmABchecked))
+			return false;
 		if (Float.floatToIntBits(tmACost) != Float.floatToIntBits(other.tmACost))
+			return false;
+		if (tmAchecked == null) {
+			if (other.tmAchecked != null)
+				return false;
+		} else if (!tmAchecked.equals(other.tmAchecked))
 			return false;
 		if (tmB1 == null) {
 			if (other.tmB1 != null)
@@ -139,6 +179,12 @@ public class MultiRaceWager implements Serializable {
 	}
 	public void setFirstRace(int firstRace) {
 		this.firstRace = firstRace;
+	}
+	public String getRaces() {
+		return races;
+	}
+	public void setRaces(String races) {
+		this.races = races;
 	}
 	public String getTmA() {
 		return tmA;
@@ -241,23 +287,8 @@ public class MultiRaceWager implements Serializable {
 	public void setTmC1checked(List<Boolean> tmC1checked) {
 	}
 	
-	@Generated("SparkTools")
-	private MultiRaceWager(Builder builder) {
-		this.Name = builder.Name;
-		this.index = builder.index;
-		this.min = builder.min;
-		this.numRaces = builder.numRaces;
-		this.firstRace = builder.firstRace;
-		this.tmA = builder.tmA;
-		this.tmACost = builder.tmACost;
-		this.tmAB = builder.tmAB;
-		this.tmABCost = builder.tmABCost;
-		this.tmB1 = builder.tmB1;
-		this.tmB1Cost = builder.tmB1Cost;
-		this.tmB2 = builder.tmB2;
-		this.tmB2Cost = builder.tmB2Cost;
-		this.tmC1 = builder.tmC1;
-		this.tmC1Cost = builder.tmC1Cost;
+	public MultiRaceWager() {
+		super();
 	}
 	@Generated("SparkTools")
 	public static Builder builder() {
@@ -270,6 +301,7 @@ public class MultiRaceWager implements Serializable {
 		private float min;
 		private int numRaces;
 		private int firstRace;
+		private String races;
 		private String tmA;
 		private float tmACost;
 		private String tmAB;
@@ -280,6 +312,8 @@ public class MultiRaceWager implements Serializable {
 		private float tmB2Cost;
 		private List<String> tmC1 = Collections.emptyList();
 		private float tmC1Cost;
+		private Boolean tmAchecked = false;
+		private Boolean tmABchecked = false;
 
 		private Builder() {
 		}
@@ -306,6 +340,11 @@ public class MultiRaceWager implements Serializable {
 
 		public Builder withFirstRace(int firstRace) {
 			this.firstRace = firstRace;
+			return this;
+		}
+
+		public Builder withRaces(String races) {
+			this.races = races;
 			return this;
 		}
 
@@ -359,12 +398,19 @@ public class MultiRaceWager implements Serializable {
 			return this;
 		}
 
+		public Builder withTmAchecked(Boolean tmAchecked) {
+			this.tmAchecked = tmAchecked;
+			return this;
+		}
+
+		public Builder withTmABchecked(Boolean tmABchecked) {
+			this.tmABchecked = tmABchecked;
+			return this;
+		}
+
 		public MultiRaceWager build() {
 			return new MultiRaceWager(this);
 		}
-	}
-	public MultiRaceWager() {
-		super();
 	}
 
 

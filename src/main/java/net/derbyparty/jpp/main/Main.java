@@ -1,7 +1,9 @@
 package net.derbyparty.jpp.main;
 
+import java.awt.datatransfer.SystemFlavorMap;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecProvider;
@@ -38,6 +43,10 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.result.UpdateResult;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180Parser;
+import com.opencsv.RFC4180ParserBuilder;
 
 import net.derbyparty.jpp.chart.ProcessChart;
 import net.derbyparty.jpp.chartparser.charts.pdf.RaceResult;
@@ -728,7 +737,21 @@ public class Main {
 					List<List<String>> bPicks =  new ArrayList<List<String>>();
 					List<List<String>> cPicks =  new ArrayList<List<String>>();
 					
-					for (int i = race.getRaceNumber()-1; i <= race.getRaceNumber()-1 + wager.getNumRaces()-1; i++) {
+					int[] races = new int[wager.getNumRaces()] ;
+					if (wager.getRaces() == null) {		
+						for (int i = 0; i < wager.getNumRaces(); i++) {
+							races[i] = race.getRaceNumber() + i;
+						}
+					} else {
+						int i = 0;
+						for (String r : wager.getRaces().split("-")) {
+							races[i] = Integer.parseInt(r) - 1;
+							i++;
+						}		
+					}
+					
+					//for (int i = race.getRaceNumber()-1; i <= race.getRaceNumber()-1 + wager.getNumRaces()-1; i++) {
+					for (int i : races) {
 					
 						List<String> aHorses = new ArrayList<String>();
 						List<String> abHorses = new ArrayList<String>();
@@ -1540,6 +1563,16 @@ public class Main {
 		}
 		return mapper.writeValueAsString(card);
 	}
+	
+    public static List<File> getFilesWithExtension(String directoryPath, String fileExtension) throws Exception {
+        try (Stream<Path> pathStream = Files.walk(Paths.get(directoryPath))) {
+              return pathStream
+                      .filter(Files::isRegularFile)
+                      .filter(path -> path.toString().toLowerCase().endsWith(fileExtension.toLowerCase()))
+                      .map(Path::toFile)
+                      .collect(Collectors.toList());
+          }
+      }
 	
 	public static void script () throws Exception {
 		
