@@ -43,6 +43,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180Parser;
@@ -198,7 +199,7 @@ public class Loader {
             	}
             	
             	String races = "";
-            	if (matcher.group(11) == null) {
+            	if (matcher.group(11) == null || matcher.group(11).split("-").length != numRaces) {
             		for (int i = raceNum; i < raceNum + numRaces; i++) {
             			if (races != "") races += "-";
             			races += i;
@@ -486,9 +487,12 @@ public class Loader {
 			    	}
 			    	
 					MongoCollection<Horse> horsesCollection = database.getCollection("horses", Horse.class);
-					Bson horseQuery = eq("name", values[44].trim().replaceAll("\\s\\(.+\\)", ""));
+					//Bson horseQuery = eq("name", values[44].trim().replaceAll("\\s\\(.+\\)", ""));
 					
-					Horse horse = horsesCollection.find(horseQuery).first();
+					Pattern regex = Pattern.compile(values[44].trim().replaceAll("\\s\\(.+\\)", ""), Pattern.CASE_INSENSITIVE);
+					Bson filter = Filters.eq("name", regex);
+					
+					Horse horse = horsesCollection.find(filter).first();
 			    	    	
 			    	List<PastPerformance> pps = new ArrayList<PastPerformance>();
 			    	Boolean over90Flagged = false, over365Flagged = false;
@@ -758,6 +762,8 @@ public class Loader {
 			    			.withEntry(values[4].trim())
 			    			.withMLOdds(values[43].isEmpty() ? 0 : Float.parseFloat(values[43].trim()))
 			    			.withName(WordUtils.capitalizeFully(values[44].trim()))
+			    			.withFlag((horse != null) ? horse.getFlag() : null)
+			    			.withComment((horse != null) ? horse.getComment() : null)
 			    			.withYearOfBirth(values[45].isBlank() ? 5 : Integer.parseInt(values[45].trim()))
 			    			.withFoalingMonth(new DateFormatSymbols().getShortMonths()[Integer.parseInt(values[46])-1] )
 			    			.withSex(values[48].trim())

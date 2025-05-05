@@ -7,14 +7,15 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.annotation.Generated;
 
-import org.bson.Document;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
+import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -22,6 +23,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -2110,11 +2112,11 @@ public class Entry implements Serializable {
 	}
 
 	public void addHorse() { 				
-		Document query = new Document()
-				.append("name", Name);	
+		Pattern regex = Pattern.compile(Name, Pattern.CASE_INSENSITIVE);
+		Bson filter = Filters.eq("name", regex);
 		
 		MongoCollection<Horse> collection = database.getCollection("horses", Horse.class);
-		Horse horse = collection.find(query).first();
+		Horse horse = collection.find(filter).first();
 		if (horse != null) {
 			this.setComment(horse.getComment());
 			this.setFlag(horse.getFlag());
