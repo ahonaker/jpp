@@ -232,6 +232,7 @@ public class ChartParser {
                 List<ChartCharacter> headerCharacters = runningLines.get(0);
                 TreeSet<RunningLineColumnIndex> runningLineColumnIndices =
                         RunningLineHeader.createIndexOfRunningLineColumns(headerCharacters);
+                //System.out.println(runningLineColumnIndices.toString());
 
                 // remove running line header
                 runningLines = runningLines.subList(1, runningLines.size());
@@ -269,6 +270,7 @@ public class ChartParser {
                 List<Winner> winners = new ArrayList<>();
                 try {
                     winners = Winner.parse(lines);
+                    
                 } catch (NoWinnersDeclaredException e) {
                 	e.printStackTrace();
                 }
@@ -525,6 +527,7 @@ public class ChartParser {
         String previousChart = null;
         for (int i = 0; i < csvCharts.size(); i++) {
             String csvChart = csvCharts.get(i);
+            //System.out.println(Chart.convertToText(convertToChartCharacters(csvChart)));
             List<ChartCharacter> chartCharacters = convertToChartCharacters(csvChart);
             List<List<ChartCharacter>> lines = separateIntoLines(chartCharacters);
 
@@ -542,9 +545,10 @@ public class ChartParser {
                     prunedCsvCharts.add(csvChart);
                 }
             } else {
-                previousChart = csvChart;
+                previousChart = (previousChart == null) ? csvChart : previousChart.concat(csvChart.substring(csvChart.indexOf(System.lineSeparator())));
             }
         }
+        //System.out.println(prunedCsvCharts);
         return prunedCsvCharts;
     }
 

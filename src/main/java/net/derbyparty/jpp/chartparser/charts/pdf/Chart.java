@@ -9,6 +9,7 @@ import java.util.List;
 public class Chart {
 
     public static BigDecimal THREE = new BigDecimal(3);
+    public static BigDecimal TWO = new BigDecimal(2);
 
     /**
      * Round half-up and to three decimal places
@@ -40,6 +41,7 @@ public class Chart {
         ChartCharacter prev = null;
         if (line != null) {
             for (ChartCharacter curr : line) {
+            	//System.out.print(curr.getUnicode());
                 if (prev != null) {
                     // add a whitespace (if required)
                     sb.append(addWhitespaceIfRequired(curr.getxDirAdj(), prev.getxDirAdj(),
@@ -54,6 +56,7 @@ public class Chart {
                 prev = curr;
             }
         }
+
         return sb.toString();
     }
 

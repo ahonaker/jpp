@@ -29,8 +29,9 @@ public class PointOfCallPosition {
      * lengths ahead
      */
     public static RelativePosition parse(List<ChartCharacter> characters) {
+    	//System.out.println(characters);
         Map<Double, List<ChartCharacter>> charactersByFontSize = characters.stream().collect(
-                Collectors.groupingBy(character -> character.getFontSize()));
+                Collectors.groupingBy(character ->  character.getxScale()));
 
         Integer position = getPosition(charactersByFontSize.get(SEVEN));
         LengthsAhead lengthsAhead = ChartLengthsAhead.parse(charactersByFontSize.get(SIX));

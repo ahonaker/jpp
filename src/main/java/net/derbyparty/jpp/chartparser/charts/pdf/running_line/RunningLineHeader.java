@@ -108,6 +108,7 @@ public class RunningLineHeader {
      */
     static Map<String, ChartCharacter> createPostRaceRunningLineHeaderColumns(
             List<ChartCharacter> runningLineHeader) throws MalformedRaceException {
+    	//System.out.println(runningLineHeader);
         ChartCharacter index = null;
         StringBuffer sb = null;
         List<ChartCharacter> covered = new ArrayList<>();
@@ -134,6 +135,10 @@ public class RunningLineHeader {
                     // than that
                     if (column.equals("Odds")) {
                         index.setxDirAdj(Chart.round(index.getxDirAdj() - 3.891).doubleValue());
+                    }
+                    //left shift Comments column slightly - Derby columns were a bit off
+                    if (column.equals("Comments")) {
+                        index.setxDirAdj(Chart.round(index.getxDirAdj() - 0.01).doubleValue());
                     }
                     end.put(column, index);
                     sb = null;

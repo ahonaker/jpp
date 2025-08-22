@@ -192,7 +192,8 @@ public class LastRaced {
             StringBuilder trackCodeBuilder = new StringBuilder();
             StringBuilder finishPositionBuilder = new StringBuilder();
             for (ChartCharacter pdfCharacter : chartCharacters) {
-                if (pdfCharacter.getFontSize() == 5) {
+            	//System.out.println(pdfCharacter.toString());
+                if (pdfCharacter.getxScale() == 5) {
                     if (trackCodeFound) {
                         finishPositionBuilder.append(pdfCharacter.getUnicode());
                     } else {

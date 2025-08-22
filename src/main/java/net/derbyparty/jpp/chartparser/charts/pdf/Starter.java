@@ -529,6 +529,7 @@ public class Starter {
                     }
                     break;
                 case "Odds":
+                	//System.out.println(chartCharacters);
                     builder.odds(Odds.parse(chartCharacters));
                     break;
                 case "Ind.Time":
@@ -551,6 +552,7 @@ public class Starter {
                     builder.medicationAndEquipment(MedicationEquipment.parse(chartCharacters));
                     break;
                 case "Comments":
+                	//System.out.println(chartCharacters);
                     builder.comments(Chart.convertToText(chartCharacters));
                     break;
                 default:

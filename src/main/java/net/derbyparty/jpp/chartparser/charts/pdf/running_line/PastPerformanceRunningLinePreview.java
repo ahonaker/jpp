@@ -77,14 +77,15 @@ public class PastPerformanceRunningLinePreview {
 
         for (List<ChartCharacter> line : lines) {
             String text = Chart.convertToText(line);
+            //System.out.println(Chart.convertToText(line));
 
             Matcher matcher = PP_RUNNING_LINE_PREVIEW.matcher(text);
-            if (matcher.find()) {
+            if (matcher.find()) {          	
                 ppRunningLinePreview = line;
                 break;
             }
         }
-        
+
         return ppRunningLinePreview;
     }
 
